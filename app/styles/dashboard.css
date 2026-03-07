@@ -1,0 +1,631 @@
+/* ============================================
+   Ma Baker and Chef — Estilos Dashboards
+   Colores oficiales: Rojo #D7282F | Azul #0071BC
+   Tipografía: Montserrat (oficial del sitio)
+   ============================================ */
+
+/* ── Body Dashboard ── */
+.dashboard-body {
+    display: flex;
+    height: 100vh;
+    overflow: hidden;
+    font-family: 'Montserrat', 'Inter', sans-serif;
+    background: #F5F5F5;
+    color: #1C1C1C;
+}
+
+/* ── Sidebar ── */
+.sidebar {
+    width: 260px;
+    min-width: 260px;
+    background: #1C1C1C;
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    overflow-y: auto;
+    transition: all 0.3s ease;
+    z-index: 50;
+    border-right: 3px solid #D7282F;
+}
+
+.sidebar-brand {
+    padding: 20px 18px;
+    background: #D7282F;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    border-bottom: 2px solid rgba(255, 255, 255, 0.15);
+}
+
+.brand-logo-img {
+    height: 44px;
+    width: auto;
+    object-fit: contain;
+    filter: brightness(0) invert(1);
+    /* logo blanco */
+    max-width: 150px;
+}
+
+.brand-emoji {
+    font-size: 32px;
+    flex-shrink: 0;
+}
+
+.brand-name {
+    font-family: 'Montserrat', sans-serif;
+    font-size: 15px;
+    font-weight: 800;
+    color: #FFFFFF;
+    line-height: 1.2;
+    letter-spacing: -0.02em;
+}
+
+.brand-sub {
+    font-size: 10px;
+    color: rgba(255, 255, 255, 0.75);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+}
+
+/* ── Nav Items ── */
+.sidebar-nav {
+    flex: 1;
+    padding: 12px 0;
+}
+
+.nav-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 20px;
+    color: rgba(255, 255, 255, 0.65);
+    text-decoration: none;
+    font-size: 13px;
+    font-weight: 500;
+    transition: all 0.2s;
+    border-left: 3px solid transparent;
+}
+
+.nav-item:hover {
+    background: rgba(215, 40, 47, 0.15);
+    color: #FFFFFF;
+    border-left-color: rgba(215, 40, 47, 0.5);
+}
+
+.nav-item.active {
+    background: rgba(215, 40, 47, 0.2);
+    color: #FFFFFF;
+    border-left-color: #D7282F;
+    font-weight: 700;
+}
+
+.nav-item span {
+    font-size: 16px;
+}
+
+/* ── Sidebar Footer ── */
+.sidebar-footer {
+    padding: 14px 16px;
+    border-top: 1px solid rgba(255, 255, 255, 0.08);
+    background: rgba(0, 0, 0, 0.2);
+}
+
+.user-info {
+    font-size: 12px;
+    color: rgba(255, 255, 255, 0.5);
+    margin-bottom: 8px;
+    line-height: 1.4;
+}
+
+.user-name {
+    font-weight: 700;
+    color: rgba(255, 255, 255, 0.85);
+    display: block;
+}
+
+.user-rol {
+    font-size: 10px;
+    color: #D7282F;
+    text-transform: uppercase;
+}
+
+.btn-logout {
+    width: 100%;
+    padding: 8px;
+    background: rgba(215, 40, 47, 0.2);
+    color: #E85059;
+    border: 1px solid rgba(215, 40, 47, 0.3);
+    border-radius: 8px;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    font-family: inherit;
+    transition: all 0.2s;
+}
+
+.btn-logout:hover {
+    background: #D7282F;
+    color: white;
+    border-color: #D7282F;
+}
+
+/* ── Dashboard Main ── */
+.dashboard-main {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+/* ── Header ── */
+.dash-header {
+    background: #D7282F;
+    padding: 0 24px;
+    height: 58px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    box-shadow: 0 2px 12px rgba(215, 40, 47, 0.3);
+    flex-shrink: 0;
+}
+
+.menu-toggle {
+    background: none;
+    border: none;
+    color: rgba(255, 255, 255, 0.8);
+    font-size: 20px;
+    cursor: pointer;
+    padding: 4px;
+    display: none;
+}
+
+.dash-header-title {
+    flex: 1;
+    font-size: 16px;
+    font-weight: 700;
+    color: #FFFFFF;
+    font-family: 'Montserrat', sans-serif;
+}
+
+/* ── Rol Badges ── */
+.rol-badge {
+    padding: 4px 14px;
+    border-radius: 999px;
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+}
+
+.rol-badge.admin {
+    background: rgba(255, 255, 255, 0.2);
+    color: white;
+}
+
+.rol-badge.rrhh {
+    background: rgba(0, 113, 188, 0.3);
+    color: #90CAEF;
+}
+
+.rol-badge.medico {
+    background: rgba(34, 197, 94, 0.3);
+    color: #86EFAC;
+}
+
+.rol-badge.jefe {
+    background: rgba(245, 158, 11, 0.3);
+    color: #FCD34D;
+}
+
+.rol-badge.sgi {
+    background: rgba(167, 139, 250, 0.3);
+    color: #C4B5FD;
+}
+
+/* ── Panels Container ── */
+.panel-container {
+    flex: 1;
+    overflow-y: auto;
+    padding: 24px;
+}
+
+/* ── Panels ── */
+.panel {
+    display: none;
+    animation: fadeIn 0.25s ease;
+}
+
+.panel.active {
+    display: block;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(8px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* ── Stats Grid ── */
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+    gap: 16px;
+    margin-bottom: 24px;
+}
+
+.stat-card {
+    background: white;
+    border-radius: 16px;
+    padding: 20px;
+    text-align: center;
+    border: 1px solid #E5E7EB;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+    transition: all 0.2s;
+}
+
+.stat-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 16px rgba(215, 40, 47, 0.12);
+}
+
+.stat-icon {
+    font-size: 32px;
+    margin-bottom: 8px;
+}
+
+.stat-num {
+    font-size: 36px;
+    font-weight: 800;
+    color: #D7282F;
+    line-height: 1;
+    margin-bottom: 4px;
+}
+
+.stat-label {
+    font-size: 12px;
+    color: #6B7280;
+    font-weight: 500;
+}
+
+/* ── Panel Toolbar ── */
+.panel-toolbar {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+}
+
+.panel-toolbar h2 {
+    font-size: 18px;
+    font-weight: 800;
+    color: #1C1C1C;
+    font-family: 'Montserrat', sans-serif;
+    flex: 1;
+}
+
+.filter-select {
+    padding: 8px 12px;
+    border: 1.5px solid #E5E7EB;
+    border-radius: 8px;
+    font-size: 13px;
+    font-family: inherit;
+    background: white;
+    cursor: pointer;
+}
+
+.filter-select:focus {
+    outline: none;
+    border-color: #D7282F;
+}
+
+/* ── Panel Sections ── */
+.panel-section {
+    margin-bottom: 24px;
+}
+
+.section-title {
+    font-size: 14px;
+    font-weight: 700;
+    color: #374151;
+    margin-bottom: 12px;
+    padding-bottom: 8px;
+    border-bottom: 2px solid #D7282F;
+}
+
+.panel-hint {
+    font-size: 13px;
+    color: #6B7280;
+    margin-bottom: 12px;
+}
+
+/* ── Tables ── */
+.table-wrapper {
+    width: 100%;
+    overflow-x: auto;
+}
+
+.data-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+    background: white;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+}
+
+.data-table th {
+    background: #1C1C1C;
+    color: white;
+    padding: 12px 16px;
+    text-align: left;
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    white-space: nowrap;
+}
+
+.data-table td {
+    padding: 12px 16px;
+    border-bottom: 1px solid #F3F4F6;
+    color: #374151;
+    vertical-align: top;
+}
+
+.data-table tr:last-child td {
+    border-bottom: none;
+}
+
+.data-table tr:hover td {
+    background: #FFF5F5;
+}
+
+.loading-row {
+    text-align: center;
+    padding: 32px;
+    color: #9CA3AF;
+    font-style: italic;
+}
+
+/* ── Score Badge ── */
+.score-chip {
+    display: inline-block;
+    padding: 3px 10px;
+    border-radius: 999px;
+    font-size: 11px;
+    font-weight: 700;
+}
+
+.score-high {
+    background: rgba(34, 197, 94, 0.15);
+    color: #16A34A;
+}
+
+.score-med {
+    background: rgba(245, 158, 11, 0.15);
+    color: #D97706;
+}
+
+.score-low {
+    background: rgba(239, 68, 68, 0.15);
+    color: #DC2626;
+}
+
+/* ── Action Buttons ── */
+.btn-action {
+    padding: 8px 16px;
+    background: #D7282F;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 700;
+    cursor: pointer;
+    font-family: inherit;
+    transition: all 0.2s;
+}
+
+.btn-action:hover {
+    background: #B01E24;
+    transform: translateY(-1px);
+}
+
+.btn-action.secondary {
+    background: #0071BC;
+}
+
+.btn-action.secondary:hover {
+    background: #005A96;
+}
+
+.btn-action.outline {
+    background: transparent;
+    color: #D7282F;
+    border: 2px solid #D7282F;
+}
+
+.btn-action.outline:hover {
+    background: #D7282F;
+    color: white;
+}
+
+/* ── Badges de estado/restricción ── */
+.badge-restricted {
+    background: rgba(239, 68, 68, 0.1);
+    color: #DC2626;
+    font-size: 11px;
+    font-weight: 600;
+    padding: 3px 10px;
+    border-radius: 999px;
+    border: 1px solid rgba(239, 68, 68, 0.2);
+}
+
+/* ── Privacy Notice ── */
+.privacy-notice {
+    background: rgba(0, 113, 188, 0.08);
+    border: 1.5px solid rgba(0, 113, 188, 0.25);
+    border-radius: 10px;
+    padding: 14px 16px;
+    display: flex;
+    gap: 12px;
+    align-items: flex-start;
+    margin-bottom: 20px;
+    font-size: 13px;
+    color: #1E40AF;
+}
+
+/* ── Dept Banner ── */
+.dept-banner {
+    background: linear-gradient(135deg, #D7282F 0%, #B01E24 100%);
+    color: white;
+    padding: 14px 20px;
+    border-radius: 12px;
+    margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 14px;
+    font-weight: 600;
+}
+
+/* ── PDF Upload Zone ── */
+.upload-zone {
+    background: white;
+    border: 2.5px dashed #D7282F;
+    border-radius: 16px;
+    padding: 48px 32px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.upload-zone:hover,
+.upload-zone.drag-over {
+    background: #FFF5F5;
+    border-color: #B01E24;
+    transform: scale(1.01);
+}
+
+.upload-icon {
+    font-size: 52px;
+    margin-bottom: 16px;
+}
+
+.upload-text {
+    font-size: 18px;
+    font-weight: 700;
+    color: #1C1C1C;
+    margin-bottom: 8px;
+}
+
+.upload-hint {
+    font-size: 13px;
+    color: #6B7280;
+}
+
+/* ── Upload Queue ── */
+.upload-queue {
+    margin-top: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.upload-item {
+    background: white;
+    border: 1px solid #E5E7EB;
+    border-radius: 10px;
+    padding: 14px 16px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.upload-item-icon {
+    font-size: 24px;
+}
+
+.upload-item-info {
+    flex: 1;
+}
+
+.upload-item-name {
+    font-size: 13px;
+    font-weight: 600;
+    color: #1C1C1C;
+}
+
+.upload-item-status {
+    font-size: 11px;
+    color: #6B7280;
+    margin-top: 2px;
+}
+
+.upload-item-bar {
+    height: 4px;
+    background: #F3F4F6;
+    border-radius: 999px;
+    margin-top: 6px;
+    overflow: hidden;
+}
+
+.upload-item-fill {
+    height: 100%;
+    background: #D7282F;
+    border-radius: 999px;
+    transition: width 0.4s;
+}
+
+.upload-item .status-ok {
+    color: #16A34A;
+    font-size: 18px;
+}
+
+.upload-item .status-err {
+    color: #DC2626;
+    font-size: 18px;
+}
+
+/* ── Mobile Responsive ── */
+@media (max-width: 768px) {
+    .sidebar {
+        position: fixed;
+        left: -260px;
+        top: 0;
+        height: 100vh;
+        transition: left 0.3s ease;
+        z-index: 200;
+    }
+
+    .sidebar.open {
+        left: 0;
+    }
+
+    .dashboard-main {
+        width: 100%;
+    }
+
+    .menu-toggle {
+        display: block !important;
+    }
+
+    .stats-grid {
+        grid-template-columns: 1fr 1fr;
+    }
+
+    .panel-container {
+        padding: 16px;
+    }
+
+    .dash-header {
+        padding: 0 16px;
+    }
+}

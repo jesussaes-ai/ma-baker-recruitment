@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ma Baker — Admin General</title>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&display=swap"
+        rel="stylesheet">
+    <link rel="icon" href="assets/favicon.ico">
+    <link rel="stylesheet" href="styles/main.css">
+    <link rel="stylesheet" href="styles/dashboard.css">
+</head>
+
+<body class="dashboard-body">
+
+    <nav class="sidebar" id="sidebar">
+        <div class="sidebar-brand">
+            <img src="assets/logo.webp" alt="Ma Baker and Chef" class="brand-logo-img"
+                onerror="this.style.display='none'; this.parentElement.innerHTML+='<span class=brand-emoji>🧁</span>'">
+            <div>
+                <div class="brand-name">Ma Baker</div>
+                <div class="brand-sub">Admin General</div>
+            </div>
+        </div>
+        <nav class="sidebar-nav">
+            <a href="#" class="nav-item active" data-panel="resumen"><span>📊</span> Resumen General</a>
+            <a href="#" class="nav-item" data-panel="candidatos"><span>👥</span> Candidatos Activos</a>
+            <a href="#" class="nav-item" data-panel="rechazados"><span>📂</span> Prospectos Rechazados</a>
+            <a href="#" class="nav-item" data-panel="psicometricos"><span>🧠</span> Psicométricos</a>
+            <a href="#" class="nav-item" data-panel="medico"><span>🏥</span> Vista Médica</a>
+            <a href="#" class="nav-item" data-panel="jefe"><span>🏢</span> Evaluaciones Jefes</a>
+            <a href="#" class="nav-item" data-panel="sgi"><span>✅</span> Auditoría SGI</a>
+            <a href="#" class="nav-item" data-panel="usuarios"><span>⚙️</span> Gestión de Usuarios</a>
+            <a href="#" class="nav-item" data-panel="logs"><span>📋</span> Log Agente IA</a>
+            <a href="#" class="nav-item" data-panel="vacantes"><span>💼</span> Catálogo de Puestos</a>
+            <a href="cargar-puestos.html" class="nav-item"
+                style="color:#E85059;border-left-color:#D7282F;"><span>📤</span> Cargar PDFs ✦</a>
+        </nav>
+        <div class="sidebar-footer">
+            <div class="user-info" id="userInfo"></div>
+            <button class="btn-logout" onclick="logout()">Cerrar sesión</button>
+        </div>
+    </nav>
+
+    <div class="dashboard-main">
+        <header class="dash-header">
+            <button class="menu-toggle" onclick="toggleSidebar()">☰</button>
+            <div class="dash-header-title" id="panelTitle">📊 Resumen General</div>
+            <div class="rol-badge admin">⚙️ Admin</div>
+        </header>
+
+        <!-- Panel: Resumen -->
+        <div class="panel active" id="panel-resumen">
+            <!-- Stats -->
+            <div class="stats-grid" id="statsGrid">
+                <div class="stat-card">
+                    <div class="stat-icon">👥</div>
+                    <div class="stat-num" id="statCandidatos">—</div>
+                    <div class="stat-label">Candidatos Activos</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon">📂</div>
+                    <div class="stat-num" id="statRechazados">—</div>
+                    <div class="stat-label">Prospectos Rechazados</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon">🧠</div>
+                    <div class="stat-num" id="statPsico">—</div>
+                    <div class="stat-label">Psicométricos Pendientes</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon">🏥</div>
+                    <div class="stat-num" id="statMedico">—</div>
+                    <div class="stat-label">Pendientes Médico</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon">🏢</div>
+                    <div class="stat-num" id="statJefe">—</div>
+                    <div class="stat-label">Pendientes Jefe</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon">✅</div>
+                    <div class="stat-num" id="statContratos">—</div>
+                    <div class="stat-label">Listos Para Contrato</div>
+                </div>
+            </div>
+            <!-- Accesos Rápidos -->
+            <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:24px;">
+                <button class="btn-action" onclick="window.location='cargar-puestos.html'">📤 Cargar Descripciones
+                    PDF</button>
+                <button class="btn-action secondary" onclick="switchPanel('candidatos')">👥 Ver Candidatos</button>
+                <button class="btn-action secondary" onclick="switchPanel('rechazados')">📂 Ver Rechazados</button>
+                <button class="btn-action outline" onclick="switchPanel('logs')">📋 Ver Log IA</button>
+            </div>
+            <div class="panel-section">
+                <h3 class="section-title">Candidatos Activos Recientes</h3>
+                <div id="recentCandidatos" class="table-wrapper">
+                    <div class="loading-row">Cargando...</div>
+                </div>
+            </div>
+            <div class="panel-section">
+                <h3 class="section-title">Últimas Decisiones del Agente IA</h3>
+                <div id="recentLogs" class="table-wrapper">
+                    <div class="loading-row">Cargando...</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Panel: Candidatos -->
+        <div class="panel" id="panel-candidatos">
+            <div class="panel-toolbar">
+                <h2>👥 Candidatos Activos</h2>
+                <select class="filter-select" id="filterFase" onchange="loadCandidatos()">
+                    <option value="">Todas las fases</option>
+                    <option value="espera_psicometricos">Espera Psicometría</option>
+                    <option value="espera_medico">Espera Médico</option>
+                    <option value="espera_jefe">Espera Jefe</option>
+                    <option value="induccion_sgi">Inducción SGI</option>
+                    <option value="listo_para_contrato">Listo Para Contrato</option>
+                </select>
+            </div>
+            <div id="tablaCandidatos" class="table-wrapper">
+                <div class="loading-row">Cargando...</div>
+            </div>
+        </div>
+
+        <!-- Panel: Rechazados -->
+        <div class="panel" id="panel-rechazados">
+            <div class="panel-toolbar">
+                <h2>📂 Prospectos Rechazados</h2>
+                <select class="filter-select" id="filterFiltro" onchange="loadRechazados()">
+                    <option value="">Todos los motivos</option>
+                    <option value="edad">Edad</option>
+                    <option value="escolaridad">Escolaridad</option>
+                    <option value="experiencia">Experiencia</option>
+                    <option value="score">Score IA &lt; 80%</option>
+                    <option value="privacidad">No aceptó privacidad</option>
+                </select>
+            </div>
+            <div class="privacy-notice">
+                🔒 Esta tabla contiene datos personales. Su consulta queda registrada en el log del sistema.
+            </div>
+            <div id="tablaRechazados" class="table-wrapper">
+                <div class="loading-row">Cargando...</div>
+            </div>
+        </div>
+
+        <!-- Panel: Psicométricos -->
+        <div class="panel" id="panel-psicometricos">
+            <div class="panel-toolbar">
+                <h2>🧠 Gestor de Psicométricos</h2>
+                <span class="badge-restricted">RRHH + Admin</span>
+            </div>
+            <div class="stats-grid" style="margin-bottom:16px;">
+                <div class="stat-card">
+                    <div class="stat-icon">⏳</div>
+                    <div class="stat-num" id="psicoEnviados">—</div>
+                    <div class="stat-label">Links Enviados</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon">✅</div>
+                    <div class="stat-num" id="psicoAprobados">—</div>
+                    <div class="stat-label">Aprobados</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon">❌</div>
+                    <div class="stat-num" id="psicoReprobados">—</div>
+                    <div class="stat-label">Reprobados</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon">🔍</div>
+                    <div class="stat-num" id="psicoRevisar">—</div>
+                    <div class="stat-label">Por Revisar</div>
+                </div>
+            </div>
+            <div class="panel-section">
+                <h3 class="section-title">Candidatos awaiting psicométricos</h3>
+                <div id="tablaPsico" class="table-wrapper">
+                    <div class="loading-row">Cargando...</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Panel: Médico (solo admin puede ver aquí) -->
+        <div class="panel" id="panel-medico">
+            <div class="panel-toolbar">
+                <h2>🏥 Vista Médica</h2><span class="badge-restricted">Solo Médico + Admin</span>
+            </div>
+            <div id="tablaMedico" class="table-wrapper">
+                <div class="loading-row">Cargando...</div>
+            </div>
+        </div>
+
+        <!-- Panel: Jefe -->
+        <div class="panel" id="panel-jefe">
+            <div class="panel-toolbar">
+                <h2>🏢 Evaluaciones de Jefes de Área</h2>
+            </div>
+            <div id="tablaJefe" class="table-wrapper">
+                <div class="loading-row">Cargando...</div>
+            </div>
+        </div>
+
+        <!-- Panel: SGI -->
+        <div class="panel" id="panel-sgi">
+            <div class="panel-toolbar">
+                <h2>✅ Auditorías de Inducción SGI</h2>
+            </div>
+            <div id="tablaSGI" class="table-wrapper">
+                <div class="loading-row">Cargando...</div>
+            </div>
+        </div>
+
+        <!-- Panel: Usuarios -->
+        <div class="panel" id="panel-usuarios">
+            <div class="panel-toolbar">
+                <h2>⚙️ Gestión de Usuarios del Sistema</h2>
+            </div>
+            <div id="tablaUsuarios" class="table-wrapper">
+                <div class="loading-row">Cargando...</div>
+            </div>
+        </div>
+
+        <!-- Panel: Logs -->
+        <div class="panel" id="panel-logs">
+            <div class="panel-toolbar">
+                <h2>📋 Log del Agente IA</h2>
+            </div>
+            <div id="tablaLogs" class="table-wrapper">
+                <div class="loading-row">Cargando...</div>
+            </div>
+        </div>
+
+        <!-- Panel: Vacantes -->
+        <div class="panel" id="panel-vacantes">
+            <div class="panel-toolbar">
+                <h2>💼 Catálogo de Puestos</h2>
+                <button class="btn-action" onclick="window.location='cargar-puestos.html'">📤 Cargar PDF</button>
+            </div>
+            <div id="tablaVacantes" class="table-wrapper">
+                <div class="loading-row">Cargando...</div>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/auth.js"></script>
+    <script src="js/dashboard.js"></script>
+    <script>
+        function switchPanel(panel) {
+            document.querySelectorAll('.nav-item[data-panel]').forEach(a => a.classList.remove('active'));
+            document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+            const target = document.getElementById('panel-' + panel);
+            if (target) target.classList.add('active');
+            const nav = document.querySelector('[data-panel="' + panel + '"]');
+            if (nav) nav.classList.add('active');
+        }
+        initDashboard('admin', [
+            { id: 'candidatos', endpoint: '/rest/v1/candidatos_activos?select=*&order=created_at.desc&limit=100' },
+            { id: 'rechazados', endpoint: '/rest/v1/prospectos_rechazados?select=*&order=created_at.desc&limit=100' },
+            { id: 'logs', endpoint: '/rest/v1/log_agente?select=*&order=created_at.desc&limit=100' },
+            { id: 'vacantes', endpoint: '/rest/v1/catalogo_puestos?select=*&order=nombre_puesto.asc' },
+        ]);
+    </script>
+</body>
+
+</html>

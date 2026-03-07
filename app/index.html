@@ -1,0 +1,467 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<meta name="description" content="Formulario de aplicación de empleo en Ma Baker and Chef. Aplica aquí a nuestras vacantes disponibles.">
+<title>Ma Baker and Chef | Aplica Aquí</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles/main.css">
+</head>
+<body>
+
+<!-- Header -->
+<header class="app-header">
+  <div class="header-content">
+    <div class="brand">
+      <div class="brand-icon">🧁</div>
+      <div class="brand-text">
+        <span class="brand-name">Ma Baker & Chef</span>
+        <span class="brand-sub">Talento & Cultura</span>
+      </div>
+    </div>
+  </div>
+</header>
+
+<!-- Progress Bar -->
+<div class="progress-bar-container" id="progressBar">
+  <div class="progress-bar-track">
+    <div class="progress-bar-fill" id="progressFill"></div>
+  </div>
+  <div class="progress-steps" id="progressSteps">
+    <div class="step-dot active" data-step="1">
+      <span class="dot-icon">👤</span>
+      <span class="dot-label">Personal</span>
+    </div>
+    <div class="step-dot" data-step="2">
+      <span class="dot-icon">📚</span>
+      <span class="dot-label">Académico</span>
+    </div>
+    <div class="step-dot" data-step="3">
+      <span class="dot-icon">💼</span>
+      <span class="dot-label">Laboral</span>
+    </div>
+    <div class="step-dot" data-step="4">
+      <span class="dot-icon">🏥</span>
+      <span class="dot-label">Salud</span>
+    </div>
+    <div class="step-dot" data-step="5">
+      <span class="dot-icon">📋</span>
+      <span class="dot-label">Privacidad</span>
+    </div>
+  </div>
+</div>
+
+<!-- Main Form Container -->
+<main class="form-main">
+  <div class="form-container">
+    <!-- Selector de Vacante (visible solo en paso 0) -->
+    <div class="vacante-selector" id="vacanteSelector">
+      <div class="welcome-card">
+        <div class="welcome-icon">✨</div>
+        <h1 class="welcome-title">¡Únete a nuestro equipo!</h1>
+        <p class="welcome-subtitle">Selecciona la vacante a la que deseas aplicar</p>
+      </div>
+      <div class="vacantes-grid" id="vacantesGrid">
+        <div class="loading-card">
+          <div class="spinner"></div>
+          <p>Cargando vacantes...</p>
+        </div>
+      </div>
+      <p class="privacy-note">🔒 Tus datos están protegidos bajo nuestro Aviso de Privacidad</p>
+    </div>
+
+    <!-- Formulario Principal (oculto hasta seleccionar vacante) -->
+    <form id="applicationForm" class="application-form" style="display:none;" novalidate>
+      <input type="hidden" id="id_puesto" name="id_puesto">
+      <input type="hidden" id="codigo_puesto" name="codigo_puesto">
+
+      <!-- ===== PASO 1: DATOS PERSONALES ===== -->
+      <div class="form-step active" id="step-1">
+        <div class="step-header">
+          <div class="step-emoji">👤</div>
+          <h2>Datos Personales</h2>
+          <p>Cuéntanos quién eres</p>
+        </div>
+        <div class="fields-grid">
+          <div class="field-group full-width">
+            <label class="field-label" for="nombre_completo">Nombre Completo <span class="required">*</span></label>
+            <input type="text" id="nombre_completo" name="nombre_completo" class="field-input" placeholder="Nombre(s) y Apellidos" required autocomplete="name">
+          </div>
+          <div class="field-group">
+            <label class="field-label" for="fecha_nacimiento">Fecha de Nacimiento <span class="required">*</span></label>
+            <input type="date" id="fecha_nacimiento" name="fecha_nacimiento" class="field-input" required>
+          </div>
+          <div class="field-group">
+            <label class="field-label" for="genero">Género <span class="required">*</span></label>
+            <select id="genero" name="genero" class="field-input field-select" required>
+              <option value="">Selecciona...</option>
+              <option value="Masculino">Masculino</option>
+              <option value="Femenino">Femenino</option>
+              <option value="Prefiero no decir">Prefiero no decir</option>
+            </select>
+          </div>
+          <div class="field-group">
+            <label class="field-label" for="curp">CURP <span class="required">*</span></label>
+            <input type="text" id="curp" name="curp" class="field-input" placeholder="18 caracteres" maxlength="18" required style="text-transform:uppercase">
+          </div>
+          <div class="field-group">
+            <label class="field-label" for="rfc">RFC <span class="required">*</span></label>
+            <input type="text" id="rfc" name="rfc" class="field-input" placeholder="RFC con homoclave" maxlength="13" required style="text-transform:uppercase">
+          </div>
+          <div class="field-group">
+            <label class="field-label" for="estado_civil">Estado Civil <span class="required">*</span></label>
+            <select id="estado_civil" name="estado_civil" class="field-input field-select" required>
+              <option value="">Selecciona...</option>
+              <option value="Soltero(a)">Soltero(a)</option>
+              <option value="Casado(a)">Casado(a)</option>
+              <option value="Unión Libre">Unión Libre</option>
+              <option value="Divorciado(a)">Divorciado(a)</option>
+              <option value="Viudo(a)">Viudo(a)</option>
+            </select>
+          </div>
+          <div class="field-group">
+            <label class="field-label" for="telefono">Teléfono / Celular <span class="required">*</span></label>
+            <input type="tel" id="telefono" name="telefono" class="field-input" placeholder="10 dígitos" required autocomplete="tel">
+          </div>
+          <div class="field-group">
+            <label class="field-label" for="email">Correo Electrónico <span class="required">*</span></label>
+            <input type="email" id="email" name="email" class="field-input" placeholder="tu@correo.com" required autocomplete="email">
+          </div>
+          <div class="field-group full-width">
+            <label class="field-label" for="domicilio">Domicilio (Calle y Número) <span class="required">*</span></label>
+            <input type="text" id="domicilio" name="domicilio" class="field-input" placeholder="Ej: Av. Vallarta #123 Int 5" required autocomplete="street-address">
+          </div>
+          <div class="field-group">
+            <label class="field-label" for="colonia">Colonia <span class="required">*</span></label>
+            <input type="text" id="colonia" name="colonia" class="field-input" placeholder="Nombre de tu colonia" required>
+          </div>
+          <div class="field-group">
+            <label class="field-label" for="municipio">Municipio / Delegación <span class="required">*</span></label>
+            <input type="text" id="municipio" name="municipio" class="field-input" required>
+          </div>
+          <div class="field-group">
+            <label class="field-label" for="estado_residencia">Estado <span class="required">*</span></label>
+            <select id="estado_residencia" name="estado" class="field-input field-select" required>
+              <option value="">Selecciona...</option>
+              <option value="Jalisco">Jalisco</option>
+              <option value="CDMX">Ciudad de México</option>
+              <option value="Nuevo León">Nuevo León</option>
+              <option value="Aguascalientes">Aguascalientes</option>
+              <option value="Guanajuato">Guanajuato</option>
+              <option value="Michoacán">Michoacán</option>
+              <option value="Colima">Colima</option>
+              <option value="Nayarit">Nayarit</option>
+              <option value="Otro">Otro</option>
+            </select>
+          </div>
+          <div class="field-group">
+            <label class="field-label" for="personas_dependientes">Personas a tu cargo <span class="required">*</span></label>
+            <select id="personas_dependientes" name="personas_dependientes" class="field-input field-select" required>
+              <option value="">Selecciona...</option>
+              <option value="0">Ninguna</option>
+              <option value="1">1 persona</option>
+              <option value="2">2 personas</option>
+              <option value="3">3 personas</option>
+              <option value="4">4 o más</option>
+            </select>
+          </div>
+          <div class="field-group">
+            <label class="field-label" for="transporte">Medio de transporte <span class="required">*</span></label>
+            <select id="transporte" name="transporte" class="field-input field-select" required>
+              <option value="">Selecciona...</option>
+              <option value="Transporte público">Transporte público</option>
+              <option value="Vehículo propio">Vehículo propio</option>
+              <option value="Motocicleta">Motocicleta</option>
+              <option value="Bicicleta">Bicicleta</option>
+              <option value="A pie">A pie</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <!-- ===== PASO 2: DATOS ACADÉMICOS ===== -->
+      <div class="form-step" id="step-2">
+        <div class="step-header">
+          <div class="step-emoji">📚</div>
+          <h2>Formación Académica</h2>
+          <p>Tu preparación y estudios</p>
+        </div>
+        <div class="fields-grid">
+          <div class="field-group full-width">
+            <label class="field-label" for="escolaridad">Máximo Grado de Estudios <span class="required">*</span></label>
+            <select id="escolaridad" name="escolaridad" class="field-input field-select" required>
+              <option value="">Selecciona...</option>
+              <option value="Primaria">Primaria</option>
+              <option value="Secundaria">Secundaria</option>
+              <option value="Preparatoria / Bachillerato">Preparatoria / Bachillerato</option>
+              <option value="Técnico">Técnico / Carrera Técnica</option>
+              <option value="Licenciatura">Licenciatura</option>
+              <option value="Ingeniería">Ingeniería</option>
+              <option value="Maestría">Maestría</option>
+              <option value="Doctorado">Doctorado</option>
+            </select>
+          </div>
+          <div class="field-group full-width">
+            <label class="field-label" for="carrera">Carrera / Especialidad</label>
+            <input type="text" id="carrera" name="carrera" class="field-input" placeholder="Ej: Ing. en Alimentos, Química Farmacológica...">
+          </div>
+          <div class="field-group full-width">
+            <label class="field-label" for="institucion">Institución Educativa <span class="required">*</span></label>
+            <input type="text" id="institucion" name="institucion" class="field-input" placeholder="Nombre de la escuela o universidad" required>
+          </div>
+          <div class="field-group">
+            <label class="field-label" for="anio_egreso">Año de Egreso</label>
+            <input type="number" id="anio_egreso" name="anio_egreso" class="field-input" placeholder="Ej: 2020" min="1980" max="2030">
+          </div>
+          <div class="field-group">
+            <label class="field-label" for="cedula_profesional">Cédula Profesional</label>
+            <input type="text" id="cedula_profesional" name="cedula_profesional" class="field-input" placeholder="Si aplica">
+          </div>
+        </div>
+      </div>
+
+      <!-- ===== PASO 3: HISTORIAL LABORAL ===== -->
+      <div class="form-step" id="step-3">
+        <div class="step-header">
+          <div class="step-emoji">💼</div>
+          <h2>Historial Laboral</h2>
+          <p>Tus 5 empleos más recientes (del más reciente al más antiguo)</p>
+        </div>
+
+        <div id="empleosContainer">
+          <!-- Empleo 1 -->
+          <div class="empleo-card" data-empleo="1">
+            <div class="empleo-header">
+              <span class="empleo-badge">Empleo más reciente</span>
+              <h3>Empresa 1</h3>
+            </div>
+            <div class="fields-grid">
+              <div class="field-group full-width">
+                <label class="field-label" for="empresa_1">Nombre de la Empresa <span class="required">*</span></label>
+                <input type="text" id="empresa_1" name="empresa_1" class="field-input" required>
+              </div>
+              <div class="field-group full-width">
+                <label class="field-label" for="puesto_1">Puesto Desempeñado <span class="required">*</span></label>
+                <input type="text" id="puesto_1" name="puesto_1" class="field-input" required>
+              </div>
+              <div class="field-group">
+                <label class="field-label" for="antiguedad_1">Período <span class="required">*</span></label>
+                <input type="text" id="antiguedad_1" name="antiguedad_1" class="field-input" placeholder="Ej: Jan 2022 - Mar 2024" required>
+              </div>
+              <div class="field-group">
+                <label class="field-label" for="motivo_salida_1">Motivo de Salida <span class="required">*</span></label>
+                <input type="text" id="motivo_salida_1" name="motivo_salida_1" class="field-input" placeholder="Ej: Crecimiento profesional" required>
+              </div>
+              <div class="field-group">
+                <label class="field-label" for="jefe_1">Nombre del Jefe Inmediato</label>
+                <input type="text" id="jefe_1" name="jefe_1" class="field-input" placeholder="Nombre completo">
+              </div>
+              <div class="field-group">
+                <label class="field-label" for="tel_jefe_1">Teléfono del Jefe</label>
+                <input type="tel" id="tel_jefe_1" name="tel_jefe_1" class="field-input" placeholder="10 dígitos">
+              </div>
+            </div>
+          </div>
+
+          <!-- Empleos 2-5 colapsables -->
+          <div class="empleo-card collapsible" data-empleo="2">
+            <button type="button" class="empleo-toggle" onclick="toggleEmpleo(2)">
+              <span>+ Agregar Empresa 2 (Anterior)</span>
+            </button>
+            <div class="empleo-content" style="display:none">
+              <div class="fields-grid">
+                <div class="field-group full-width"><label class="field-label" for="empresa_2">Empresa</label><input type="text" id="empresa_2" name="empresa_2" class="field-input"></div>
+                <div class="field-group full-width"><label class="field-label" for="puesto_2">Puesto</label><input type="text" id="puesto_2" name="puesto_2" class="field-input"></div>
+                <div class="field-group"><label class="field-label" for="antiguedad_2">Período</label><input type="text" id="antiguedad_2" name="antiguedad_2" class="field-input" placeholder="Ej: 2019 - 2022"></div>
+                <div class="field-group"><label class="field-label" for="motivo_salida_2">Motivo de Salida</label><input type="text" id="motivo_salida_2" name="motivo_salida_2" class="field-input"></div>
+                <div class="field-group"><label class="field-label" for="jefe_2">Jefe Inmediato</label><input type="text" id="jefe_2" name="jefe_2" class="field-input"></div>
+                <div class="field-group"><label class="field-label" for="tel_jefe_2">Tel. Jefe</label><input type="tel" id="tel_jefe_2" name="tel_jefe_2" class="field-input"></div>
+              </div>
+            </div>
+          </div>
+          <div class="empleo-card collapsible" data-empleo="3">
+            <button type="button" class="empleo-toggle" onclick="toggleEmpleo(3)"><span>+ Agregar Empresa 3</span></button>
+            <div class="empleo-content" style="display:none">
+              <div class="fields-grid">
+                <div class="field-group full-width"><label class="field-label" for="empresa_3">Empresa</label><input type="text" id="empresa_3" name="empresa_3" class="field-input"></div>
+                <div class="field-group full-width"><label class="field-label" for="puesto_3">Puesto</label><input type="text" id="puesto_3" name="puesto_3" class="field-input"></div>
+                <div class="field-group"><label class="field-label" for="antiguedad_3">Período</label><input type="text" id="antiguedad_3" name="antiguedad_3" class="field-input"></div>
+                <div class="field-group"><label class="field-label" for="motivo_salida_3">Motivo de Salida</label><input type="text" id="motivo_salida_3" name="motivo_salida_3" class="field-input"></div>
+                <div class="field-group"><label class="field-label" for="jefe_3">Jefe Inmediato</label><input type="text" id="jefe_3" name="jefe_3" class="field-input"></div>
+                <div class="field-group"><label class="field-label" for="tel_jefe_3">Tel. Jefe</label><input type="tel" id="tel_jefe_3" name="tel_jefe_3" class="field-input"></div>
+              </div>
+            </div>
+          </div>
+          <div class="empleo-card collapsible" data-empleo="4">
+            <button type="button" class="empleo-toggle" onclick="toggleEmpleo(4)"><span>+ Agregar Empresa 4</span></button>
+            <div class="empleo-content" style="display:none">
+              <div class="fields-grid">
+                <div class="field-group full-width"><label class="field-label" for="empresa_4">Empresa</label><input type="text" id="empresa_4" name="empresa_4" class="field-input"></div>
+                <div class="field-group full-width"><label class="field-label" for="puesto_4">Puesto</label><input type="text" id="puesto_4" name="puesto_4" class="field-input"></div>
+                <div class="field-group"><label class="field-label" for="antiguedad_4">Período</label><input type="text" id="antiguedad_4" name="antiguedad_4" class="field-input"></div>
+                <div class="field-group"><label class="field-label" for="motivo_salida_4">Motivo de Salida</label><input type="text" id="motivo_salida_4" name="motivo_salida_4" class="field-input"></div>
+                <div class="field-group"><label class="field-label" for="jefe_4">Jefe Inmediato</label><input type="text" id="jefe_4" name="jefe_4" class="field-input"></div>
+                <div class="field-group"><label class="field-label" for="tel_jefe_4">Tel. Jefe</label><input type="tel" id="tel_jefe_4" name="tel_jefe_4" class="field-input"></div>
+              </div>
+            </div>
+          </div>
+          <div class="empleo-card collapsible" data-empleo="5">
+            <button type="button" class="empleo-toggle" onclick="toggleEmpleo(5)"><span>+ Agregar Empresa 5</span></button>
+            <div class="empleo-content" style="display:none">
+              <div class="fields-grid">
+                <div class="field-group full-width"><label class="field-label" for="empresa_5">Empresa</label><input type="text" id="empresa_5" name="empresa_5" class="field-input"></div>
+                <div class="field-group full-width"><label class="field-label" for="puesto_5">Puesto</label><input type="text" id="puesto_5" name="puesto_5" class="field-input"></div>
+                <div class="field-group"><label class="field-label" for="antiguedad_5">Período</label><input type="text" id="antiguedad_5" name="antiguedad_5" class="field-input"></div>
+                <div class="field-group"><label class="field-label" for="motivo_salida_5">Motivo de Salida</label><input type="text" id="motivo_salida_5" name="motivo_salida_5" class="field-input"></div>
+                <div class="field-group"><label class="field-label" for="jefe_5">Jefe Inmediato</label><input type="text" id="jefe_5" name="jefe_5" class="field-input"></div>
+                <div class="field-group"><label class="field-label" for="tel_jefe_5">Tel. Jefe</label><input type="tel" id="tel_jefe_5" name="tel_jefe_5" class="field-input"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ===== PASO 4: SALUD ===== -->
+      <div class="form-step" id="step-4">
+        <div class="step-header">
+          <div class="step-emoji">🏥</div>
+          <h2>Información de Salud</h2>
+          <p>Esta información es confidencial y solo es vista por el médico</p>
+        </div>
+        <div class="privacy-alert">
+          <span class="alert-icon">🔒</span>
+          <p><strong>Datos Protegidos:</strong> Tu información médica está cifrada y solo puede ser accedida por el personal médico autorizado de Ma Baker and Chef.</p>
+        </div>
+        <div class="fields-grid">
+          <div class="field-group full-width">
+            <label class="field-label" for="enfermedades_cronicas">¿Padeces alguna enfermedad crónica? <span class="required">*</span></label>
+            <select id="enfermedades_cronicas_select" class="field-input field-select" onchange="toggleCronicaInput()">
+              <option value="">Selecciona...</option>
+              <option value="No">No padezco enfermedades crónicas</option>
+              <option value="Sí">Sí (especificar)</option>
+            </select>
+            <textarea id="enfermedades_cronicas" name="enfermedades_cronicas" class="field-input field-textarea" placeholder="Describe tus enfermedades..." style="display:none; margin-top:8px"></textarea>
+          </div>
+          <div class="field-group full-width">
+            <label class="field-label" for="medicamentos">¿Tomas algún medicamento de forma regular? <span class="required">*</span></label>
+            <select id="medicamentos_select" class="field-input field-select" onchange="toggleMedicamentosInput()">
+              <option value="">Selecciona...</option>
+              <option value="No">No tomo medicamentos</option>
+              <option value="Sí">Sí (especificar)</option>
+            </select>
+            <textarea id="medicamentos" name="medicamentos" class="field-input field-textarea" placeholder="Nombre del medicamento y dosis..." style="display:none; margin-top:8px"></textarea>
+          </div>
+          <div class="field-group full-width">
+            <label class="field-label" for="discapacidades">¿Tienes alguna discapacidad? <span class="required">*</span></label>
+            <select id="discapacidades" name="discapacidades" class="field-input field-select" required>
+              <option value="">Selecciona...</option>
+              <option value="Ninguna">Ninguna</option>
+              <option value="Visual">Visual</option>
+              <option value="Auditiva">Auditiva</option>
+              <option value="Motriz">Motriz</option>
+              <option value="Otra">Otra</option>
+            </select>
+          </div>
+          <div class="field-group">
+            <label class="field-label" for="tipo_sangre">Tipo de Sangre <span class="required">*</span></label>
+            <select id="tipo_sangre" name="tipo_sangre" class="field-input field-select" required>
+              <option value="">Selecciona...</option>
+              <option>A+</option><option>A-</option>
+              <option>B+</option><option>B-</option>
+              <option>AB+</option><option>AB-</option>
+              <option>O+</option><option>O-</option>
+              <option value="No sé">No lo sé</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <!-- ===== PASO 5: AVISO DE PRIVACIDAD ===== -->
+      <div class="form-step" id="step-5">
+        <div class="step-header">
+          <div class="step-emoji">📋</div>
+          <h2>Aviso de Privacidad</h2>
+          <p>Lee con atención antes de continuar</p>
+        </div>
+        <div class="privacy-document">
+          <h3>AVISO DE PRIVACIDAD – MA BAKER AND CHEF</h3>
+          <p><strong>Ma Baker and Chef S.A. de C.V.</strong> ("Ma Baker") es la empresa responsable del tratamiento de tus datos personales, con domicilio en Guadalajara, Jalisco, México.</p>
+          <p><strong>Finalidad:</strong> Los datos que nos proporciones serán utilizados para los siguientes procesos:</p>
+          <ul>
+            <li>Evaluación, selección y contratación de personal</li>
+            <li>Comunicación relacionada con tu solicitud de empleo</li>
+            <li>Cumplimiento de obligaciones legales en materia laboral</li>
+            <li>Gestión de tu expediente laboral en caso de ser contratado(a)</li>
+          </ul>
+          <p><strong>Datos Sensibles:</strong> Los datos de salud que proporciones son considerados datos personales sensibles conforme a la Ley Federal de Protección de Datos Personales (LFPDPPP) y serán tratados con especial protección, accesibles únicamente por personal médico autorizado.</p>
+          <p><strong>Transferencias:</strong> No realizamos transferencias de tus datos a terceros sin tu consentimiento, salvo las requeridas por ley.</p>
+          <p><strong>Derechos ARCO:</strong> Puedes ejercer tus derechos de Acceso, Rectificación, Cancelación y Oposición enviando un correo a <strong>rrhh@mabakerandchef.com</strong></p>
+          <p><strong>Retención:</strong> Si no eres seleccionado(a), tus datos serán conservados hasta por 12 meses con fines estadísticos y luego eliminados de forma segura.</p>
+          <p>Al marcar la casilla de abajo, confirmas haber leído y aceptado en su totalidad el presente Aviso de Privacidad.</p>
+        </div>
+        <div class="privacy-checkbox-container">
+          <label class="checkbox-label" for="privacy_accepted">
+            <input type="checkbox" id="privacy_accepted" name="privacy_accepted" required>
+            <span class="checkbox-custom"></span>
+            <span class="checkbox-text"><strong>Acepto haber leído y entendido el Aviso de Privacidad</strong> y consiento el tratamiento de mis datos personales y sensibles conforme a lo descrito.</span>
+          </label>
+        </div>
+        <div class="submit-summary" id="submitSummary">
+          <h4>📋 Resumen de tu aplicación</h4>
+          <div id="summaryContent"></div>
+        </div>
+      </div>
+
+    </form>
+
+    <!-- Navigation Buttons -->
+    <div class="nav-buttons" id="navButtons" style="display:none">
+      <button type="button" class="btn btn-secondary" id="btnPrev" onclick="prevStep()" style="display:none">
+        ← Anterior
+      </button>
+      <button type="button" class="btn btn-primary" id="btnNext" onclick="nextStep()">
+        Siguiente →
+      </button>
+      <button type="button" class="btn btn-submit" id="btnSubmit" onclick="submitForm()" style="display:none">
+        🚀 Enviar Solicitud
+      </button>
+    </div>
+  </div>
+</main>
+
+<!-- Success Modal -->
+<div class="modal-overlay" id="successModal" style="display:none">
+  <div class="modal-card">
+    <div class="modal-icon success">✅</div>
+    <h2>¡Solicitud Enviada!</h2>
+    <p id="successMessage">Tu solicitud ha sido recibida. El sistema de selección evaluará tu perfil y te notificaremos por correo electrónico.</p>
+    <div class="modal-result" id="modalResult"></div>
+    <button class="btn btn-primary" onclick="resetForm()">Nueva Aplicación</button>
+  </div>
+</div>
+
+<!-- Error Modal -->
+<div class="modal-overlay" id="errorModal" style="display:none">
+  <div class="modal-card">
+    <div class="modal-icon error">❌</div>
+    <h2>Error al enviar</h2>
+    <p id="errorMessage">Ocurrió un problema. Por favor intenta de nuevo.</p>
+    <button class="btn btn-secondary" onclick="document.getElementById('errorModal').style.display='none'">Cerrar</button>
+  </div>
+</div>
+
+<!-- Loading Overlay -->
+<div class="loading-overlay" id="loadingOverlay" style="display:none">
+  <div class="loading-card">
+    <div class="spinner large"></div>
+    <p>Evaluando tu perfil con IA...</p>
+    <small>Esto puede tardar unos segundos</small>
+  </div>
+</div>
+
+<script src="js/app.js"></script>
+</body>
+</html>
