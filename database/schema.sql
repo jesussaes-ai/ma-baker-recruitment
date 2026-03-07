@@ -371,7 +371,14 @@ CREATE TABLE IF NOT EXISTS public.usuarios_sistema (
     email TEXT NOT NULL UNIQUE,
     nombre TEXT NOT NULL,
     password_hash TEXT NOT NULL,   -- bcrypt hash
-    rol TEXT NOT NULL CHECK (rol IN ('admin', 'rrhh', 'medico', 'jefe', 'sgi')),
+    rol TEXT NOT NULL CHECK (rol IN (
+        'admin',      -- Administrador General: acceso total
+        'rrhh',       -- Recursos Humanos: candidatos, rechazados, vacantes, psicométricos
+        'medico',     -- Médico: solo datos clínicos y veredicto médico
+        'jefe',       -- Jefe de Área: solo candidatos de su departamento
+        'sgi',        -- Sistema de Gestión Integral de Calidad: inducción BPM y calidad
+        'seguridad'   -- Seguridad e Higiene: inducción SH, EPP y protocolos de seguridad
+    )),
     departamento TEXT,             -- solo relevante para rol 'jefe'
     activo BOOLEAN DEFAULT true,
     ultimo_login TIMESTAMPTZ,

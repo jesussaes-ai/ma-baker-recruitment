@@ -7,21 +7,34 @@ const SUPABASE_URL = 'https://znskpdixdyxdbvpapqrg.supabase.co';
 const SUPABASE_ANON_KEY = 'sb_publishable_YLgLfp_OIJLmimFo1vWStg_-THES9lw';
 
 /* ── Mapa de Rutas por Rol ── */
+/* ─────────────────────────────────────────────────────
+   RUTAS POR ROL — Cada rol llega a su propio dashboard.
+   'sgi'       → Sistema de Gestión Integral de Calidad (BPM, calidad, normas)
+   'seguridad' → Seguridad e Higiene (EPP, protocolos, accidentes, IMSS)
+───────────────────────────────────────────────────── */
 const ROLE_ROUTES = {
     admin: 'dashboard-admin.html',
     rrhh: 'dashboard-rrhh.html',
     medico: 'dashboard-medico.html',
     jefe: 'dashboard-jefe.html',
-    sgi: 'dashboard-sgi.html',
+    sgi: 'dashboard-sgi.html',       // Calidad e inocuidad
+    seguridad: 'dashboard-seguridad.html', // Seguridad e Higiene
 };
 
-/* ── Páginas accesibles por rol ── */
+/* ─────────────────────────────────────────────────────
+   PÁGINAS ACCESIBLES POR ROL
+   El admin puede entrar a todos los dashboards.
+   Cada otro rol solo entra a su propia pantalla.
+───────────────────────────────────────────────────── */
 const ROLE_ACCESS = {
-    admin: ['dashboard-admin.html', 'dashboard-rrhh.html', 'dashboard-medico.html', 'dashboard-jefe.html', 'dashboard-sgi.html'],
-    rrhh: ['dashboard-rrhh.html'],
+    admin: ['dashboard-admin.html', 'dashboard-rrhh.html', 'dashboard-medico.html',
+        'dashboard-jefe.html', 'dashboard-sgi.html', 'dashboard-seguridad.html',
+        'cargar-puestos.html', 'cargar-psicometricos.html'],
+    rrhh: ['dashboard-rrhh.html', 'cargar-puestos.html', 'cargar-psicometricos.html'],
     medico: ['dashboard-medico.html'],
     jefe: ['dashboard-jefe.html'],
-    sgi: ['dashboard-sgi.html'],
+    sgi: ['dashboard-sgi.html'],       // Solo Calidad / SGI
+    seguridad: ['dashboard-seguridad.html'], // Solo Seguridad e Higiene
 };
 
 /* ─────────────────────────────
@@ -131,7 +144,14 @@ function getSession() {
 }
 
 function getRolLabel(rol) {
-    const labels = { admin: '⚙️ Admin General', rrhh: '👥 RRHH', medico: '🏥 Médico', jefe: '🏢 Jefe de Área', sgi: '✅ SGI / Seguridad' };
+    const labels = {
+        admin: '⚙️ Admin General',
+        rrhh: '👥 Reclutamiento y Selección',
+        medico: '🏥 Médico Empresarial',
+        jefe: '🏢 Jefe de Área',
+        sgi: '📋 Sistema de Gestión Integral (Calidad)',  // SGI — BPM, calidad, normas
+        seguridad: '🦺 Seguridad e Higiene',                   // S&H — EPP, protocolos
+    };
     return labels[rol] || rol;
 }
 
