@@ -1,2 +1,12 @@
-
+# Credenciales y secretos — NUNCA subir a GitHub
 CREDENCIALES.md
+.env
+.env.*
+
+# Node
+node_modules/
+npm-debug.log*
+
+# Sistema
+.DS_Store
+Thumbs.db
