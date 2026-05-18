@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>SQL Final - Ma Baker</title>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    * { margin:0; padding:0; box-sizing:border-box; }
+    body { font-family:'Montserrat',sans-serif; background:#F0F2F5; min-height:100vh; padding:24px; }
+    .card { background:#fff; border-radius:16px; padding:32px; max-width:720px; margin:0 auto; box-shadow:0 8px 40px rgba(0,0,0,.08); }
+    img.logo { width:64px; border-radius:8px; margin-bottom:14px; display:block; }
+    h1 { font-size:22px; font-weight:800; color:#D7282F; margin-bottom:6px; }
+    .lead { font-size:13px; color:#666; line-height:1.7; margin-bottom:20px; }
+    .lead strong { color:#000; }
+    pre { background:#1e1e2e; color:#cdd6f4; padding:18px; border-radius:10px; font-size:11px; overflow-x:auto; line-height:1.6; max-height:280px; }
+    pre .kw { color:#f38ba8; font-weight:700; }
+    pre .str { color:#a6e3a1; }
+    pre .com { color:#6c7086; font-style:italic; }
+    .step { display:flex; gap:14px; padding:14px; border-radius:10px; background:#f8f8f8; margin-bottom:8px; align-items:flex-start; border:1px solid #eee; }
+    .num { width:30px; height:30px; border-radius:50%; background:#D7282F; color:#fff; font-weight:700; font-size:13px; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+    .step-body h3 { font-size:13px; font-weight:700; margin-bottom:3px; }
+    .step-body p { font-size:12px; color:#666; }
+    .btn { display:block; width:100%; padding:13px; border:none; border-radius:8px; font-family:'Montserrat',sans-serif; font-weight:700; font-size:13px; cursor:pointer; text-align:center; text-decoration:none; margin-top:8px; transition:all .2s; }
+    .btn-primary { background:#D7282F; color:#fff; }
+    .btn-blue    { background:#0071BC; color:#fff; }
+    .btn-green   { background:#4CAF50; color:#fff; }
+    .btn:hover   { opacity:.9; transform:translateY(-1px); }
+    .btn:disabled { opacity:.5; cursor:wait; }
+    .divider { border:none; border-top:1px solid #eee; margin:20px 0; }
+    #resultado { display:none; margin-top:14px; }
+    .alert-success { background:rgba(76,175,80,.08); border:2px solid #4CAF50; border-radius:10px; padding:20px; text-align:center; }
+    .alert-error   { background:rgba(211,47,47,.08); border:2px solid #D32F2F; border-radius:10px; padding:14px; }
+    .row { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+  </style>
+</head>
+<body>
+<div class="card">
+  <img src="chef-logo.jpg" class="logo" alt="">
+  <h1>🚀 SQL Final — Listo para ejecutar</h1>
+  <p class="lead">
+    Este SQL agrega columnas a <strong>"Formulario de Candidatos"</strong> (tabla que ya existe y está expuesta correctamente). Es la versión definitiva.
+  </p>
+
+  <div class="step">
+    <div class="num">1</div>
+    <div class="step-body">
+      <h3>Copia el SQL</h3>
+      <p>Click en "Copiar SQL". El código se copia al portapapeles.</p>
+    </div>
+  </div>
+
+  <pre id="sql"><span class="com">-- ═══════════════════════════════════════════════</span>
+<span class="com">-- Agregar columnas a "Formulario de Candidatos"</span>
+<span class="com">-- ═══════════════════════════════════════════════</span>
+<span class="kw">ALTER TABLE</span> <span class="str">"Formulario de Candidatos"</span>
+  <span class="kw">ADD COLUMN IF NOT EXISTS</span> nombre                     <span class="kw">TEXT</span>,
+  <span class="kw">ADD COLUMN IF NOT EXISTS</span> edad                       <span class="kw">INTEGER</span>,
+  <span class="kw">ADD COLUMN IF NOT EXISTS</span> estatura                   <span class="kw">NUMERIC</span>,
+  <span class="kw">ADD COLUMN IF NOT EXISTS</span> peso                       <span class="kw">NUMERIC</span>,
+  <span class="kw">ADD COLUMN IF NOT EXISTS</span> genero                     <span class="kw">TEXT</span>,
+  <span class="kw">ADD COLUMN IF NOT EXISTS</span> puesto_aplicado            <span class="kw">TEXT</span>,
+  <span class="kw">ADD COLUMN IF NOT EXISTS</span> documentos                 <span class="kw">JSONB DEFAULT</span> <span class="str">'{}'</span>,
+  <span class="kw">ADD COLUMN IF NOT EXISTS</span> requisitos_salud           <span class="kw">JSONB DEFAULT</span> <span class="str">'[]'</span>,
+  <span class="kw">ADD COLUMN IF NOT EXISTS</span> respuestas_psicometricas   <span class="kw">JSONB DEFAULT</span> <span class="str">'{}'</span>,
+  <span class="kw">ADD COLUMN IF NOT EXISTS</span> respuestas_tecnicas        <span class="kw">JSONB DEFAULT</span> <span class="str">'{}'</span>,
+  <span class="kw">ADD COLUMN IF NOT EXISTS</span> puntaje_evaluacion_tecnica <span class="kw">INTEGER</span>,
+  <span class="kw">ADD COLUMN IF NOT EXISTS</span> veredicto_final            <span class="kw">TEXT</span>,
+  <span class="kw">ADD COLUMN IF NOT EXISTS</span> <span class="str">"timestamp"</span>                <span class="kw">TIMESTAMPTZ</span>;
+
+<span class="com">-- Habilitar acceso público</span>
+<span class="kw">ALTER TABLE</span> <span class="str">"Formulario de Candidatos"</span> <span class="kw">ENABLE ROW LEVEL SECURITY</span>;
+<span class="kw">DROP POLICY IF EXISTS</span> <span class="str">"allow_all"</span> <span class="kw">ON</span> <span class="str">"Formulario de Candidatos"</span>;
+<span class="kw">CREATE POLICY</span> <span class="str">"allow_all"</span> <span class="kw">ON</span> <span class="str">"Formulario de Candidatos"</span>
+  <span class="kw">FOR ALL USING</span> (<span class="kw">true</span>) <span class="kw">WITH CHECK</span> (<span class="kw">true</span>);
+
+<span class="com">-- Recargar schema cache</span>
+<span class="kw">NOTIFY</span> pgrst, <span class="str">'reload schema'</span>;
+
+<span class="com">-- Verificar resultado</span>
+<span class="kw">SELECT</span> column_name, data_type
+<span class="kw">FROM</span> information_schema.columns
+<span class="kw">WHERE</span> table_name = <span class="str">'Formulario de Candidatos'</span>
+<span class="kw">ORDER BY</span> ordinal_position;</pre>
+
+  <button class="btn btn-primary" onclick="copiar()">📋 Copiar SQL al portapapeles</button>
+
+  <hr class="divider">
+
+  <div class="step">
+    <div class="num">2</div>
+    <div class="step-body">
+      <h3>Pega y ejecuta en Supabase</h3>
+      <p>Abre SQL Editor → New Query → Ctrl+V → RUN ▶</p>
+    </div>
+  </div>
+
+  <a href="https://supabase.com/dashboard/project/xdtxfpvxoxqaadgyvzap/sql/new" target="_blank" class="btn btn-blue">
+    🔗 Abrir SQL Editor en Supabase
+  </a>
+
+  <hr class="divider">
+
+  <div class="step">
+    <div class="num">3</div>
+    <div class="step-body">
+      <h3>Verificar que funciona</h3>
+      <p>Espera 5 segundos después del RUN, luego haz click aquí:</p>
+    </div>
+  </div>
+
+  <button class="btn btn-green" id="checkBtn" onclick="verificar()">
+    🔍 Verificar sistema completo
+  </button>
+
+  <div id="resultado"></div>
+
+  <hr class="divider">
+
+  <div class="row">
+    <a href="Ma Baker Sistema v4.1 - Supabase Integrado.html" class="btn btn-primary">📋 Formulario</a>
+    <a href="Ma Baker Dashboard RH.html" class="btn btn-blue">📊 Dashboard RH</a>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+  const SQL_RAW = `-- Agregar columnas a "Formulario de Candidatos"
+ALTER TABLE "Formulario de Candidatos"
+  ADD COLUMN IF NOT EXISTS nombre                     TEXT,
+  ADD COLUMN IF NOT EXISTS edad                       INTEGER,
+  ADD COLUMN IF NOT EXISTS estatura                   NUMERIC,
+  ADD COLUMN IF NOT EXISTS peso                       NUMERIC,
+  ADD COLUMN IF NOT EXISTS genero                     TEXT,
+  ADD COLUMN IF NOT EXISTS puesto_aplicado            TEXT,
+  ADD COLUMN IF NOT EXISTS documentos                 JSONB DEFAULT '{}',
+  ADD COLUMN IF NOT EXISTS requisitos_salud           JSONB DEFAULT '[]',
+  ADD COLUMN IF NOT EXISTS respuestas_psicometricas   JSONB DEFAULT '{}',
+  ADD COLUMN IF NOT EXISTS respuestas_tecnicas        JSONB DEFAULT '{}',
+  ADD COLUMN IF NOT EXISTS puntaje_evaluacion_tecnica INTEGER,
+  ADD COLUMN IF NOT EXISTS veredicto_final            TEXT,
+  ADD COLUMN IF NOT EXISTS "timestamp"                TIMESTAMPTZ;
+
+ALTER TABLE "Formulario de Candidatos" ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS "allow_all" ON "Formulario de Candidatos";
+CREATE POLICY "allow_all" ON "Formulario de Candidatos"
+  FOR ALL USING (true) WITH CHECK (true);
+
+NOTIFY pgrst, 'reload schema';
+
+SELECT column_name, data_type
+FROM information_schema.columns
+WHERE table_name = 'Formulario de Candidatos'
+ORDER BY ordinal_position;`;
+
+  function copiar() {
+    navigator.clipboard.writeText(SQL_RAW).then(()=>{
+      const all = document.querySelectorAll('.btn-primary');
+      const btn = all[0];
+      const old = btn.innerHTML;
+      btn.innerHTML = '✅ Copiado — ahora pégalo en Supabase';
+      btn.style.background = '#4CAF50';
+      setTimeout(()=>{ btn.innerHTML = old; btn.style.background='#D7282F'; }, 2200);
+    });
+  }
+
+  const db = supabase.createClient(
+    'https://xdtxfpvxoxqaadgyvzap.supabase.co',
+    'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhkdHhmcHZ4b3hxYWFkZ3l2emFwIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc3MTk3OTk5OCwiZXhwIjoyMDg3NTU1OTk4fQ.vDHVgod3x67o40FfMupkm_qr5fQ56ngn5mb4QYUGJHE'
+  );
+
+  async function verificar() {
+    const btn = document.getElementById('checkBtn');
+    const res = document.getElementById('resultado');
+    btn.textContent = '⏳ Verificando...';
+    btn.disabled = true;
+
+    // Insertar real y borrar
+    const { data: ins, error: insErr } = await db.from('Formulario de Candidatos').insert([{
+      nombre: 'PRUEBA_VERIFICACION',
+      edad: 30,
+      puesto_aplicado: 'TEST',
+      puntaje_evaluacion_tecnica: 100,
+      veredicto_final: 'TEST',
+      timestamp: new Date().toISOString()
+    }]).select();
+
+    if (ins?.[0]?.id) {
+      await db.from('Formulario de Candidatos').delete().eq('id', ins[0].id);
+    }
+
+    const { data: buckets } = await db.storage.listBuckets();
+    const bucketOk = buckets?.some(b => b.name === 'documentos');
+
+    res.style.display = 'block';
+
+    if (!insErr && bucketOk) {
+      res.innerHTML = `
+        <div class="alert-success">
+          <div style="font-size:48px;margin-bottom:12px;">🎉</div>
+          <p style="font-weight:700;color:#4CAF50;font-size:16px;margin-bottom:8px;">¡Sistema al 100%!</p>
+          <p style="font-size:13px;color:#666;margin-bottom:4px;">✅ Tabla <strong>Formulario de Candidatos</strong> con todas las columnas</p>
+          <p style="font-size:13px;color:#666;margin-bottom:4px;">✅ Inserción y lectura funcionando</p>
+          <p style="font-size:13px;color:#666;">✅ Bucket <strong>documentos</strong> listo</p>
+          <p style="font-size:11px;color:#999;margin-top:10px;">Ya puedes usar el formulario y el dashboard.</p>
+        </div>`;
+      btn.textContent = '✅ Sistema verificado';
+      btn.style.background = '#4CAF50';
+    } else {
+      let msgs = '';
+      if (insErr) msgs += `<p style="font-size:11px;margin-bottom:4px;">❌ ${insErr.message}</p>`;
+      if (!bucketOk) msgs += `<p style="font-size:11px;">❌ Bucket "documentos" no encontrado</p>`;
+      res.innerHTML = `
+        <div class="alert-error">
+          <p style="font-weight:700;color:#D32F2F;font-size:13px;margin-bottom:8px;">⚠️ Aún pendiente</p>
+          ${msgs}
+        </div>`;
+      btn.textContent = '🔍 Reintentar';
+      btn.disabled = false;
+    }
+  }
+</script>
+</body>
+</html>

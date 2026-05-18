@@ -1,0 +1,436 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8" />
+<title>📊 Panel de Salud — Ma Baker</title>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+  :root {
+    --primary: #d7282f;
+    --success: #16a34a;
+    --warning: #f59e0b;
+    --danger: #dc2626;
+    --bg: #f8fafc;
+    --surface: #ffffff;
+    --border: #e2e8f0;
+    --text: #0f172a;
+    --text-light: #64748b;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    padding: 28px 20px;
+  }
+  .container { max-width: 1200px; margin: 0 auto; }
+  .header {
+    display: flex; align-items: center; gap: 18px;
+    margin-bottom: 8px;
+  }
+  .logo {
+    width: 56px; height: 56px; border-radius: 12px;
+    background: var(--primary); color: white;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 28px;
+  }
+  h1 { font-size: 26px; font-weight: 800; }
+  .subtitle { font-size: 14px; color: var(--text-light); }
+  .last-update {
+    margin: 16px 0 24px;
+    font-size: 13px; color: var(--text-light);
+    display: flex; align-items: center; gap: 12px;
+  }
+  .pulse-dot {
+    width: 10px; height: 10px; border-radius: 50%;
+    background: var(--success);
+    box-shadow: 0 0 0 0 rgba(22, 163, 74, 0.7);
+    animation: pulse 2s infinite;
+  }
+  @keyframes pulse {
+    0% { box-shadow: 0 0 0 0 rgba(22, 163, 74, 0.7); }
+    70% { box-shadow: 0 0 0 10px rgba(22, 163, 74, 0); }
+  }
+
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 16px;
+    margin-bottom: 24px;
+  }
+  .stat-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 20px;
+    position: relative;
+  }
+  .stat-card.green { border-left: 4px solid var(--success); }
+  .stat-card.yellow { border-left: 4px solid var(--warning); }
+  .stat-card.red { border-left: 4px solid var(--danger); }
+  .stat-label {
+    font-size: 12px; color: var(--text-light);
+    text-transform: uppercase; letter-spacing: 0.5px;
+    font-weight: 600;
+  }
+  .stat-value {
+    font-size: 36px; font-weight: 800; margin-top: 8px;
+    font-variant-numeric: tabular-nums;
+  }
+  .stat-sub { font-size: 13px; color: var(--text-light); margin-top: 4px; }
+  .stat-icon { position: absolute; top: 20px; right: 20px; font-size: 28px; opacity: 0.3; }
+
+  .section {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 24px;
+    margin-bottom: 16px;
+  }
+  .section h2 {
+    font-size: 18px; font-weight: 700;
+    margin-bottom: 20px;
+    display: flex; align-items: center; gap: 10px;
+  }
+
+  .service-row {
+    display: grid;
+    grid-template-columns: 36px 1fr auto auto;
+    gap: 14px;
+    padding: 14px 0;
+    border-top: 1px solid var(--border);
+    align-items: center;
+  }
+  .service-row:first-of-type { border-top: none; }
+  .status-badge {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 4px 10px;
+    border-radius: 99px;
+    font-size: 12px; font-weight: 600;
+  }
+  .status-ok { background: #dcfce7; color: #166534; }
+  .status-degraded { background: #fef3c7; color: #92400e; }
+  .status-down { background: #fee2e2; color: #991b1b; }
+  .status-checking { background: #e0e7ff; color: #3730a3; }
+  .latency { color: var(--text-light); font-size: 12px; font-variant-numeric: tabular-nums; }
+
+  .chart-bar {
+    height: 8px;
+    background: var(--border);
+    border-radius: 4px;
+    overflow: hidden;
+    margin-top: 6px;
+  }
+  .chart-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--success), #22c55e);
+    transition: width 0.5s;
+  }
+  .chart-fill.warn { background: var(--warning); }
+  .chart-fill.danger { background: var(--danger); }
+
+  .controls { display: flex; gap: 10px; margin-bottom: 20px; flex-wrap: wrap; }
+  .btn {
+    padding: 10px 18px;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    background: var(--surface);
+    cursor: pointer;
+    font-weight: 600;
+    font-size: 13px;
+    transition: all 0.15s;
+  }
+  .btn:hover { background: var(--bg); }
+  .btn-primary { background: var(--primary); color: white; border-color: var(--primary); }
+  .btn-primary:hover { filter: brightness(1.1); background: var(--primary); }
+
+  .recent-list { display: flex; flex-direction: column; gap: 8px; }
+  .recent-item {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 12px;
+    padding: 12px 14px;
+    background: var(--bg);
+    border-radius: 8px;
+    font-size: 13px;
+    align-items: center;
+  }
+  .recent-item .name { font-weight: 600; }
+  .recent-item .meta { color: var(--text-light); font-size: 11px; }
+  .verdict-pill {
+    padding: 3px 10px;
+    border-radius: 99px;
+    font-size: 11px;
+    font-weight: 600;
+    white-space: nowrap;
+  }
+  .verdict-apto { background: #dcfce7; color: #166534; }
+  .verdict-adicional { background: #fef3c7; color: #92400e; }
+  .verdict-no { background: #fee2e2; color: #991b1b; }
+
+  .empty { padding: 30px; text-align: center; color: var(--text-light); font-size: 13px; }
+</style>
+</head>
+<body>
+<div class="container">
+  <div class="header">
+    <div class="logo">📊</div>
+    <div>
+      <h1>Panel de Salud del Sistema</h1>
+      <div class="subtitle">Monitoreo en tiempo real de Ma Baker — Supabase, Storage, Candidatos</div>
+    </div>
+  </div>
+
+  <div class="last-update">
+    <span class="pulse-dot" id="pulseDot"></span>
+    <span id="lastUpdate">Iniciando...</span>
+    <span style="margin-left:auto"></span>
+  </div>
+
+  <div class="controls">
+    <button class="btn btn-primary" id="btnRefresh">🔄 Actualizar ahora</button>
+    <label class="btn" style="display:flex;align-items:center;gap:8px;">
+      <input type="checkbox" id="autoRefresh" checked /> Auto-refresh (30s)
+    </label>
+    <button class="btn" id="btnOpenTests">🧪 Abrir Suite de Pruebas</button>
+    <button class="btn" id="btnOpenDashboard">👥 Abrir Dashboard RH</button>
+  </div>
+
+  <!-- Stats Grid -->
+  <div class="grid">
+    <div class="stat-card green" id="cardTotal">
+      <div class="stat-icon">👥</div>
+      <div class="stat-label">Candidatos totales</div>
+      <div class="stat-value" id="statTotal">—</div>
+      <div class="stat-sub" id="statTotalSub">Cargando...</div>
+    </div>
+    <div class="stat-card green" id="cardHoy">
+      <div class="stat-icon">📅</div>
+      <div class="stat-label">Hoy</div>
+      <div class="stat-value" id="statHoy">—</div>
+      <div class="stat-sub" id="statHoySub">Aplicaciones nuevas</div>
+    </div>
+    <div class="stat-card green" id="cardAptos">
+      <div class="stat-icon">✅</div>
+      <div class="stat-label">Aptos para entrevista</div>
+      <div class="stat-value" id="statAptos">—</div>
+      <div class="stat-sub" id="statAptosSub">—</div>
+    </div>
+    <div class="stat-card green" id="cardAvg">
+      <div class="stat-icon">📈</div>
+      <div class="stat-label">Promedio puntaje</div>
+      <div class="stat-value" id="statAvg">—</div>
+      <div class="stat-sub">Evaluación técnica</div>
+    </div>
+  </div>
+
+  <!-- Servicios -->
+  <div class="section">
+    <h2>🔌 Estado de servicios</h2>
+    <div id="services">
+      <div class="service-row">
+        <div style="font-size:24px">🗄️</div>
+        <div>
+          <div style="font-weight:600">Base de datos Supabase</div>
+          <div style="font-size:12px;color:var(--text-light)">PostgreSQL — tabla "Formulario de Candidatos"</div>
+        </div>
+        <div class="latency" id="latencyDb">—</div>
+        <div class="status-badge status-checking" id="statusDb">⏳ Verificando</div>
+      </div>
+      <div class="service-row">
+        <div style="font-size:24px">🖼️</div>
+        <div>
+          <div style="font-weight:600">Storage: bucket "ines"</div>
+          <div style="font-size:12px;color:var(--text-light)">Almacenamiento de identificaciones</div>
+        </div>
+        <div class="latency" id="latencyInes">—</div>
+        <div class="status-badge status-checking" id="statusInes">⏳ Verificando</div>
+      </div>
+      <div class="service-row">
+        <div style="font-size:24px">📄</div>
+        <div>
+          <div style="font-weight:600">Storage: bucket "cvs"</div>
+          <div style="font-size:12px;color:var(--text-light)">Almacenamiento de currículums</div>
+        </div>
+        <div class="latency" id="latencyCvs">—</div>
+        <div class="status-badge status-checking" id="statusCvs">⏳ Verificando</div>
+      </div>
+      <div class="service-row">
+        <div style="font-size:24px">🌐</div>
+        <div>
+          <div style="font-weight:600">API REST (PostgREST)</div>
+          <div style="font-size:12px;color:var(--text-light)">Endpoint público de Supabase</div>
+        </div>
+        <div class="latency" id="latencyApi">—</div>
+        <div class="status-badge status-checking" id="statusApi">⏳ Verificando</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Distribución -->
+  <div class="section">
+    <h2>📊 Distribución por puesto</h2>
+    <div id="distribution">
+      <div class="empty">Cargando...</div>
+    </div>
+  </div>
+
+  <!-- Recientes -->
+  <div class="section">
+    <h2>🕐 Últimas 5 aplicaciones</h2>
+    <div class="recent-list" id="recentList">
+      <div class="empty">Cargando...</div>
+    </div>
+  </div>
+</div>
+
+<script>
+  const SUPABASE_URL = 'https://xdtxfpvxoxqaadgyvzap.supabase.co';
+  const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhkdHhmcHZ4b3hxYWFkZ3l2emFwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzE5Nzk5OTgsImV4cCI6MjA4NzU1NTk5OH0.0bordJwiTVA-7kqOUsrPcchoSmJS2QKAHUirwN0S1QA';
+  const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+  const TABLE = 'Formulario de Candidatos';
+
+  let autoTimer = null;
+
+  function setStatus(id, status, latency) {
+    const el = document.getElementById(id);
+    el.className = 'status-badge status-' + status;
+    el.textContent = status === 'ok' ? '✓ Operativo'
+                   : status === 'degraded' ? '⚠ Degradado'
+                   : status === 'down' ? '✕ Caído'
+                   : '⏳ Verificando';
+    if (latency !== undefined) {
+      const latEl = document.getElementById(id.replace('status', 'latency'));
+      if (latEl) latEl.textContent = `${latency}ms`;
+    }
+  }
+
+  async function checkService(name, fn) {
+    const t0 = Date.now();
+    try {
+      await fn();
+      const ms = Date.now() - t0;
+      setStatus('status' + name, ms < 1000 ? 'ok' : 'degraded', ms);
+      return { ok: true, ms };
+    } catch (e) {
+      setStatus('status' + name, 'down', Date.now() - t0);
+      return { ok: false, error: e.message };
+    }
+  }
+
+  async function checkAllServices() {
+    await Promise.all([
+      checkService('Db', async () => {
+        const { error } = await sb.from(TABLE).select('id', { head: true, count: 'exact' }).limit(1);
+        if (error) throw error;
+      }),
+      checkService('Ines', async () => {
+        const { error } = await sb.storage.from('documentos').list('', { limit: 1 });
+        if (error) throw error;
+      }),
+      checkService('Cvs', async () => {
+        const { error } = await sb.storage.from('documentos').list('', { limit: 1 });
+        if (error) throw error;
+      }),
+      checkService('Api', async () => {
+        const r = await fetch(SUPABASE_URL + '/rest/v1/', { headers: { apikey: SUPABASE_ANON_KEY } });
+        if (!r.ok) throw new Error('HTTP ' + r.status);
+      })
+    ]);
+  }
+
+  async function loadStats() {
+    try {
+      const { data, error } = await sb.from(TABLE).select('*').order('created_at', { ascending: false });
+      if (error) throw error;
+
+      const total = data.length;
+      const today = new Date().toISOString().slice(0, 10);
+      const hoy = data.filter(c => (c.created_at || '').slice(0, 10) === today).length;
+      const aptos = data.filter(c => c.veredicto_final === 'Apto para Entrevista').length;
+      const conPuntaje = data.filter(c => typeof c.puntaje_evaluacion_tecnica === 'number');
+      const avg = conPuntaje.length > 0
+        ? Math.round(conPuntaje.reduce((s, c) => s + c.puntaje_evaluacion_tecnica, 0) / conPuntaje.length)
+        : 0;
+
+      document.getElementById('statTotal').textContent = total;
+      document.getElementById('statTotalSub').textContent = total === 0 ? 'Sin registros aún' : `Histórico completo`;
+      document.getElementById('statHoy').textContent = hoy;
+      document.getElementById('statAptos').textContent = aptos;
+      document.getElementById('statAptosSub').textContent = total > 0 ? `${Math.round((aptos/total)*100)}% del total` : '—';
+      document.getElementById('statAvg').textContent = conPuntaje.length > 0 ? avg + '%' : '—';
+
+      // Distribución por puesto
+      const puestos = {};
+      data.forEach(c => {
+        const p = c.puesto_aplicado || 'sin_definir';
+        puestos[p] = (puestos[p] || 0) + 1;
+      });
+      const dist = document.getElementById('distribution');
+      const max = Math.max(...Object.values(puestos), 1);
+      const labels = { almacen: '📦 Almacén', cocinero: '👨‍🍳 Cocinero', mesero: '🍽️ Mesero', cajero: '💰 Cajero' };
+      if (Object.keys(puestos).length === 0) {
+        dist.innerHTML = '<div class="empty">No hay candidatos registrados todavía</div>';
+      } else {
+        dist.innerHTML = Object.entries(puestos).sort((a, b) => b[1] - a[1]).map(([p, n]) => `
+          <div style="margin-bottom:14px">
+            <div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:2px">
+              <span style="font-weight:600">${labels[p] || p}</span>
+              <span style="color:var(--text-light)">${n} candidato${n === 1 ? '' : 's'}</span>
+            </div>
+            <div class="chart-bar"><div class="chart-fill" style="width:${(n/max)*100}%"></div></div>
+          </div>
+        `).join('');
+      }
+
+      // Recientes
+      const recent = document.getElementById('recentList');
+      if (data.length === 0) {
+        recent.innerHTML = '<div class="empty">No hay aplicaciones recientes</div>';
+      } else {
+        recent.innerHTML = data.slice(0, 5).map(c => {
+          const verdict = c.veredicto_final || 'pendiente';
+          const cls = verdict.includes('Apto') ? 'verdict-apto' : verdict.includes('Adicional') ? 'verdict-adicional' : 'verdict-no';
+          const when = c.created_at ? new Date(c.created_at).toLocaleString('es-MX', { dateStyle: 'short', timeStyle: 'short' }) : '—';
+          return `
+            <div class="recent-item">
+              <div>
+                <div class="name">${c.nombre || '(sin nombre)'}</div>
+                <div class="meta">${labels[c.puesto_aplicado] || c.puesto_aplicado || '—'} · ${when}${typeof c.puntaje_evaluacion_tecnica === 'number' ? ' · ' + c.puntaje_evaluacion_tecnica + '%' : ''}</div>
+              </div>
+              <span class="verdict-pill ${cls}">${verdict}</span>
+            </div>
+          `;
+        }).join('');
+      }
+    } catch (err) {
+      console.error('loadStats error:', err);
+    }
+  }
+
+  async function refreshAll() {
+    document.getElementById('lastUpdate').textContent = 'Actualizando...';
+    await Promise.all([checkAllServices(), loadStats()]);
+    document.getElementById('lastUpdate').textContent = 'Última actualización: ' + new Date().toLocaleTimeString('es-MX');
+  }
+
+  function setupAutoRefresh() {
+    if (autoTimer) clearInterval(autoTimer);
+    if (document.getElementById('autoRefresh').checked) {
+      autoTimer = setInterval(refreshAll, 30000);
+    }
+  }
+
+  document.getElementById('btnRefresh').addEventListener('click', refreshAll);
+  document.getElementById('autoRefresh').addEventListener('change', setupAutoRefresh);
+  document.getElementById('btnOpenTests').addEventListener('click', () => window.open('Ma Baker - Suite de Pruebas.html', '_blank'));
+  document.getElementById('btnOpenDashboard').addEventListener('click', () => window.open('Ma Baker Dashboard RH.html', '_blank'));
+
+  // Init
+  refreshAll();
+  setupAutoRefresh();
+</script>
+</body>
+</html>
