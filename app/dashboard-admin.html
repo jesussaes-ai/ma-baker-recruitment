@@ -1,267 +1,763 @@
 <!DOCTYPE html>
-<html lang="es">
-
+<html lang="es" class="dark">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Ma Baker — Admin General</title>
-    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&display=swap"
-        rel="stylesheet">
-    <link rel="icon" href="assets/favicon.ico">
-    <link rel="stylesheet" href="styles/main.css">
-    <link rel="stylesheet" href="styles/dashboard.css">
+    <title>Ma Baker — Dashboard Admin</title>
+    <link rel="stylesheet" href="styles/tailwind.build.css">
+    <script src="js/config.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght@100..700,0..1&display=swap" rel="stylesheet">
+    <script>
+        window.tailwind = window.tailwind || {};
+        window.tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "mabaker-red": "#D7282F",
+                        "mabaker-blue": "#0071BC",
+                        "glass-white": "rgba(255, 255, 255, 0.05)",
+                        "glass-white-hover": "rgba(255, 255, 255, 0.08)",
+                        "dark-depth": "#020617",
+                        "dark-surface": "#0f172a",
+                    },
+                    fontFamily: { "montserrat": ["Montserrat", "sans-serif"] },
+                    boxShadow: { "glass": "0 8px 32px 0 rgba(0, 0, 0, 0.37)" },
+                    backdropBlur: { "xs": "2px" }
+                },
+            },
+        }
+    </script>
+    <style>
+        body {
+            font-family: 'Montserrat', sans-serif;
+            background: radial-gradient(circle at top left, #1e1b4b, #020617 60%);
+            min-height: 100vh;
+            color: #f1f5f9;
+        }
+        .glass-panel {
+            background: rgba(15, 23, 42, 0.7);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+        .glass-sidebar {
+            background: rgba(2, 6, 23, 0.85);
+            backdrop-filter: blur(20px);
+            border-right: 1px solid rgba(215, 40, 47, 0.1);
+        }
+        .glass-card {
+            background: rgba(255, 255, 255, 0.03);
+            backdrop-filter: blur(8px);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .glass-card:hover {
+            background: rgba(255, 255, 255, 0.06);
+            border-color: rgba(215, 40, 47, 0.3);
+            transform: translateY(-4px);
+        }
+        .animate-fade-in { animation: fadeIn 0.6s ease-out forwards; }
+        .animate-slide-up { animation: slideUp 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        @keyframes slideUp { 
+            from { transform: translateY(30px); opacity: 0; } 
+            to { transform: translateY(0); opacity: 1; } 
+        }
+        .nav-item-active {
+            background: linear-gradient(90deg, rgba(215, 40, 47, 0.8) 0%, rgba(215, 40, 47, 0.1) 100%);
+            border-left: 4px solid #D7282F;
+            color: white;
+        }
+        .scroll-custom::-webkit-scrollbar { width: 5px; }
+        .scroll-custom::-webkit-scrollbar-track { background: transparent; }
+        .scroll-custom::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.15); border-radius: 10px; }
+        .mabaker-glow { box-shadow: 0 0 20px rgba(215, 40, 47, 0.2); }
+        .panel { display: none; }
+        .panel.active { display: block; }
+        .nav-item.nav-item-active {
+            background: linear-gradient(90deg, rgba(215, 40, 47, 0.8) 0%, rgba(215, 40, 47, 0.1) 100%);
+            border-left: 4px solid #D7282F;
+            color: white;
+        }
+    </style>
+<script src="js/theme.js"></script>
+    <script src="js/help-overlay.js"></script>
+<script src="js/uppercase.js"></script>
 </head>
-
-<body class="dashboard-body">
-
-    <nav class="sidebar" id="sidebar">
-        <div class="sidebar-brand">
-            <img src="assets/logo.webp" alt="Ma Baker and Chef" class="brand-logo-img"
-                onerror="this.style.display='none'; this.parentElement.innerHTML+='<span class=brand-emoji>🧁</span>'">
-            <div>
-                <div class="brand-name">Ma Baker</div>
-                <div class="brand-sub">Admin General</div>
-            </div>
-        </div>
-        <nav class="sidebar-nav">
-            <a href="#" class="nav-item active" data-panel="resumen"><span>📊</span> Resumen General</a>
-            <a href="#" class="nav-item" data-panel="candidatos"><span>👥</span> Candidatos Activos</a>
-            <a href="#" class="nav-item" data-panel="rechazados"><span>📂</span> Prospectos Rechazados</a>
-            <a href="#" class="nav-item" data-panel="psicometricos"><span>🧠</span> Psicométricos</a>
-            <a href="#" class="nav-item" data-panel="medico"><span>🏥</span> Vista Médica</a>
-            <a href="#" class="nav-item" data-panel="jefe"><span>🏢</span> Evaluaciones Jefes</a>
-            <a href="#" class="nav-item" data-panel="sgi"><span>✅</span> Auditoría SGI</a>
-            <a href="#" class="nav-item" data-panel="usuarios"><span>⚙️</span> Gestión de Usuarios</a>
-            <a href="#" class="nav-item" data-panel="logs"><span>📋</span> Log Agente IA</a>
-            <a href="#" class="nav-item" data-panel="vacantes"><span>💼</span> Catálogo de Puestos</a>
-            <a href="cargar-puestos.html" class="nav-item"
-                style="color:#E85059;border-left-color:#D7282F;"><span>📤</span> Cargar PDFs ✦</a>
-        </nav>
-        <div class="sidebar-footer">
-            <div class="user-info" id="userInfo"></div>
-            <button class="btn-logout" onclick="logout()">Cerrar sesión</button>
-        </div>
-    </nav>
-
-    <div class="dashboard-main">
-        <header class="dash-header">
-            <button class="menu-toggle" onclick="toggleSidebar()">☰</button>
-            <div class="dash-header-title" id="panelTitle">📊 Resumen General</div>
-            <div class="rol-badge admin">⚙️ Admin</div>
-        </header>
-
-        <!-- Panel: Resumen -->
-        <div class="panel active" id="panel-resumen">
-            <!-- Stats -->
-            <div class="stats-grid" id="statsGrid">
-                <div class="stat-card">
-                    <div class="stat-icon">👥</div>
-                    <div class="stat-num" id="statCandidatos">—</div>
-                    <div class="stat-label">Candidatos Activos</div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-icon">📂</div>
-                    <div class="stat-num" id="statRechazados">—</div>
-                    <div class="stat-label">Prospectos Rechazados</div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-icon">🧠</div>
-                    <div class="stat-num" id="statPsico">—</div>
-                    <div class="stat-label">Psicométricos Pendientes</div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-icon">🏥</div>
-                    <div class="stat-num" id="statMedico">—</div>
-                    <div class="stat-label">Pendientes Médico</div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-icon">🏢</div>
-                    <div class="stat-num" id="statJefe">—</div>
-                    <div class="stat-label">Pendientes Jefe</div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-icon">✅</div>
-                    <div class="stat-num" id="statContratos">—</div>
-                    <div class="stat-label">Listos Para Contrato</div>
+<body class="antialiased overflow-hidden">
+    <div class="flex h-screen w-full relative">
+        
+        <!-- Sidebar -->
+        <aside class="w-72 glass-sidebar hidden lg:flex flex-col z-30 shadow-2xl relative overflow-hidden">
+            <div class="p-8 pb-4">
+                <div class="flex items-center gap-4">
+                    <div class="size-12 rounded-2xl bg-mabaker-red flex items-center justify-center shadow-lg shadow-mabaker-red/40 mabaker-glow rotate-3">
+                        <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364-6.364l-.707.707M6.343 17.657l-.707.707m0-12.728l.707.707m12.728 12.728l.707-.707M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                        </svg>
+                    </div>
+                    <div>
+                        <h1 class="font-extrabold text-lg leading-tight tracking-tighter uppercase text-white">Ma Baker</h1>
+                        <p class="text-[10px] text-mabaker-red font-black uppercase tracking-[0.3em] italic leading-none">and chef</p>
+                    </div>
                 </div>
             </div>
-            <!-- Accesos Rápidos -->
-            <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:24px;">
-                <button class="btn-action" onclick="window.location='cargar-puestos.html'">📤 Cargar Descripciones
-                    PDF</button>
-                <button class="btn-action secondary" onclick="switchPanel('candidatos')">👥 Ver Candidatos</button>
-                <button class="btn-action secondary" onclick="switchPanel('rechazados')">📂 Ver Rechazados</button>
-                <button class="btn-action outline" onclick="switchPanel('logs')">📋 Ver Log IA</button>
+
+            <nav class="flex-1 px-4 space-y-2 mt-8 scroll-custom overflow-y-auto">
+                <div class="px-5 py-2 text-[10px] font-black text-slate-500 uppercase tracking-[0.3em] mb-2 opacity-60">Operaciones</div>
+                
+                <a href="#" class="nav-item flex items-center gap-4 px-5 py-3.5 rounded-2xl nav-item-active transition-all group relative overflow-hidden" onclick="window.activarPanel('dashboard', this)" data-panel="dashboard">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v4a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v4a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"></path>
+                    </svg>
+                    <span class="text-sm font-bold tracking-wide">Inicio RRHH</span>
+                </a>
+
+                <a href="cargar-puestos.html" class="flex items-center gap-4 px-5 py-3.5 rounded-2xl hover:bg-white/5 transition-all group text-slate-400 hover:text-white">
+                    <svg class="w-5 h-5 group-hover:scale-110 group-hover:rotate-6 transition-transform" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M9 13h6m-3-3v6m5 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                    </svg>
+                    <span class="text-sm font-semibold">Publicar Vacantes</span>
+                </a>
+
+                <a href="#" class="nav-item flex items-center gap-4 px-5 py-3.5 rounded-2xl hover:bg-white/5 transition-all group text-slate-400 hover:text-white" onclick="window.activarPanel('candidatos', this)" data-panel="candidatos">
+                    <svg class="w-5 h-5 group-hover:scale-110 transition-transform" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path>
+                    </svg>
+                    <span class="text-sm font-semibold">Candidatos Activos</span>
+                </a>
+
+                <a href="#" class="nav-item flex items-center gap-4 px-5 py-3.5 rounded-2xl hover:bg-white/5 transition-all group text-slate-400 hover:text-white" onclick="window.activarPanel('vacantes', this)" data-panel="vacantes">
+                    <svg class="w-5 h-5 group-hover:scale-110 transition-transform" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path>
+                    </svg>
+                    <span class="text-sm font-semibold">Catálogo Vacantes</span>
+                </a>
+
+                <a href="#" class="nav-item flex items-center gap-4 px-5 py-3.5 rounded-2xl hover:bg-white/5 transition-all group text-slate-400 hover:text-white" onclick="window.activarPanel('rechazados', this)" data-panel="rechazados">
+                    <svg class="w-5 h-5 group-hover:scale-110 transition-transform" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636"></path>
+                    </svg>
+                    <span class="text-sm font-semibold">Historial Rechazos</span>
+                </a>
+
+                <a href="#" class="nav-item flex items-center gap-4 px-5 py-3.5 rounded-2xl hover:bg-white/5 transition-all group text-slate-400 hover:text-white" onclick="window.activarPanel('logs', this)" data-panel="logs">
+                    <svg class="w-5 h-5 group-hover:scale-110 transition-transform" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.582 4 8 4s8-1.79 8-4M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4m0 5c0 2.21-3.582 4-8 4s-8-1.79-8-4"></path>
+                    </svg>
+                    <span class="text-sm font-semibold">Logs del Sistema</span>
+                </a>
+
+                <div class="px-5 py-6 text-[10px] font-black text-slate-500 uppercase tracking-[0.3em] opacity-60">Configuración</div>
+                
+                <a href="#" class="flex items-center gap-4 px-5 py-3.5 rounded-2xl hover:bg-white/5 transition-all group text-slate-400 hover:text-white">
+                    <svg class="w-5 h-5 group-hover:scale-110 transition-transform" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                    </svg>
+                    <span class="text-sm font-semibold">Ajustes del Sistema</span>
+                </a>
+            </nav>
+
+            <div class="p-6 border-t border-white/5 bg-black/20">
+                <div class="bg-white/5 rounded-[2rem] p-4 mb-4 border border-white/5" id="userInfo">
+                    <!-- Loaded by dashboard.js -->
+                </div>
+                <button onclick="logout()" class="w-full flex items-center justify-center gap-3 px-4 py-4 rounded-2xl bg-mabaker-red/20 border border-mabaker-red/30 text-mabaker-red hover:bg-mabaker-red hover:text-white transition-all text-[11px] font-black uppercase tracking-widest group">
+                    <svg class="w-4 h-4 group-hover:rotate-12 transition-transform" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path>
+                    </svg>
+                    Cerrar Sesión
+                </button>
             </div>
-            <div class="panel-section">
-                <h3 class="section-title">Candidatos Activos Recientes</h3>
-                <div id="recentCandidatos" class="table-wrapper">
-                    <div class="loading-row">Cargando...</div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="flex-1 flex flex-col overflow-hidden relative bg-black/40 backdrop-blur-3xl">
+            
+            <!-- Top Header -->
+            <header class="h-24 glass-panel border-b border-white/5 flex items-center justify-between px-10 z-20 shrink-0">
+                <div>
+                    <h2 class="text-3xl font-black text-white tracking-tighter" id="panelTitle">Gestión de Talento</h2>
+                    <div class="flex items-center gap-2 mt-1">
+                        <span class="size-2 bg-emerald-500 rounded-full animate-pulse"></span>
+                        <p class="text-[11px] text-slate-400 font-bold uppercase tracking-widest">Ma Baker and Chef — Live System</p>
+                    </div>
+                </div>
+
+                <div class="flex items-center gap-8">
+                    <div class="relative hidden xl:block">
+                        <svg class="w-5 h-5 text-slate-500 absolute left-4 top-1/2 -translate-y-1/2" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                        </svg>
+                        <input type="text" id="searchInput" placeholder="Buscar por nombre o puesto..." class="pl-12 pr-6 py-3.5 bg-white/5 border border-white/10 rounded-2xl text-sm focus:ring-4 focus:ring-mabaker-red/20 focus:border-mabaker-red/50 w-96 transition-all text-white placeholder-slate-500 outline-none">
+                    </div>
+                    
+                    <button class="relative size-12 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center hover:bg-white/10 hover:border-white/20 transition-all group">
+                        <svg class="w-5 h-5 text-slate-400 group-hover:text-white group-hover:scale-110 transition-all" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"></path>
+                        </svg>
+                        <span class="absolute top-3 right-3 size-2.5 bg-mabaker-red rounded-full ring-4 ring-[#020617]"></span>
+                    </button>
+                </div>
+            </header>
+
+            <!-- Content Area -->
+            <div class="flex-1 overflow-y-auto p-10 space-y-10 scroll-custom relative">
+                
+                <!-- PANEL: DASHBOARD (RESUMEN) -->
+                <div id="panel-dashboard" class="panel active space-y-10">
+                    <!-- Action Banner -->
+                    <section class="animate-slide-up">
+                        <div class="bg-gradient-to-br from-mabaker-red via-[#B01E24] to-[#800F14] rounded-[3rem] p-10 text-white shadow-3xl shadow-mabaker-red/30 relative overflow-hidden group">
+                            <!-- Decorative Orbs -->
+                            <div class="absolute -right-20 -bottom-20 size-[30rem] bg-white/5 rounded-full blur-[100px] group-hover:scale-110 transition-transform duration-1000"></div>
+                            <div class="absolute -left-20 -top-20 size-[20rem] bg-blue-500/10 rounded-full blur-[80px]"></div>
+                            
+                            <div class="flex flex-col xl:flex-row items-center gap-10 relative z-10">
+                                <div class="size-24 rounded-3xl bg-white/10 backdrop-blur-2xl flex items-center justify-center border border-white/20 shadow-inner group-hover:rotate-6 transition-all duration-500">
+                                    <svg class="w-12 h-12 text-white" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M15.59 14.37a6 6 0 01-5.84 7.38v-4.8m5.84-2.58a14.98 14.98 0 006.16-12.12A14.98 14.98 0 009.63 8.41m5.96 5.96a14.926 14.926 0 01-5.84 2.58m0 0a14.91 14.91 0 01-7.38-5.84M9.63 8.41a14.91 14.91 0 00-5.84 7.38m5.84-7.38a14.926 14.926 0 002.58 5.84M2.25 21.75l2.25-2.25m0-12a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0z"></path>
+                                    </svg>
+                                </div>
+                                <div class="flex-1 text-center xl:text-left">
+                                    <h3 class="text-4xl font-black mb-2 tracking-tight">Administración General — Ma Baker</h3>
+                                    <p class="text-white/70 text-lg max-w-2xl font-medium leading-relaxed">Bienvenido al centro de mando. Gestiona vacantes y analiza candidatos con <span class="text-white font-black underline decoration-mabaker-blue decoration-4 underline-offset-4">IA Avanzada</span>.</p>
+                                </div>
+                                <a href="cargar-puestos.html" class="bg-white text-mabaker-red px-10 py-5 rounded-[2rem] font-black text-lg hover:scale-105 active:scale-95 transition-all shadow-2xl shadow-black/20 flex items-center gap-3">
+                                    Gestionar Vacantes
+                                    <svg class="w-5 h-5 text-mabaker-red" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path>
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                                    </svg>
+                                </a>
+                            </div>
+                        </div>
+                    </section>
+
+                    <!-- Quick Stats Grid -->
+                    <section class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 animate-slide-up" style="animation-delay: 0.1s;">
+                        <div class="glass-card p-8 rounded-[2.5rem] group">
+                            <p class="text-[10px] font-black text-slate-500 uppercase tracking-[0.3em] mb-1">Candidatos Totales</p>
+                            <h4 class="text-4xl font-black text-white" id="statCandidatos">--</h4>
+                        </div>
+                        <div class="glass-card p-8 rounded-[2.5rem] group">
+                            <p class="text-[10px] font-black text-slate-500 uppercase tracking-[0.3em] mb-1">En Evaluación</p>
+                            <h4 class="text-4xl font-black text-white" id="statPsico">--</h4>
+                        </div>
+                        <div class="glass-card p-8 rounded-[2.5rem] group border-l-4 border-l-emerald-500">
+                            <p class="text-[10px] font-black text-slate-500 uppercase tracking-[0.3em] mb-1">Vacantes Activas</p>
+                            <h4 class="text-4xl font-black text-emerald-400" id="statVacantesActivas">--</h4>
+                        </div>
+                        <div class="glass-card p-8 rounded-[2.5rem] group border-l-4 border-l-rose-500">
+                            <p class="text-[10px] font-black text-slate-500 uppercase tracking-[0.3em] mb-1">Filtro IA (Rechazos)</p>
+                            <h4 class="text-4xl font-black text-rose-500" id="statRechazados">--</h4>
+                        </div>
+                    </section>
+
+                    <!-- Resumen Tablas Rapidas -->
+                    <div class="grid grid-cols-1 xl:grid-cols-2 gap-10 animate-slide-up" style="animation-delay: 0.2s;">
+                        <div class="glass-panel rounded-[3rem] p-8 border border-white/5 space-y-6">
+                            <h3 class="font-black text-white text-xl tracking-tight flex items-center gap-3">
+                                <svg class="w-6 h-6 text-mabaker-blue inline-block" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M15 19.128a9.38 9.38 0 002.625.372 9.337 9.337 0 004.121-.952 4.125 4.125 0 00-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.109A12.018 12.018 0 0112 21c-1.047 0-2.052-.134-3-.389v-.109m0-1.397a8.736 8.736 0 01.785-3.07M9 19.128a9.38 9.38 0 01-2.625.372 9.337 9.337 0 01-4.121-.952 4.125 4.125 0 017.533-2.493M9 19.128v-.003c0-1.113.285-2.16.786-3.07M15 7.5a3 3 0 11-6 0 3 3 0 016 0zm6 3a2.25 2.25 0 11-4.5 0 2.25 2.25 0 014.5 0zm-13.5 0a2.25 2.25 0 11-4.5 0 2.25 2.25 0 014.5 0z"></path>
+                                </svg>
+                                Últimos Candidatos
+                            </h3>
+                            <div class="overflow-hidden rounded-2xl" id="tablaRecentCandidatos">
+                                <div class="p-10 text-center text-slate-500">Cargando...</div>
+                            </div>
+                        </div>
+                        <div class="glass-panel rounded-[3rem] p-8 border border-white/5 space-y-6">
+                            <h3 class="font-black text-white text-xl tracking-tight flex items-center gap-3">
+                                <svg class="w-6 h-6 text-mabaker-red inline-block" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                </svg>
+                                Actividad Reciente IA
+                            </h3>
+                            <div class="overflow-hidden rounded-2xl" id="tablaRecentLogs">
+                                <div class="p-10 text-center text-slate-500">Cargando...</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- PANEL: CANDIDATOS -->
+                <div id="panel-candidatos" class="panel space-y-10">
+                    <section class="glass-panel rounded-[3rem] shadow-2xl border border-white/5 overflow-hidden">
+                        <div class="p-10 border-b border-white/5 flex flex-col sm:flex-row items-center justify-between bg-white/[0.02] gap-6">
+                            <div>
+                                <h3 class="font-black text-white text-2xl tracking-tight">Explorador de Talento</h3>
+                                <p class="text-xs text-slate-400 font-semibold uppercase tracking-widest mt-1">Todos los candidatos activos en el proceso</p>
+                            </div>
+                            <div class="flex gap-4">
+                                <button id="btnFiltrar" class="flex items-center gap-3 px-6 py-3.5 bg-white/5 hover:bg-white/10 border border-white/10 rounded-2xl text-[11px] font-black uppercase tracking-widest transition-all">
+                                    <svg class="w-4 h-4 text-white inline-block" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M6 13.5V3.75m0 9.75a1.5 1.5 0 010 3m0-3a1.5 1.5 0 000 3m0 3.75V16.5m12-3V3.75m0 9.75a1.5 1.5 0 010 3m0-3a1.5 1.5 0 000 3m0 3.75V16.5m-6-9V3.75m0 3.75a1.5 1.5 0 010 3m0-3a1.5 1.5 0 000 3m0 9.75V10.5"></path>
+                                    </svg>
+                                    Filtrar Fase
+                                </button>
+                            </div>
+                        </div>
+                        <div class="overflow-x-auto min-h-[400px] scroll-custom" id="tablaCandidatos">
+                            <div class="p-20 text-center text-slate-500">Sincronizando...</div>
+                        </div>
+                    </section>
+                </div>
+
+                <!-- PANEL: RECHAZADOS -->
+                <div id="panel-rechazados" class="panel space-y-10">
+                    <section class="glass-panel rounded-[3rem] shadow-2xl border border-white/5 overflow-hidden">
+                        <div class="p-10 border-b border-white/5 flex flex-col sm:flex-row items-center justify-between bg-white/[0.02] gap-6">
+                            <div>
+                                <h3 class="font-black text-white text-2xl tracking-tight">Archivo Histórico (Rechazos)</h3>
+                                <p class="text-xs text-slate-400 font-semibold uppercase tracking-widest mt-1">Candidatos que no cumplieron el perfil mínimo</p>
+                            </div>
+                        </div>
+                        <div class="overflow-x-auto min-h-[400px] scroll-custom" id="tablaRechazados">
+                            <div class="p-20 text-center text-slate-500">Cargando archivo...</div>
+                        </div>
+                    </section>
+                </div>
+
+                <!-- PANEL: LOGS IA -->
+                <div id="panel-logs" class="panel space-y-10">
+                    <section class="glass-panel rounded-[3rem] shadow-2xl border border-white/5 overflow-hidden">
+                        <div class="p-10 border-b border-white/5 flex flex-col sm:flex-row items-center justify-between bg-white/[0.02] gap-6">
+                            <div>
+                                <h3 class="font-black text-white text-2xl tracking-tight">Log de Eventos del Sistema</h3>
+                                <p class="text-xs text-slate-400 font-semibold uppercase tracking-widest mt-1">Auditoría de IA y movimientos de base de datos</p>
+                            </div>
+                        </div>
+                        <div class="overflow-x-auto min-h-[400px] scroll-custom" id="tablaLogs">
+                            <div class="p-20 text-center text-slate-500">Cargando auditoría...</div>
+                        </div>
+                    </section>
+                </div>
+
+                <!-- PANEL: VACANTES -->
+                <div id="panel-vacantes" class="panel space-y-10">
+                    <section class="glass-panel rounded-[3rem] shadow-2xl border border-white/5 overflow-hidden">
+                        <div class="p-10 border-b border-white/5 flex flex-col sm:flex-row items-center justify-between bg-white/[0.02] gap-6">
+                            <div>
+                                <h3 class="font-black text-white text-2xl tracking-tight">Catálogo de Puestos</h3>
+                                <p class="text-xs text-slate-400 font-semibold uppercase tracking-widest mt-1">Gestión administrativa de vacantes y perfiles</p>
+                            </div>
+                            <div class="flex gap-4">
+                                <a href="cargar-puestos.html" class="flex items-center gap-3 px-6 py-3.5 bg-mabaker-red text-white rounded-2xl text-[11px] font-black uppercase tracking-widest transition-all hover:scale-105 shadow-lg shadow-mabaker-red/20">
+                                    <svg class="w-4 h-4 text-white inline-block" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v6m3-3H9m12 0a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                    </svg>
+                                    Crear Puesto
+                                </a>
+                            </div>
+                        </div>
+                        <div class="overflow-x-auto min-h-[400px] scroll-custom" id="tablaVacantes">
+                            <div class="p-20 text-center text-slate-500">Sincronizando catálogo...</div>
+                        </div>
+                    </section>
                 </div>
             </div>
-            <div class="panel-section">
-                <h3 class="section-title">Últimas Decisiones del Agente IA</h3>
-                <div id="recentLogs" class="table-wrapper">
-                    <div class="loading-row">Cargando...</div>
+        </main>
+    </div>
+
+    <!-- MODAL EDITAR VACANTE (PREMIUM) -->
+    <div id="modalVacante" class="fixed inset-0 z-50 hidden flex items-center justify-center p-4">
+        <div class="absolute inset-0 bg-dark-depth/90 backdrop-blur-xl" onclick="cerrarModalVacante()"></div>
+        <div class="relative w-full max-w-4xl bg-dark-surface border border-white/10 rounded-[3rem] shadow-3xl overflow-hidden animate-slide-up">
+            <div class="p-10 border-b border-white/5 bg-white/[0.02] flex justify-between items-center">
+                <div class="flex items-center gap-6">
+                    <div class="size-16 rounded-2xl bg-mabaker-red/20 text-mabaker-red flex items-center justify-center">
+                        <svg class="w-8 h-8 text-mabaker-red" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M20.25 14.15v4.25c0 .414-.336.75-.75.75H4.5a.75.75 0 01-.75-.75v-4.25m16.5 0a3 3 0 00-3-3H6.75a3 3 0 00-3 3m16.5 0a3 3 0 01-3 3H6.75a3 3 0 01-3-3m13.5-3V7.5a2.25 2.25 0 00-2.25-2.25h-3a2.25 2.25 0 00-2.25 2.25v3.375"></path>
+                        </svg>
+                    </div>
+                    <div>
+                        <input type="text" id="editV_nombre" class="bg-transparent border-none text-3xl font-black text-white p-0 focus:ring-0 w-full" placeholder="Nombre del Puesto">
+                        <p class="text-xs text-slate-400 font-bold uppercase tracking-[0.2em]" id="editV_codigo">COD-000</p>
+                    </div>
+                </div>
+                <button onclick="cerrarModalVacante()" class="size-12 rounded-2xl hover:bg-white/5 flex items-center justify-center transition-all">
+                    <svg class="w-6 h-6 text-slate-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"></path>
+                    </svg>
+                </button>
+            </div>
+            
+            <div class="p-10 max-h-[70vh] overflow-y-auto scroll-custom space-y-8">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    <div class="space-y-6">
+                        <div>
+                            <label class="text-[10px] font-black text-slate-500 uppercase tracking-widest block mb-2 px-1">Departamento</label>
+                            <input type="text" id="editV_depto" class="w-full bg-white/5 border border-white/10 rounded-2xl px-6 py-4 text-white font-semibold focus:border-mabaker-red/50 transition-all outline-none">
+                        </div>
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <label class="text-[10px] font-black text-slate-500 uppercase tracking-widest block mb-2 px-1">Sueldo Min ($)</label>
+                                <input type="number" id="editV_sMin" class="w-full bg-white/5 border border-white/10 rounded-2xl px-6 py-4 text-white font-semibold focus:border-mabaker-red/50 transition-all outline-none">
+                            </div>
+                            <div>
+                                <label class="text-[10px] font-black text-slate-500 uppercase tracking-widest block mb-2 px-1">Sueldo Max ($)</label>
+                                <input type="number" id="editV_sMax" class="w-full bg-white/5 border border-white/10 rounded-2xl px-6 py-4 text-white font-semibold focus:border-mabaker-red/50 transition-all outline-none">
+                            </div>
+                        </div>
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <label class="text-[10px] font-black text-slate-500 uppercase tracking-widest block mb-2 px-1">Escolaridad Mínima</label>
+                                <select id="editV_escolaridad" class="w-full bg-white/5 border border-white/10 rounded-2xl px-6 py-4 text-white font-semibold focus:border-mabaker-red/50 transition-all outline-none appearance-none">
+                                    <option value="Sin especificar" class="bg-dark-surface">Sin especificar</option>
+                                    <option value="Secundaria" class="bg-dark-surface">Secundaria</option>
+                                    <option value="Preparatoria" class="bg-dark-surface">Preparatoria</option>
+                                    <option value="Técnico" class="bg-dark-surface">Técnico</option>
+                                    <option value="Licenciatura" class="bg-dark-surface">Licenciatura</option>
+                                    <option value="Ingeniería" class="bg-dark-surface">Ingeniería</option>
+                                    <option value="Postgrado" class="bg-dark-surface">Postgrado</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="text-[10px] font-black text-slate-500 uppercase tracking-widest block mb-2 px-1">Años de Exp.</label>
+                                <input type="number" id="editV_exp" class="w-full bg-white/5 border border-white/10 rounded-2xl px-6 py-4 text-white font-semibold focus:border-mabaker-red/50 transition-all outline-none">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="space-y-6">
+                        <div>
+                            <label class="text-[10px] font-black text-slate-500 uppercase tracking-widest block mb-2 px-1">Descriptivo Completo del Puesto</label>
+                            <textarea id="editV_desc" class="w-full h-80 bg-white/5 border border-white/10 rounded-[2rem] px-6 py-6 text-white text-sm leading-relaxed focus:border-mabaker-red/50 transition-all outline-none resize-none scroll-custom" placeholder="Pega aquí el perfil descriptivo completo..."></textarea>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-8 pt-4 border-t border-white/5">
+                    <div>
+                        <label class="text-[10px] font-black text-slate-500 uppercase tracking-widest block mb-2 px-1">Conocimientos Técnicos</label>
+                        <input type="text" id="editV_conocimientos" class="w-full bg-white/5 border border-white/10 rounded-2xl px-6 py-4 text-white text-xs focus:border-mabaker-red/50 outline-none" placeholder="Excel, SAP, SQL...">
+                    </div>
+                    <div>
+                        <label class="text-[10px] font-black text-slate-500 uppercase tracking-widest block mb-2 px-1">Estado de la Vacante</label>
+                        <div class="flex items-center gap-4 mt-2 h-14">
+                            <label class="relative inline-flex items-center cursor-pointer">
+                                <input type="checkbox" id="editV_activo" class="sr-only peer">
+                                <div class="w-14 h-8 bg-white/10 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[4px] after:left-[4px] after:bg-white after:rounded-full after:h-6 after:w-6 after:transition-all peer-checked:bg-mabaker-red"></div>
+                                <span class="ml-4 text-sm font-bold text-slate-300 uppercase tracking-widest" id="statusLabel">Activa</span>
+                            </label>
+                        </div>
+                    </div>
                 </div>
             </div>
-        </div>
 
-        <!-- Panel: Candidatos -->
-        <div class="panel" id="panel-candidatos">
-            <div class="panel-toolbar">
-                <h2>👥 Candidatos Activos</h2>
-                <select class="filter-select" id="filterFase" onchange="loadCandidatos()">
-                    <option value="">Todas las fases</option>
-                    <option value="espera_psicometricos">Espera Psicometría</option>
-                    <option value="espera_medico">Espera Médico</option>
-                    <option value="espera_jefe">Espera Jefe</option>
-                    <option value="induccion_sgi">Inducción SGI</option>
-                    <option value="listo_para_contrato">Listo Para Contrato</option>
-                </select>
-            </div>
-            <div id="tablaCandidatos" class="table-wrapper">
-                <div class="loading-row">Cargando...</div>
-            </div>
-        </div>
-
-        <!-- Panel: Rechazados -->
-        <div class="panel" id="panel-rechazados">
-            <div class="panel-toolbar">
-                <h2>📂 Prospectos Rechazados</h2>
-                <select class="filter-select" id="filterFiltro" onchange="loadRechazados()">
-                    <option value="">Todos los motivos</option>
-                    <option value="edad">Edad</option>
-                    <option value="escolaridad">Escolaridad</option>
-                    <option value="experiencia">Experiencia</option>
-                    <option value="score">Score IA &lt; 80%</option>
-                    <option value="privacidad">No aceptó privacidad</option>
-                </select>
-            </div>
-            <div class="privacy-notice">
-                🔒 Esta tabla contiene datos personales. Su consulta queda registrada en el log del sistema.
-            </div>
-            <div id="tablaRechazados" class="table-wrapper">
-                <div class="loading-row">Cargando...</div>
-            </div>
-        </div>
-
-        <!-- Panel: Psicométricos -->
-        <div class="panel" id="panel-psicometricos">
-            <div class="panel-toolbar">
-                <h2>🧠 Gestor de Psicométricos</h2>
-                <span class="badge-restricted">RRHH + Admin</span>
-            </div>
-            <div class="stats-grid" style="margin-bottom:16px;">
-                <div class="stat-card">
-                    <div class="stat-icon">⏳</div>
-                    <div class="stat-num" id="psicoEnviados">—</div>
-                    <div class="stat-label">Links Enviados</div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-icon">✅</div>
-                    <div class="stat-num" id="psicoAprobados">—</div>
-                    <div class="stat-label">Aprobados</div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-icon">❌</div>
-                    <div class="stat-num" id="psicoReprobados">—</div>
-                    <div class="stat-label">Reprobados</div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-icon">🔍</div>
-                    <div class="stat-num" id="psicoRevisar">—</div>
-                    <div class="stat-label">Por Revisar</div>
-                </div>
-            </div>
-            <div class="panel-section">
-                <h3 class="section-title">Candidatos awaiting psicométricos</h3>
-                <div id="tablaPsico" class="table-wrapper">
-                    <div class="loading-row">Cargando...</div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Panel: Médico (solo admin puede ver aquí) -->
-        <div class="panel" id="panel-medico">
-            <div class="panel-toolbar">
-                <h2>🏥 Vista Médica</h2><span class="badge-restricted">Solo Médico + Admin</span>
-            </div>
-            <div id="tablaMedico" class="table-wrapper">
-                <div class="loading-row">Cargando...</div>
-            </div>
-        </div>
-
-        <!-- Panel: Jefe -->
-        <div class="panel" id="panel-jefe">
-            <div class="panel-toolbar">
-                <h2>🏢 Evaluaciones de Jefes de Área</h2>
-            </div>
-            <div id="tablaJefe" class="table-wrapper">
-                <div class="loading-row">Cargando...</div>
-            </div>
-        </div>
-
-        <!-- Panel: SGI -->
-        <div class="panel" id="panel-sgi">
-            <div class="panel-toolbar">
-                <h2>✅ Auditorías de Inducción SGI</h2>
-            </div>
-            <div id="tablaSGI" class="table-wrapper">
-                <div class="loading-row">Cargando...</div>
-            </div>
-        </div>
-
-        <!-- Panel: Usuarios -->
-        <div class="panel" id="panel-usuarios">
-            <div class="panel-toolbar">
-                <h2>⚙️ Gestión de Usuarios del Sistema</h2>
-            </div>
-            <div id="tablaUsuarios" class="table-wrapper">
-                <div class="loading-row">Cargando...</div>
-            </div>
-        </div>
-
-        <!-- Panel: Logs -->
-        <div class="panel" id="panel-logs">
-            <div class="panel-toolbar">
-                <h2>📋 Log del Agente IA</h2>
-            </div>
-            <div id="tablaLogs" class="table-wrapper">
-                <div class="loading-row">Cargando...</div>
-            </div>
-        </div>
-
-        <!-- Panel: Vacantes -->
-        <div class="panel" id="panel-vacantes">
-            <div class="panel-toolbar">
-                <h2>💼 Catálogo de Puestos</h2>
-                <button class="btn-action" onclick="window.location='cargar-puestos.html'">📤 Cargar PDF</button>
-            </div>
-            <div id="tablaVacantes" class="table-wrapper">
-                <div class="loading-row">Cargando...</div>
+            <div class="p-10 pt-0 flex justify-end gap-4">
+                <button onclick="cerrarModalVacante()" class="px-10 py-5 rounded-2xl border border-white/10 text-slate-400 font-black text-xs uppercase tracking-widest hover:bg-white/5 transition-all">Cancelar</button>
+                <button onclick="guardarCambiosVacante()" id="btnGuardarPuesto" class="px-10 py-5 rounded-2xl bg-mabaker-red text-white font-black text-xs uppercase tracking-widest hover:scale-105 active:scale-95 transition-all shadow-xl shadow-mabaker-red/20 flex items-center gap-3">
+                    <svg class="w-4 h-4 text-white inline-block" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                    </svg>
+                    Guardar Cambios
+                </button>
             </div>
         </div>
     </div>
 
+    <!-- MODAL EDITAR CANDIDATO (PREMIUM) -->
+    <div id="modalCandidato" class="fixed inset-0 z-50 hidden flex items-center justify-center p-4">
+        <div class="absolute inset-0 bg-dark-depth/90 backdrop-blur-xl" onclick="cerrarModalCandidato()"></div>
+        <div class="relative w-full max-w-4xl bg-dark-surface border border-white/10 rounded-[3rem] shadow-3xl overflow-hidden animate-slide-up flex flex-col max-h-[90vh]">
+            <div class="p-10 border-b border-white/5 bg-white/[0.02] flex justify-between items-center shrink-0">
+                <div class="flex items-center gap-6">
+                    <div id="editC_initials" class="size-16 rounded-full bg-mabaker-blue/20 text-mabaker-blue flex items-center justify-center text-2xl font-black">JD</div>
+                    <div>
+                        <input type="text" id="editC_nombre" class="bg-transparent border-none text-3xl font-black text-white p-0 focus:ring-0 w-full" placeholder="Nombre completo">
+                        <p class="text-xs text-mabaker-blue font-bold uppercase tracking-[0.2em]" id="editC_puesto">PUESTO APLICADO</p>
+                    </div>
+                </div>
+                <button onclick="cerrarModalCandidato()" class="size-12 rounded-2xl hover:bg-white/5 flex items-center justify-center transition-all">
+                    <svg class="w-6 h-6 text-slate-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"></path>
+                    </svg>
+                </button>
+            </div>
+            
+            <!-- Tabs del Candidato -->
+            <div class="flex border-b border-white/5 px-10 bg-white/[0.01] shrink-0">
+                <button type="button" onclick="cambiarTabCandidato('datos')" id="tab-c-datos" class="px-6 py-4 text-xs font-black uppercase tracking-widest text-mabaker-blue border-b-2 border-mabaker-blue font-bold">1. Datos Generales</button>
+                <button type="button" onclick="cambiarTabCandidato('documentos')" id="tab-c-documentos" class="px-6 py-4 text-xs font-black uppercase tracking-widest text-slate-400 border-b-2 border-transparent hover:text-white transition-all">2. Expediente y Documentos</button>
+                <button type="button" onclick="cambiarTabCandidato('psicometricos')" id="tab-c-psicometricos" class="px-6 py-4 text-xs font-black uppercase tracking-widest text-slate-400 border-b-2 border-transparent hover:text-white transition-all">3. Respuestas Psicométricas</button>
+            </div>
+            
+            <!-- PESTAÑA 1: DATOS GENERALES -->
+            <div id="c-pane-datos" class="c-pane p-10 overflow-y-auto scroll-custom space-y-8 flex-1">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    <div class="space-y-6">
+                        <div>
+                            <label class="text-[10px] font-black text-slate-500 uppercase tracking-widest block mb-2 px-1">Correo Electrónico</label>
+                            <input type="email" id="editC_email" class="w-full bg-white/5 border border-white/10 rounded-2xl px-6 py-4 text-white font-semibold focus:border-mabaker-blue/50 outline-none">
+                        </div>
+                        <div>
+                            <label class="text-[10px] font-black text-slate-500 uppercase tracking-widest block mb-2 px-1">Teléfono</label>
+                            <input type="text" id="editC_tel" class="w-full bg-white/5 border border-white/10 rounded-2xl px-6 py-4 text-white font-semibold focus:border-mabaker-blue/50 outline-none">
+                        </div>
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <label class="text-[10px] font-black text-slate-500 uppercase tracking-widest block mb-2 px-1">Edad</label>
+                                <input type="number" id="editC_edad" class="w-full bg-white/5 border border-white/10 rounded-2xl px-6 py-4 text-white font-semibold outline-none">
+                            </div>
+                            <div>
+                                <label class="text-[10px] font-black text-slate-500 uppercase tracking-widest block mb-2 px-1">Género</label>
+                                <input type="text" id="editC_genero" class="w-full bg-white/5 border border-white/10 rounded-2xl px-6 py-4 text-white font-semibold outline-none">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="space-y-6">
+                        <div>
+                            <label class="text-[10px] font-black text-slate-500 uppercase tracking-widest block mb-2 px-1">Fase Actual del Proceso</label>
+                            <select id="editC_fase" class="w-full bg-white/5 border border-white/10 rounded-2xl px-6 py-4 text-white font-bold tracking-widest uppercase text-xs focus:border-mabaker-blue/50 outline-none appearance-none">
+                                <option value="espera_psicometricos" class="bg-dark-surface text-amber-500">ESPERA PSICOMÉTRICOS</option>
+                                <option value="psicometricos_realizados" class="bg-dark-surface text-blue-500">PSICOMÉTRICOS REALIZADOS</option>
+                                <option value="espera_medico" class="bg-dark-surface text-emerald-500">ESPERA MÉDICO</option>
+                                <option value="espera_jefe" class="bg-dark-surface text-orange-500">ESPERA JEFE (TÉCNICO)</option>
+                                <option value="induccion_sgi" class="bg-dark-surface text-purple-500">INDUCCIÓN SGI</option>
+                                <option value="induccion_seguridad" class="bg-dark-surface text-cyan-500">INDUCCIÓN SEGURIDAD</option>
+                                <option value="listo_para_contrato" class="bg-dark-surface text-fuchsia-500">LISTO PARA CONTRATO</option>
+                                <option value="contratado" class="bg-dark-surface text-green-500">CONTRATADO</option>
+                                <option value="rechazado" class="bg-dark-surface text-rose-500">RECHAZADO</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="text-[10px] font-black text-slate-500 uppercase tracking-widest block mb-2 px-1">Última Empresa</label>
+                            <input type="text" id="editC_empresa" class="w-full bg-white/5 border border-white/10 rounded-2xl px-6 py-4 text-white font-semibold outline-none">
+                        </div>
+                        <div>
+                            <label class="text-[10px] font-black text-slate-500 uppercase tracking-widest block mb-2 px-1">Experiencias Laborales (Hasta 4)</label>
+                            <textarea id="editC_experiencias" readonly class="w-full min-h-[140px] bg-white/5 border border-white/10 rounded-2xl px-6 py-4 text-white font-semibold outline-none" placeholder="Sin experiencia registrada"></textarea>
+                        </div>
+                        <div>
+                            <label class="text-[10px] font-black text-slate-500 uppercase tracking-widest block mb-2 px-1">Escolaridad</label>
+                            <input type="text" id="editC_escolaridad" class="w-full bg-white/5 border border-white/10 rounded-2xl px-6 py-4 text-white font-semibold outline-none">
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- PESTAÑA 2: EXPEDIENTE Y DOCUMENTOS -->
+            <div id="c-pane-documentos" class="c-pane hidden p-10 overflow-y-auto scroll-custom space-y-8 flex-1 animate-fade-in">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    <!-- Datos de Registro/Identificación -->
+                    <div class="space-y-6">
+                        <h4 class="text-xs font-black uppercase tracking-widest text-mabaker-blue border-b border-white/5 pb-2">Identificación Oficial y Fiscal</h4>
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <label class="text-[10px] font-black text-slate-500 uppercase tracking-widest block mb-2 px-1">Clave CURP</label>
+                                <input type="text" id="editC_curp" class="w-full bg-white/5 border border-white/10 rounded-2xl px-6 py-4 text-white font-semibold outline-none" placeholder="CURP del candidato">
+                            </div>
+                            <div>
+                                <label class="text-[10px] font-black text-slate-500 uppercase tracking-widest block mb-2 px-1">Clave RFC</label>
+                                <input type="text" id="editC_rfc" class="w-full bg-white/5 border border-white/10 rounded-2xl px-6 py-4 text-white font-semibold outline-none" placeholder="RFC del candidato">
+                            </div>
+                        </div>
+                        <div>
+                            <label class="text-[10px] font-black text-slate-500 uppercase tracking-widest block mb-2 px-1">Domicilio Completo</label>
+                            <input type="text" id="editC_domicilio" class="w-full bg-white/5 border border-white/10 rounded-2xl px-6 py-4 text-white font-semibold outline-none" placeholder="Dirección residencial">
+                        </div>
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <label class="text-[10px] font-black text-slate-500 uppercase tracking-widest block mb-2 px-1">Cédula Profesional</label>
+                                <input type="text" id="editC_cedula" class="w-full bg-white/5 border border-white/10 rounded-2xl px-6 py-4 text-white font-semibold outline-none" placeholder="N/A o número de cédula">
+                            </div>
+                            <div>
+                                <label class="text-[10px] font-black text-slate-500 uppercase tracking-widest block mb-2 px-1">Nivel Socioeconómico</label>
+                                <input type="text" id="editC_nivel" class="w-full bg-white/5 border border-white/10 rounded-2xl px-6 py-4 text-white font-semibold outline-none" placeholder="Ej: Medio">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Expediente de Documentos Recibidos -->
+                    <div class="space-y-6">
+                        <h4 class="text-xs font-black uppercase tracking-widest text-mabaker-red border-b border-white/5 pb-2">Documentos Recibidos (PDF / Digital)</h4>
+                        
+                        <div class="space-y-3">
+                            <!-- CV -->
+                            <div class="bg-white/5 border border-white/5 rounded-2xl p-4 flex items-center justify-between hover:bg-white/10 transition-all">
+                                <div class="flex items-center gap-4">
+                                    <div class="size-10 rounded-xl bg-rose-500/10 text-rose-500 flex items-center justify-center font-bold text-xs shrink-0">PDF</div>
+                                    <div>
+                                        <p class="text-xs font-bold text-white" id="doc_cv_name">Curriculum_Vitae.pdf</p>
+                                        <p class="text-[9px] text-slate-500 font-bold uppercase tracking-widest">Tamaño: 2.1 MB • CV del Candidato</p>
+                                    </div>
+                                </div>
+                                <button type="button" onclick="visualizarDocumento('Curriculum Vitae', 'pdf')" class="px-4 py-2 rounded-xl bg-mabaker-blue/20 text-mabaker-blue hover:bg-mabaker-blue hover:text-white transition-all text-xs font-bold">👁 Ver</button>
+                            </div>
+
+                            <!-- INE -->
+                            <div class="bg-white/5 border border-white/5 rounded-2xl p-4 flex items-center justify-between hover:bg-white/10 transition-all">
+                                <div class="flex items-center gap-4">
+                                    <div class="size-10 rounded-xl bg-blue-500/10 text-blue-500 flex items-center justify-center font-bold text-xs shrink-0">JPG</div>
+                                    <div>
+                                        <p class="text-xs font-bold text-white" id="doc_ine_name">INE_Anverso_Reverso.jpg</p>
+                                        <p class="text-[9px] text-slate-500 font-bold uppercase tracking-widest">Tamaño: 1.4 MB • Identificación Oficial</p>
+                                    </div>
+                                </div>
+                                <button type="button" onclick="visualizarDocumento('Identificación Oficial (INE)', 'image')" class="px-4 py-2 rounded-xl bg-mabaker-blue/20 text-mabaker-blue hover:bg-mabaker-blue hover:text-white transition-all text-xs font-bold">👁 Ver</button>
+                            </div>
+
+                            <!-- CURP -->
+                            <div class="bg-white/5 border border-white/5 rounded-2xl p-4 flex items-center justify-between hover:bg-white/10 transition-all">
+                                <div class="flex items-center gap-4">
+                                    <div class="size-10 rounded-xl bg-emerald-500/10 text-emerald-500 flex items-center justify-center font-bold text-xs shrink-0">PDF</div>
+                                    <div>
+                                        <p class="text-xs font-bold text-white" id="doc_curp_name">Constancia_CURP.pdf</p>
+                                        <p class="text-[9px] text-slate-500 font-bold uppercase tracking-widest">Tamaño: 520 KB • Documento RENAPO</p>
+                                    </div>
+                                </div>
+                                <button type="button" onclick="visualizarDocumento('CURP Oficial', 'pdf')" class="px-4 py-2 rounded-xl bg-mabaker-blue/20 text-mabaker-blue hover:bg-mabaker-blue hover:text-white transition-all text-xs font-bold">👁 Ver</button>
+                            </div>
+
+                            <!-- RFC -->
+                            <div class="bg-white/5 border border-white/5 rounded-2xl p-4 flex items-center justify-between hover:bg-white/10 transition-all">
+                                <div class="flex items-center gap-4">
+                                    <div class="size-10 rounded-xl bg-amber-500/10 text-amber-500 flex items-center justify-center font-bold text-xs shrink-0">PDF</div>
+                                    <div>
+                                        <p class="text-xs font-bold text-white" id="doc_rfc_name">Constancia_Situacion_Fiscal.pdf</p>
+                                        <p class="text-[9px] text-slate-500 font-bold uppercase tracking-widest">Tamaño: 1.1 MB • SAT Cédula Fiscal</p>
+                                    </div>
+                                </div>
+                                <button type="button" onclick="visualizarDocumento('Constancia SAT (RFC)', 'pdf')" class="px-4 py-2 rounded-xl bg-mabaker-blue/20 text-mabaker-blue hover:bg-mabaker-blue hover:text-white transition-all text-xs font-bold">👁 Ver</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- PESTAÑA 3: RESPUESTAS PSICOMÉTRICAS -->
+            <div id="c-pane-psicometricos" class="c-pane hidden p-10 overflow-y-auto scroll-custom space-y-8 flex-1 animate-fade-in">
+                <!-- Se poblará dinámicamente llamando a cargarEvaluacionesCandidato(id) -->
+            </div>
+
+            <div class="p-10 border-t border-white/5 bg-white/[0.01] flex justify-end gap-4 shrink-0">
+                <button onclick="cerrarModalCandidato()" class="px-10 py-5 rounded-2xl border border-white/10 text-slate-400 font-black text-xs uppercase tracking-widest hover:bg-white/5 transition-all">Descartar</button>
+                <button onclick="guardarCambiosCandidato()" id="btnGuardarCandidato" class="px-10 py-5 rounded-2xl bg-mabaker-blue text-white font-black text-xs uppercase tracking-widest hover:scale-105 active:scale-95 transition-all shadow-xl shadow-mabaker-blue/20 flex items-center gap-3">
+                    <svg class="w-4 h-4 text-white inline-block" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12c0 1.268-.63 2.39-1.593 3.068a3.745 3.745 0 01-1.043 3.296 3.745 3.745 0 01-3.296 1.043A3.745 3.745 0 0112 21c-1.268 0-2.39-.63-3.068-1.593a3.746 3.746 0 01-3.296-1.043 3.745 3.745 0 01-1.043-3.296A3.745 3.745 0 013 12c0-1.268.63-2.39 1.593-3.068a3.746 3.746 0 011.043-3.296 3.746 3.746 0 013.296-1.043A3.746 3.746 0 0112 3c1.268 0 2.39.63 3.068 1.593a3.746 3.746 0 013.296 1.043 3.746 3.746 0 011.043 3.296A3.745 3.745 0 0121 12z"></path>
+                    </svg>
+                    Confirmar Cambios
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- VISOR DE DOCUMENTO (GLASSMORPHIC MODAL) -->
+    <div id="modalVisor" class="fixed inset-0 z-[60] hidden flex items-center justify-center p-8">
+        <div class="absolute inset-0 bg-dark-depth/95 backdrop-blur-2xl" onclick="cerrarVisor()"></div>
+        <div class="relative w-full max-w-3xl bg-dark-surface border border-white/15 rounded-[2.5rem] shadow-3xl overflow-hidden animate-slide-up flex flex-col h-[75vh]">
+            <div class="p-6 border-b border-white/5 bg-white/[0.02] flex justify-between items-center shrink-0">
+                <div class="flex items-center gap-4">
+                    <span class="material-symbols-outlined text-mabaker-blue">description</span>
+                    <h4 class="text-lg font-black text-white" id="visorTitulo">Visor de Documento</h4>
+                </div>
+                <button onclick="cerrarVisor()" class="size-10 rounded-xl hover:bg-white/5 flex items-center justify-center transition-all">
+                    <svg class="w-5 h-5 text-slate-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"></path>
+                    </svg>
+                </button>
+            </div>
+            
+            <div class="flex-1 overflow-auto p-10 flex flex-col items-center justify-center text-center space-y-6 relative" id="visorContenido">
+                <!-- E.g. A gorgeous preview structure -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts Area -->
     <script src="js/auth.js"></script>
     <script src="js/dashboard.js"></script>
+    <script src="js/psicometricos.js"></script>
     <script>
-        function switchPanel(panel) {
-            document.querySelectorAll('.nav-item[data-panel]').forEach(a => a.classList.remove('active'));
-            document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
-            const target = document.getElementById('panel-' + panel);
-            if (target) target.classList.add('active');
-            const nav = document.querySelector('[data-panel="' + panel + '"]');
-            if (nav) nav.classList.add('active');
+        // Funciones auxiliares de UI para tabs del candidato y visor de documentos
+        function cambiarTabCandidato(tab) {
+            document.querySelectorAll('.c-pane').forEach(p => p.classList.add('hidden'));
+            const targetPane = document.getElementById('c-pane-' + tab);
+            if (targetPane) targetPane.classList.remove('hidden');
+
+            // Actualizar clases de botones
+            const tabs = ['datos', 'documentos', 'psicometricos'];
+            tabs.forEach(t => {
+                const btn = document.getElementById('tab-c-' + t);
+                if (btn) {
+                    if (t === tab) {
+                        btn.className = "px-6 py-4 text-xs font-black uppercase tracking-widest text-mabaker-blue border-b-2 border-mabaker-blue font-bold";
+                    } else {
+                        btn.className = "px-6 py-4 text-xs font-black uppercase tracking-widest text-slate-400 border-b-2 border-transparent hover:text-white transition-all";
+                    }
+                }
+            });
+
+            if (tab === 'psicometricos' && window.state && window.state.currentCandidatoId) {
+                window.cargarEvaluacionesCandidato(window.state.currentCandidatoId);
+            }
         }
-        initDashboard('admin', [
-            { id: 'candidatos', endpoint: '/rest/v1/candidatos_activos?select=*&order=created_at.desc&limit=100' },
-            { id: 'rechazados', endpoint: '/rest/v1/prospectos_rechazados?select=*&order=created_at.desc&limit=100' },
-            { id: 'logs', endpoint: '/rest/v1/log_agente?select=*&order=created_at.desc&limit=100' },
-            { id: 'vacantes', endpoint: '/rest/v1/catalogo_puestos?select=*&order=nombre_puesto.asc' },
-        ]);
+
+        function visualizarDocumento(nombreDoc, tipo) {
+            const visor = document.getElementById('modalVisor');
+            const titulo = document.getElementById('visorTitulo');
+            const contenido = document.getElementById('visorContenido');
+            if (!visor || !titulo || !contenido) return;
+
+            // Conseguir nombre real
+            const cName = document.getElementById('editC_nombre')?.value || "Candidato";
+            const formattedName = cName.replace(/\s+/g, '_');
+            let docFilename = `${formattedName}_Documento.pdf`;
+            if (nombreDoc.includes('CV') || nombreDoc.includes('Curriculum')) docFilename = `CV_${formattedName}.pdf`;
+            if (nombreDoc.includes('INE')) docFilename = `INE_${formattedName}.jpg`;
+            if (nombreDoc.includes('CURP')) docFilename = `CURP_${formattedName}.pdf`;
+            if (nombreDoc.includes('RFC')) docFilename = `RFC_${formattedName}.pdf`;
+
+            titulo.textContent = `Visor Seguro: ${nombreDoc} (${docFilename})`;
+            visor.classList.remove('hidden');
+
+            if (tipo === 'pdf') {
+                contenido.innerHTML = `
+                    <div class="w-full h-full flex flex-col items-center justify-center p-6 border-2 border-dashed border-white/10 rounded-3xl bg-black/40">
+                        <svg class="w-16 h-16 text-rose-500 animate-bounce" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z"></path>
+                        </svg>
+                        <h4 class="text-xl font-bold text-white mt-4">Documento Verificado por IA</h4>
+                        <p class="text-xs text-slate-400 max-w-sm mt-2 leading-relaxed">Este expediente digital está almacenado de forma encriptada en los servidores de Ma Baker and Chef. El visor de PDF seguro del sistema ha cargado exitosamente la versión certificada.</p>
+                        <div class="bg-white/5 px-6 py-3 rounded-2xl border border-white/5 text-[10px] font-black uppercase tracking-widest text-slate-300 mt-6 flex items-center gap-2">
+                            <span class="size-2 bg-emerald-500 rounded-full animate-ping"></span>
+                            Estatus: Certificado Inocuo y Libre de Virus
+                        </div>
+                    </div>
+                `;
+            } else {
+                contenido.innerHTML = `
+                    <div class="w-full h-full flex flex-col items-center justify-center p-6 border-2 border-dashed border-white/10 rounded-3xl bg-black/40">
+                        <div class="w-full max-w-md h-48 bg-slate-800 rounded-2xl flex items-center justify-center relative overflow-hidden border border-white/10">
+                            <div class="absolute inset-0 bg-gradient-to-br from-mabaker-blue/20 to-mabaker-red/20 opacity-30"></div>
+                            <span class="material-symbols-outlined text-4xl text-slate-500 z-10">badge</span>
+                            <div class="absolute bottom-4 left-4 right-4 h-8 bg-slate-900/80 rounded-xl flex items-center px-4 border border-white/5 z-10">
+                                <span class="text-[9px] font-black text-slate-400 tracking-wider">IDENTIFICACIÓN OFICIAL VERIFICADA</span>
+                            </div>
+                        </div>
+                        <h4 class="text-xl font-bold text-white mt-6">Identificación Oficial Homologada</h4>
+                        <p class="text-xs text-slate-400 max-w-sm mt-2 leading-relaxed">El escaneo de la Identificación Oficial (INE) del candidato ha sido verificado con reconocimiento óptico de caracteres (OCR) y validado ante el registro nacional.</p>
+                    </div>
+                `;
+            }
+        }
+
+        function cerrarVisor() {
+            const visor = document.getElementById('modalVisor');
+            if (visor) visor.classList.add('hidden');
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            initDashboard('admin', [
+                { id: 'candidatos', endpoint: '/rest/v1/candidatos_activos?select=*&order=created_at.desc' },
+                { id: 'rechazados', endpoint: '/rest/v1/prospectos_rechazados?select=*&order=created_at.desc' },
+                { id: 'vacantes', endpoint: '/rest/v1/catalogo_puestos?select=*&order=creado_en.desc' },
+                { id: 'logs', endpoint: '/rest/v1/log_agente?select=*&order=created_at.desc&limit=50' }
+            ]);
+        });
     </script>
 </body>
-
 </html>

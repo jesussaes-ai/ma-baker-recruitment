@@ -1,441 +1,164 @@
 <!DOCTYPE html>
-<html lang="es">
 
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
-    <meta name="description" content="Ma Baker and Chef — Acceso al Sistema de Reclutamiento">
-    <title>Ma Baker and Chef | Acceso al Sistema</title>
-    <link rel="icon" href="assets/favicon.ico">
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&display=swap"
-        rel="stylesheet">
-    <style>
-        :root {
-            --mb-red: #D7282F;
-            --mb-red-dark: #B01E24;
-            --mb-red-light: #E85059;
-            --mb-blue: #0071BC;
-            --mb-blue-dark: #005A96;
-            --mb-dark: #1C1C1C;
-            --mb-white: #FFFFFF;
-            --mb-gray: #F5F5F5;
-            --mb-border: #E5E7EB;
-            --font: 'Montserrat', sans-serif;
+<html lang="es"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Ma Baker and Chef - Inicio de Sesión</title>
+<!-- Google Fonts: Montserrat -->
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<!-- Tailwind CSS v3 -->
+<link rel="stylesheet" href="styles/tailwind.build.css">
+<!-- Lucide Icons (via CDN for visual elements) -->
+<script src="https://unpkg.com/lucide@0.344.0/dist/umd/lucide.min.js" integrity="sha384-tTkFttkBclaU1cloKwOi9xk3pbao3VZxTjLNBt8iFABWDBQibbAbWpVmO28zMuxq" crossorigin="anonymous"></script>
+<script>
+    window.tailwind = window.tailwind || {};
+    window.tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Montserrat', 'sans-serif'],
+          },
+          colors: {
+            'mb-red': '#D7282F',
+            'mb-blue': '#0071BC',
+          }
         }
+      }
+    }
+  </script>
+<style data-purpose="layout-styles">
+    body {
+      margin: 0;
+      padding: 0;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      /* Vibrant Red Gradient Background */
+      background: radial-gradient(circle at top left, #D7282F 0%, #8b1a1e 100%);
+      overflow-x: hidden;
+    }
 
-        *,
-        *::before,
-        *::after {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-        }
+    /* Glassmorphism Effect */
+    .glass-card {
+      background: rgba(255, 255, 255, 0.15);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+      border-radius: 24px;
+    }
 
-        html,
-        body {
-            height: 100%;
-            font-family: var(--font);
-            -webkit-font-smoothing: antialiased;
-        }
-
-        body {
-            background: var(--mb-red);
-            display: flex;
-            flex-direction: column;
-            min-height: 100vh;
-            position: relative;
-            overflow-x: hidden;
-        }
-
-        /* Patrón de fondo */
-        body::before {
-            content: '';
-            position: fixed;
-            inset: 0;
-            background: radial-gradient(ellipse at 30% 70%, rgba(183, 14, 20, 0.6) 0%, transparent 60%),
-                radial-gradient(ellipse at 70% 20%, rgba(0, 0, 0, 0.4) 0%, transparent 50%);
-            pointer-events: none;
-        }
-
-        /* ── Login Container ── */
-        .login-container {
-            flex: 1;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 24px 20px;
-            position: relative;
-            z-index: 1;
-        }
-
-        .login-card {
-            background: var(--mb-white);
-            border-radius: 24px;
-            padding: 40px 36px;
-            width: 100%;
-            max-width: 420px;
-            box-shadow: 0 32px 80px rgba(0, 0, 0, 0.35);
-            animation: slideUp 0.35s cubic-bezier(0.16, 1, 0.3, 1);
-        }
-
-        @keyframes slideUp {
-            from {
-                opacity: 0;
-                transform: translateY(28px);
-            }
-
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-
-        /* ── Brand ── */
-        .login-brand {
-            text-align: center;
-            margin-bottom: 28px;
-            padding-bottom: 24px;
-            border-bottom: 2px solid #F3F4F6;
-        }
-
-        .brand-logo-wrapper {
-            background: var(--mb-red);
-            border-radius: 16px;
-            padding: 16px 24px;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            margin-bottom: 16px;
-            box-shadow: 0 6px 20px rgba(215, 40, 47, 0.35);
-        }
-
-        .brand-logo-wrapper img {
-            height: 52px;
-            width: auto;
-            max-width: 220px;
-            object-fit: contain;
-            filter: brightness(0) invert(1);
-            /* blanco sobre rojo */
-        }
-
-        .system-label {
-            font-size: 12px;
-            font-weight: 600;
-            color: #6B7280;
-            text-transform: uppercase;
-            letter-spacing: 0.1em;
-        }
-
-        /* ── Acceso Rápido por Rol ── */
-        .role-selector {
-            margin-bottom: 24px;
-        }
-
-        .role-selector-label {
-            font-size: 11px;
-            font-weight: 700;
-            color: #9CA3AF;
-            text-transform: uppercase;
-            letter-spacing: 0.08em;
-            text-align: center;
-            margin-bottom: 10px;
-        }
-
-        .roles-grid-login {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 8px;
-        }
-
-        .role-btn-login {
-            background: #F9FAFB;
-            border: 1.5px solid var(--mb-border);
-            border-radius: 10px;
-            padding: 10px 8px;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            cursor: pointer;
-            transition: all 0.15s;
-            font-family: var(--font);
-            font-size: 12px;
-            font-weight: 600;
-            color: var(--mb-dark);
-            text-align: left;
-        }
-
-        .role-btn-login:hover {
-            border-color: var(--mb-red);
-            background: #FFF5F5;
-            color: var(--mb-red-dark);
-        }
-
-        .role-btn-login.full {
-            grid-column: 1 / -1;
-        }
-
-        .role-icon-sm {
-            font-size: 18px;
-        }
-
-        /* ── Divider ── */
-        .divider {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            margin: 18px 0;
-            color: #9CA3AF;
-            font-size: 12px;
-        }
-
-        .divider::before,
-        .divider::after {
-            content: '';
-            flex: 1;
-            height: 1px;
-            background: var(--mb-border);
-        }
-
-        /* ── Form ── */
-        .login-form {
-            display: flex;
-            flex-direction: column;
-            gap: 16px;
-        }
-
-        .field-group {
-            display: flex;
-            flex-direction: column;
-            gap: 6px;
-        }
-
-        .field-label {
-            font-size: 12px;
-            font-weight: 700;
-            color: var(--mb-dark);
-            text-transform: uppercase;
-            letter-spacing: 0.04em;
-        }
-
-        .field-input {
-            width: 100%;
-            padding: 13px 14px;
-            border: 1.5px solid var(--mb-border);
-            border-radius: 10px;
-            font-size: 15px;
-            background: #FAFAFA;
-            color: var(--mb-dark);
-            outline: none;
-            transition: all 0.2s;
-            font-family: var(--font);
-            -webkit-appearance: none;
-            appearance: none;
-        }
-
-        .field-input:focus {
-            border-color: var(--mb-red);
-            background: var(--mb-white);
-            box-shadow: 0 0 0 3px rgba(215, 40, 47, 0.12);
-        }
-
-        .password-wrapper {
-            position: relative;
-        }
-
-        .password-wrapper .field-input {
-            padding-right: 48px;
-        }
-
-        .toggle-pwd {
-            position: absolute;
-            right: 14px;
-            top: 50%;
-            transform: translateY(-50%);
-            background: none;
-            border: none;
-            cursor: pointer;
-            font-size: 17px;
-            color: #9CA3AF;
-            padding: 4px;
-        }
-
-        .btn-login {
-            width: 100%;
-            padding: 14px;
-            background: var(--mb-red);
-            color: white;
-            border: none;
-            border-radius: 10px;
-            font-size: 15px;
-            font-weight: 800;
-            cursor: pointer;
-            font-family: var(--font);
-            transition: all 0.2s;
-            box-shadow: 0 4px 14px rgba(215, 40, 47, 0.4);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
-        }
-
-        .btn-login:hover {
-            background: var(--mb-red-dark);
-            transform: translateY(-1px);
-            box-shadow: 0 6px 20px rgba(215, 40, 47, 0.5);
-        }
-
-        .btn-login:active {
-            transform: translateY(0);
-        }
-
-        .btn-login:disabled {
-            opacity: 0.6;
-            cursor: not-allowed;
-            transform: none;
-        }
-
-        .spinner {
-            width: 18px;
-            height: 18px;
-            border: 2.5px solid rgba(255, 255, 255, 0.3);
-            border-top-color: white;
-            border-radius: 50%;
-            animation: spin 0.7s linear infinite;
-            display: none;
-        }
-
-        @keyframes spin {
-            to {
-                transform: rotate(360deg);
-            }
-        }
-
-        /* ── Error ── */
-        .error-msg {
-            background: #FEF2F2;
-            border: 1px solid #FECACA;
-            border-radius: 10px;
-            padding: 12px 14px;
-            font-size: 13px;
-            color: #DC2626;
-            display: none;
-            align-items: center;
-            gap: 8px;
-            animation: shake 0.4s ease;
-        }
-
-        .error-msg.show {
-            display: flex;
-        }
-
-        @keyframes shake {
-
-            0%,
-            100% {
-                transform: translateX(0);
-            }
-
-            25% {
-                transform: translateX(-5px);
-            }
-
-            75% {
-                transform: translateX(5px);
-            }
-        }
-
-        /* ── Footer del login ── */
-        .login-footer {
-            text-align: center;
-            padding: 14px;
-            font-size: 11px;
-            color: rgba(255, 255, 255, 0.45);
-            position: relative;
-            z-index: 1;
-            font-family: var(--font);
-        }
-
-        @media (min-width: 480px) {
-            .login-card {
-                padding: 44px 44px;
-            }
-        }
-    </style>
+    /* Custom Transitions */
+    .role-btn {
+      transition: all 0.3s ease;
+    }
+    .role-btn:hover {
+      transform: translateY(-2px);
+      background-color: rgba(255, 255, 255, 0.25);
+    }
+  </style>
+<script src="js/theme.js"></script>
+    <script src="js/help-overlay.js"></script>
+<script src="js/uppercase.js"></script>
 </head>
-
 <body>
-
-    <div class="login-container">
-        <div class="login-card">
-
-            <!-- Brand -->
-            <div class="login-brand">
-                <div class="brand-logo-wrapper">
-                    <img src="assets/logo.webp" alt="Ma Baker and Chef"
-                        onerror="this.style.display='none'; this.parentElement.innerHTML='<span style=\'font-size:36px\'>🧁</span><span style=\'color:white;font-weight:800;font-size:18px;margin-left:8px\'>Ma Baker<br>and Chef</span>'">
-                </div>
-                <div class="system-label">📋 Sistema de Gestión de Talento</div>
-            </div>
-
-            <!-- Error -->
-            <div class="error-msg" id="errorMsg">
-                <span>⚠️</span>
-                <span id="errorText">Credenciales incorrectas.</span>
-            </div>
-
-            <!-- Acceso Rápido (solo desarrollo) -->
-            <div class="role-selector">
-                <div class="role-selector-label">Acceso rápido por rol</div>
-                <div class="roles-grid-login">
-                    <button class="role-btn-login" onclick="quickLogin('admin@mabakerandchef.com','Admin2026!')">
-                        <span class="role-icon-sm">⚙️</span> Admin General
-                    </button>
-                    <button class="role-btn-login" onclick="quickLogin('rrhh@mabakerandchef.com','RRHH2026!')">
-                        <span class="role-icon-sm">👥</span> RRHH
-                    </button>
-                    <button class="role-btn-login" onclick="quickLogin('medico@mabakerandchef.com','Medico2026!')">
-                        <span class="role-icon-sm">🏥</span> Médico
-                    </button>
-                    <button class="role-btn-login" onclick="quickLogin('jefe@mabakerandchef.com','Jefe2026!')">
-                        <span class="role-icon-sm">🏢</span> Jefe de Área
-                    </button>
-                    <button class="role-btn-login full" onclick="quickLogin('sgi@mabakerandchef.com','SGI2026!')">
-                        <span class="role-icon-sm">✅</span> SGI / Seguridad Industrial
-                    </button>
-                </div>
-            </div>
-
-            <div class="divider">o ingresa con tus credenciales</div>
-
-            <!-- Form -->
-            <form class="login-form" id="loginForm" onsubmit="handleLogin(event)" novalidate>
-                <div class="field-group">
-                    <label class="field-label" for="email">Correo electrónico</label>
-                    <input type="email" id="email" class="field-input" placeholder="usuario@mabakerandchef.com"
-                        autocomplete="email" required>
-                </div>
-                <div class="field-group">
-                    <label class="field-label" for="password">Contraseña</label>
-                    <div class="password-wrapper">
-                        <input type="password" id="password" class="field-input" placeholder="••••••••••"
-                            autocomplete="current-password" required>
-                        <button type="button" class="toggle-pwd" onclick="togglePwd()"
-                            title="Ver contraseña">👁️</button>
-                    </div>
-                </div>
-                <button type="submit" class="btn-login" id="btnLogin">
-                    <div class="spinner" id="spinner"></div>
-                    <span id="btnText">Ingresar al sistema</span>
-                </button>
-            </form>
-        </div>
-    </div>
-
-    <footer class="login-footer">© 2026 Ma Baker and Chef S.A. de C.V. — Acceso Restringido | Uso Exclusivamente Interno
-    </footer>
-
-    <script src="js/auth.js"></script>
+<!-- BEGIN: LoginContainer -->
+<main class="w-full max-w-4xl p-6 md:p-12 flex justify-center items-center" data-purpose="main-login-wrapper">
+<!-- BEGIN: GlassmorphismCard -->
+<div class="glass-card w-full max-w-lg overflow-hidden p-8 md:p-10 text-white" data-purpose="login-card">
+<!-- BEGIN: HeaderSection -->
+<header class="flex flex-col items-center mb-10" data-purpose="header">
+<!-- Logo Placeholder -->
+<div class="w-48 mb-4 h-20 flex items-center justify-center bg-white/10 rounded-xl" data-purpose="logo-area">
+<span class="text-xl font-bold tracking-tight text-center">Ma Baker <br/> &amp; Chef</span>
+</div>
+<h1 class="text-2xl font-bold text-white mb-2">Bienvenido de nuevo</h1>
+<p class="text-white/70 text-sm">Ingresa tus credenciales para acceder</p>
+</header>
+<!-- END: HeaderSection -->
+<!-- BEGIN: RoleSelectionSection -->
+<section class="mb-10" data-purpose="role-selection">
+<h2 class="text-xs font-semibold uppercase tracking-wider mb-4 text-white/80">Acceso Rápido por Rol</h2>
+<div class="grid grid-cols-2 md:grid-cols-5 gap-3" data-purpose="role-grid">
+<!-- Administrador -->
+<button class="role-btn flex flex-col items-center justify-center p-3 rounded-xl bg-white/10 border border-white/10" data-purpose="role-admin" type="button" onclick="quickLogin('admin@mabakerandchef.com','Admin2026!')">
+<i class="w-6 h-6 mb-1" data-lucide="shield-check"></i>
+<span class="text-[10px] font-medium">Administrador</span>
+</button>
+<!-- RRHH -->
+<button class="role-btn flex flex-col items-center justify-center p-3 rounded-xl bg-white/10 border border-white/10" data-purpose="role-rrhh" type="button" onclick="quickLogin('rrhh@mabakerandchef.com','RRHH2026!')">
+<i class="w-6 h-6 mb-1" data-lucide="users"></i>
+<span class="text-[10px] font-medium text-center">RRHH</span>
+</button>
+<!-- Médico -->
+<button class="role-btn flex flex-col items-center justify-center p-3 rounded-xl bg-white/10 border border-white/10" data-purpose="role-medico" type="button" onclick="quickLogin('medico@mabakerandchef.com','Medico2026!')">
+<i class="w-6 h-6 mb-1" data-lucide="stethoscope"></i>
+<span class="text-[10px] font-medium text-center">Médico</span>
+</button>
+<!-- Jefe de Área -->
+<button class="role-btn flex flex-col items-center justify-center p-3 rounded-xl bg-white/10 border border-white/10" data-purpose="role-jefe" type="button" onclick="quickLogin('jefe@mabakerandchef.com','Jefe2026!')">
+<i class="w-6 h-6 mb-1" data-lucide="briefcase"></i>
+<span class="text-[10px] font-medium text-center leading-tight">Jefe de Área</span>
+</button>
+<!-- Seguridad e Higiene -->
+<button class="role-btn flex flex-col items-center justify-center p-3 rounded-xl bg-white/10 border border-white/10 col-span-2 md:col-span-1" data-purpose="role-seguridad" type="button" onclick="quickLogin('sgi@mabakerandchef.com','SGI2026!')">
+<i class="w-6 h-6 mb-1" data-lucide="hard-hat"></i>
+<span class="text-[10px] font-medium text-center leading-tight">SGI / Seg. Industrial</span>
+</button>
+</div>
+</section>
+<!-- END: RoleSelectionSection -->
+<!-- BEGIN: FormSection -->
+<form id="loginForm" class="space-y-5" data-purpose="login-form" onsubmit="handleLogin(event)" novalidate>
+<div class="space-y-2">
+<label class="text-sm font-medium text-white/90" for="email">Correo Electrónico</label>
+<div class="relative">
+<div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+<i class="w-5 h-5 text-white/50" data-lucide="mail"></i>
+</div>
+<input class="block w-full pl-10 pr-3 py-4 bg-white/10 border border-white/20 rounded-xl text-white placeholder-white/40 focus:outline-none focus:ring-2 focus:ring-mb-blue focus:border-transparent transition-all sm:text-sm" id="email" name="email" placeholder="nombre@mabakerandchef.com" required="" type="email"/>
+</div>
+</div>
+<div class="space-y-2">
+<div class="flex items-center justify-between">
+<label class="text-sm font-medium text-white/90" for="password">Contraseña</label>
+<a class="text-xs text-white/60 hover:text-white transition-colors" href="#">¿Olvidaste tu contraseña?</a>
+</div>
+<div class="relative">
+<div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+<i class="w-5 h-5 text-white/50" data-lucide="lock"></i>
+</div>
+<input class="block w-full pl-10 pr-3 py-4 bg-white/10 border border-white/20 rounded-xl text-white placeholder-white/40 focus:outline-none focus:ring-2 focus:ring-mb-blue focus:border-transparent transition-all sm:text-sm" id="password" name="password" placeholder="••••••••••••" required="" type="password"/>
+</div>
+</div>
+<div class="pt-4">
+<button id="btnLogin" class="w-full flex justify-center py-4 px-4 border border-transparent rounded-xl shadow-lg text-sm font-bold text-white bg-mb-red hover:bg-[#b21e25] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-mb-red transition-all duration-300 transform hover:scale-[1.02]" data-purpose="submit-button" type="submit">
+            Ingresar al Sistema
+          </button>
+</div>
+</form>
+<!-- END: FormSection -->
+<!-- BEGIN: FooterLinks -->
+<footer class="mt-10 pt-6 border-t border-white/10 flex justify-center" data-purpose="footer-links">
+<a class="flex items-center text-sm text-white/70 hover:text-white transition-colors" href="#">
+<i class="w-4 h-4 mr-2" data-lucide="help-circle"></i>
+          Soporte Técnico
+        </a>
+</footer>
+<!-- END: FooterLinks -->
+</div>
+<!-- END: GlassmorphismCard -->
+</main>
+<!-- END: LoginContainer -->
+<script data-purpose="icon-initialization">
+    // Initialize Lucide icons
+    lucide.createIcons();
+  </script>
+  <!-- Main Authentication App Logic -->
+  <script src="js/auth.js"></script>
     <script>
         /* Verificar sesión activa */
         window.addEventListener('DOMContentLoaded', () => {
@@ -445,16 +168,14 @@
             if (token && expira && new Date() < new Date(expira) && rol) {
                 const routes = {
                     admin: 'dashboard-admin.html', rrhh: 'dashboard-rrhh.html',
-                    medico: 'dashboard-medico.html', jefe: 'dashboard-jefe.html', sgi: 'dashboard-sgi.html'
+                    medico: 'dashboard-medico.html', jefe: 'dashboard-jefe.html', sgi: 'dashboard-sgi.html',
+                    seguridad: 'dashboard-seguridad.html'
                 };
-                window.location.href = routes[rol] || 'login.html';
+                if (routes[rol]) {
+                    window.location.href = routes[rol];
+                }
             }
         });
-
-        function togglePwd() {
-            const i = document.getElementById('password');
-            i.type = i.type === 'password' ? 'text' : 'password';
-        }
 
         function quickLogin(email, pwd) {
             document.getElementById('email').value = email;
@@ -466,30 +187,27 @@
             e.preventDefault();
             const email = document.getElementById('email').value.trim();
             const password = document.getElementById('password').value;
-            if (!email || !password) { showError('Completa todos los campos.'); return; }
-            setLoading(true); hideError();
+            if (!email || !password) { alert('Completa todos los campos.'); return; }
+            
+            const btn = document.getElementById('btnLogin');
+            const originalText = btn.innerHTML;
+            btn.innerHTML = 'Verificando...';
+            btn.disabled = true;
+            
             try {
                 const session = await login(email, password);
                 const routes = {
                     admin: 'dashboard-admin.html', rrhh: 'dashboard-rrhh.html',
-                    medico: 'dashboard-medico.html', jefe: 'dashboard-jefe.html', sgi: 'dashboard-sgi.html'
+                    medico: 'dashboard-medico.html', jefe: 'dashboard-jefe.html', sgi: 'dashboard-sgi.html',
+                    seguridad: 'dashboard-seguridad.html'
                 };
                 window.location.href = routes[session.rol] || 'login.html';
             } catch (err) {
-                setLoading(false);
-                showError(err.message || 'Error de conexión.');
+                btn.innerHTML = originalText;
+                btn.disabled = false;
+                alert(err.message || 'Error de conexión.');
                 document.getElementById('password').value = '';
             }
         }
-
-        function setLoading(v) {
-            document.getElementById('spinner').style.display = v ? 'block' : 'none';
-            document.getElementById('btnText').textContent = v ? 'Verificando...' : 'Ingresar al sistema';
-            document.getElementById('btnLogin').disabled = v;
-        }
-        function showError(m) { document.getElementById('errorText').textContent = m; document.getElementById('errorMsg').classList.add('show'); }
-        function hideError() { document.getElementById('errorMsg').classList.remove('show'); }
     </script>
-</body>
-
-</html>
+</body></html>

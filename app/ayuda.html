@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Centro de Ayuda | Ma Baker</title>
+    <link rel="stylesheet" href="styles/tailwind.build.css">
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;600;700;800;900&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Montserrat', sans-serif;
+            background: linear-gradient(135deg, #0F172A 0%, #1E293B 100%);
+            color: #F8FAFC;
+        }
+        .panel {
+            background: rgba(255,255,255,0.04);
+            border: 1px solid rgba(255,255,255,0.08);
+            border-radius: 24px;
+        }
+        .dep-card {
+            border: 1px solid rgba(255,255,255,0.08);
+            background: rgba(255,255,255,0.03);
+            border-radius: 18px;
+            padding: 18px;
+        }
+        .dep-card.active {
+            border-color: rgba(0,113,188,0.7);
+            box-shadow: 0 0 0 1px rgba(0,113,188,0.3), 0 8px 24px rgba(0,0,0,0.25);
+        }
+        .badge {
+            font-size: 10px;
+            font-weight: 800;
+            letter-spacing: .16em;
+            text-transform: uppercase;
+            color: #94A3B8;
+        }
+    </style>
+    <script src="js/theme.js"></script>
+    <script src="js/help-overlay.js"></script>
+    <script src="js/uppercase.js"></script>
+</head>
+<body class="min-h-screen p-6 md:p-10">
+    <div class="max-w-6xl mx-auto space-y-8">
+        <header class="panel p-8 space-y-3">
+            <p class="badge">Centro de Ayuda</p>
+            <h1 class="text-3xl md:text-4xl font-black tracking-tight">Guía por departamento</h1>
+            <p class="text-slate-300 text-sm">Aquí puedes revisar qué hace cada módulo, qué botones usar y cómo avanzar candidatos sin romper el flujo del proceso.</p>
+            <div class="flex flex-wrap gap-3 pt-2">
+                <a href="index.html" class="px-4 py-2 rounded-xl bg-white/10 text-xs font-black uppercase tracking-wider">Portal Candidato</a>
+                <a href="dashboard-rrhh.html" class="px-4 py-2 rounded-xl bg-white/10 text-xs font-black uppercase tracking-wider">RRHH</a>
+                <a href="dashboard-admin.html" class="px-4 py-2 rounded-xl bg-white/10 text-xs font-black uppercase tracking-wider">Admin</a>
+                <a href="dashboard-medico.html" class="px-4 py-2 rounded-xl bg-white/10 text-xs font-black uppercase tracking-wider">Médico</a>
+                <a href="dashboard-jefe.html" class="px-4 py-2 rounded-xl bg-white/10 text-xs font-black uppercase tracking-wider">Jefe</a>
+                <a href="dashboard-sgi.html" class="px-4 py-2 rounded-xl bg-white/10 text-xs font-black uppercase tracking-wider">SGI</a>
+                <a href="dashboard-seguridad.html" class="px-4 py-2 rounded-xl bg-white/10 text-xs font-black uppercase tracking-wider">Seguridad</a>
+            </div>
+        </header>
+
+        <section class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+            <article class="dep-card" data-dep="candidato">
+                <p class="badge">Candidato</p>
+                <h2 class="font-extrabold text-xl mt-1">Portal de Vacantes</h2>
+                <ul class="mt-3 text-sm text-slate-300 space-y-2">
+                    <li>1) Acepta privacidad antes de iniciar.</li>
+                    <li>2) Selecciona vacante y llena 5 pasos.</li>
+                    <li>3) El sistema guarda perfil y fase inicial.</li>
+                </ul>
+            </article>
+
+            <article class="dep-card" data-dep="rrhh">
+                <p class="badge">RRHH</p>
+                <h2 class="font-extrabold text-xl mt-1">Gestión de Candidatos</h2>
+                <ul class="mt-3 text-sm text-slate-300 space-y-2">
+                    <li>1) Revisa candidatos activos y score IA.</li>
+                    <li>2) Genera y comparte link psicométrico.</li>
+                    <li>3) Ajusta fase del proceso cuando aplique.</li>
+                </ul>
+            </article>
+
+            <article class="dep-card" data-dep="admin">
+                <p class="badge">Admin</p>
+                <h2 class="font-extrabold text-xl mt-1">Vista Global</h2>
+                <ul class="mt-3 text-sm text-slate-300 space-y-2">
+                    <li>1) Supervisa vacantes, rechazos y logs.</li>
+                    <li>2) Edita candidatos y puestos.</li>
+                    <li>3) Audita fases y consistencia operativa.</li>
+                </ul>
+            </article>
+
+            <article class="dep-card" data-dep="medico">
+                <p class="badge">Médico</p>
+                <h2 class="font-extrabold text-xl mt-1">Dictamen Clínico</h2>
+                <ul class="mt-3 text-sm text-slate-300 space-y-2">
+                    <li>1) Evalúa solo fase <strong>espera_medico</strong>.</li>
+                    <li>2) Captura observaciones y signos vitales.</li>
+                    <li>3) APTO/CONDICIONADO avanza a jefe.</li>
+                </ul>
+            </article>
+
+            <article class="dep-card" data-dep="jefe">
+                <p class="badge">Jefe</p>
+                <h2 class="font-extrabold text-xl mt-1">Evaluación Técnica</h2>
+                <ul class="mt-3 text-sm text-slate-300 space-y-2">
+                    <li>1) Evalúa competencias del candidato.</li>
+                    <li>2) Registra score y veredicto técnico.</li>
+                    <li>3) Aprobado envía a inducción SGI.</li>
+                </ul>
+            </article>
+
+            <article class="dep-card" data-dep="sgi">
+                <p class="badge">SGI</p>
+                <h2 class="font-extrabold text-xl mt-1">Inducción de Calidad</h2>
+                <ul class="mt-3 text-sm text-slate-300 space-y-2">
+                    <li>1) Evalúa los 7 puntos de calidad.</li>
+                    <li>2) Si aprueba, pasa a Seguridad e Higiene.</li>
+                    <li>3) Si no aprueba, permanece en SGI.</li>
+                </ul>
+            </article>
+
+            <article class="dep-card" data-dep="seguridad">
+                <p class="badge">Seguridad</p>
+                <h2 class="font-extrabold text-xl mt-1">Seguridad e Higiene</h2>
+                <ul class="mt-3 text-sm text-slate-300 space-y-2">
+                    <li>1) Evalúa checklist S&H completo.</li>
+                    <li>2) Si aprueba, cambia a listo para contrato.</li>
+                    <li>3) Si no aprueba, queda en inducción seguridad.</li>
+                </ul>
+            </article>
+        </section>
+    </div>
+
+    <script>
+        (function () {
+            const params = new URLSearchParams(window.location.search);
+            const dep = (params.get('dep') || '').toLowerCase();
+            if (!dep) return;
+            const card = document.querySelector(`.dep-card[data-dep="${dep}"]`);
+            if (card) card.classList.add('active');
+        })();
+    </script>
+</body>
+</html>
