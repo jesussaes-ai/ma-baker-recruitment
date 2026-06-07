@@ -1,84 +1,829 @@
 <!DOCTYPE html>
-<html lang="es">
-
+<html lang="es" class="dark">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Ma Baker — Jefe de Área</title>
-    <link
-        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Playfair+Display:wght@700&display=swap"
-        rel="stylesheet">
-    <link rel="stylesheet" href="styles/main.css">
-    <link rel="stylesheet" href="styles/dashboard.css">
+    <meta name="description" content="Dashboard de evaluación técnica para jefes de área del sistema de reclutamiento Ma Baker and Chef.">
+    <link rel="stylesheet" href="styles/tailwind.build.css">
+    <script src="js/config.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Montserrat', sans-serif;
+            background: radial-gradient(circle at top left, #1c1607, #020617 60%);
+            min-height: 100vh;
+            color: #f1f5f9;
+        }
+        .glass-panel {
+            background: rgba(15, 23, 42, 0.7);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(255,255,255,0.08);
+        }
+        .glass-sidebar {
+            background: rgba(2, 6, 23, 0.92);
+            backdrop-filter: blur(20px);
+            border-right: 1px solid rgba(245, 158, 11, 0.15);
+        }
+        .glass-card {
+            background: rgba(255,255,255,0.03);
+            backdrop-filter: blur(8px);
+            border: 1px solid rgba(255,255,255,0.05);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .glass-card:hover {
+            background: rgba(255,255,255,0.06);
+            border-color: rgba(245,158,11,0.3);
+            transform: translateY(-4px);
+        }
+        .jefe-glow { box-shadow: 0 0 20px rgba(245,158,11,0.2); }
+        .panel { display: none; }
+        .panel.active { display: block; }
+        .nav-item-active {
+            background: linear-gradient(90deg, rgba(245,158,11,0.3) 0%, rgba(245,158,11,0.05) 100%);
+            border-left: 4px solid #f59e0b;
+            color: white;
+        }
+        .scroll-custom::-webkit-scrollbar { width: 5px; }
+        .scroll-custom::-webkit-scrollbar-track { background: transparent; }
+        .scroll-custom::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.12); border-radius: 10px; }
+        .animate-slide-up { animation: slideUp 0.7s cubic-bezier(0.16, 1, 0.3, 1) both; }
+        @keyframes slideUp {
+            from { transform: translateY(30px); opacity: 0; }
+            to   { transform: translateY(0); opacity: 1; }
+        }
+        /* Badges veredicto */
+        .badge { display:inline-flex; align-items:center; gap:4px; padding: 3px 12px; border-radius: 999px; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing:.05em; }
+        .badge-aprob  { background:rgba(34,197,94,.15);  color:#22c55e; }
+        .badge-rechazo{ background:rgba(239,68,68,.15);  color:#ef4444; }
+        .badge-pend   { background:rgba(148,163,184,.15);color:#94a3b8; }
+        /* Modal inputs */
+        .modal-input {
+            width: 100%;
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 1rem;
+            padding: 14px 18px;
+            color: white;
+            font-family: 'Montserrat', sans-serif;
+            font-size: 14px;
+            outline: none;
+            transition: border-color .2s;
+        }
+        .modal-input:focus { border-color: rgba(245,158,11,0.5); }
+        .modal-label { display: block; font-size: 10px; font-weight: 700; color: #94a3b8; text-transform: uppercase; letter-spacing: .2em; margin-bottom: 6px; padding-left: 4px; }
+        /* Veredicto buttons */
+        .veredicto-btn {
+            flex:1; display:flex; flex-direction:column; align-items:center; gap:3; padding:20px;
+            border-radius:1.5rem; border:2px solid rgba(255,255,255,.1);
+            transition: all .25s; cursor:pointer; background:transparent;
+        }
+        .veredicto-btn:hover { transform:scale(1.03); }
+        /* Skill tags */
+        .skill-tag {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 999px;
+            font-size: 11px;
+            font-weight: 700;
+            background: rgba(245,158,11,0.15);
+            color: #fbbf24;
+            margin: 2px;
+        }
+    </style>
+    <script src="js/theme.js"></script>
+    <script src="js/help-overlay.js"></script>
+    <script src="js/uppercase.js"></script>
 </head>
+<body class="antialiased overflow-hidden">
 
-<body class="dashboard-body">
-    <nav class="sidebar" id="sidebar">
-        <div class="sidebar-brand"><span class="brand-emoji">🧁</span>
-            <div>
-                <div class="brand-name">Ma Baker</div>
-                <div class="brand-sub">Jefe de Área</div>
+<div class="flex h-screen w-full relative">
+
+    <!-- ══════════ SIDEBAR ══════════ -->
+    <aside class="w-72 glass-sidebar hidden lg:flex flex-col z-30 shadow-2xl relative overflow-hidden">
+        <div class="p-8 pb-4">
+            <div class="flex items-center gap-4">
+                <div class="size-12 rounded-2xl bg-amber-600 flex items-center justify-center shadow-lg shadow-amber-500/30 jefe-glow rotate-3">
+                    <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" d="M12 21v-8.25M15.75 21v-8.25M8.25 21v-8.25M3 9l9-6 9 6m-1.5 12V10.33l-7.5-5-7.5 5V21h15z"></path></svg>
+                </div>
+                <div>
+                    <h1 class="font-extrabold text-lg leading-tight tracking-tighter uppercase text-white">Ma Baker</h1>
+                    <p class="text-[10px] text-amber-400 font-black uppercase tracking-[0.3em] italic leading-none">Jefe de Área</p>
+                </div>
             </div>
         </div>
-        <nav class="sidebar-nav">
-            <a href="#" class="nav-item active" data-panel="pendientes"><span>🕐</span> Por Evaluar</a>
-            <a href="#" class="nav-item" data-panel="evaluados"><span>✅</span> Evaluados</a>
-        </nav>
-        <div class="sidebar-footer">
-            <div class="user-info" id="userInfo"></div><button class="btn-logout" onclick="logout()">Cerrar
-                sesión</button>
+
+        <!-- Área del jefe -->
+        <div class="mx-4 mt-4 px-4 py-3 rounded-2xl bg-amber-500/10 border border-amber-500/20">
+            <div class="flex items-center gap-2 mb-1">
+                <svg class="w-4 h-4 text-amber-400 inline" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" d="M15 9h3.75M15 12h3.75M15 15h3.75M4.5 19.5h15a2.25 2.25 0 002.25-2.25V6.75A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25v10.5A2.25 2.25 0 004.5 19.5zm6-10.125a1.875 1.875 0 11-3.75 0 1.875 1.875 0 013.75 0zm1.294 6.336a6.721 6.721 0 01-3.17.789 6.721 6.721 0 01-3.168-.789 3.376 3.376 0 016.338 0z"></path></svg>
+                <span class="text-[10px] font-black text-amber-400 uppercase tracking-widest">Tu Área</span>
+            </div>
+            <p class="text-sm font-bold text-white" id="sidebarArea">Cargando...</p>
         </div>
-    </nav>
-    <div class="dashboard-main">
-        <header class="dash-header">
-            <button class="menu-toggle" onclick="toggleSidebar()">☰</button>
-            <div class="dash-header-title" id="panelTitle">🕐 Candidatos Por Evaluar</div>
-            <div class="rol-badge jefe">🏢 Jefe de Área</div>
+
+        <nav class="flex-1 px-4 space-y-1 mt-6 scroll-custom overflow-y-auto">
+            <div class="px-4 py-2 text-[10px] font-black text-slate-500 uppercase tracking-[0.3em] opacity-60">Evaluación</div>
+
+            <a href="#" id="nav-pendientes" class="nav-item flex items-center gap-4 px-5 py-3.5 rounded-2xl nav-item-active transition-all group" onclick="activarPanel('pendientes', this); return false;" data-panel="pendientes">
+                <svg class="w-5 h-5 text-amber-400 inline" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                <span class="text-sm font-bold tracking-wide">Por Evaluar</span>
+                <span id="badgePendientes" class="ml-auto px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-400 text-[10px] font-black">0</span>
+            </a>
+
+            <a href="#" id="nav-evaluados" class="nav-item flex items-center gap-4 px-5 py-3.5 rounded-2xl hover:bg-white/5 transition-all group text-slate-400 hover:text-white" onclick="activarPanel('evaluados', this); return false;" data-panel="evaluados">
+                <svg class="w-5 h-5 text-slate-400 inline" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                <span class="text-sm font-semibold">Ya Evaluados</span>
+            </a>
+
+            <a href="#" id="nav-resumen" class="nav-item flex items-center gap-4 px-5 py-3.5 rounded-2xl hover:bg-white/5 transition-all group text-slate-400 hover:text-white" onclick="activarPanel('resumen', this); return false;" data-panel="resumen">
+                <svg class="w-5 h-5 text-slate-400 inline" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" d="M3 13.125C3 12.504 3.504 12 4.125 12h2.25c.621 0 1.125.504 1.125 1.125v6.75C7.5 20.496 6.996 21 6.375 21h-2.25A1.125 1.125 0 013 19.875v-6.75zM9.75 8.625c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125v11.25c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 01-1.125-1.125V8.625zM16.5 4.125c0-.621.504-1.125 1.125-1.125h2.25C20.496 3 21 3.504 21 4.125v15.75c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 01-1.125-1.125V4.125z"></path></svg>
+                <span class="text-sm font-semibold">Resumen del Área</span>
+            </a>
+        </nav>
+
+        <div class="p-6 border-t border-white/5 bg-black/20">
+            <div class="bg-white/5 rounded-[2rem] p-4 mb-4 border border-white/5" id="userInfo">
+                <!-- Cargado dinámicamente -->
+            </div>
+            <button onclick="logout()" class="w-full flex items-center justify-center gap-3 px-4 py-4 rounded-2xl bg-rose-500/10 border border-rose-500/20 text-rose-400 hover:bg-rose-500 hover:text-white transition-all text-[11px] font-black uppercase tracking-widest group">
+                <svg class="w-4 h-4 text-rose-400 group-hover:rotate-12 transition-transform" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path></svg>
+                Cerrar Sesión
+            </button>
+        </div>
+    </aside>
+
+    <!-- ══════════ MAIN ══════════ -->
+    <main class="flex-1 flex flex-col overflow-hidden bg-black/40 backdrop-blur-3xl">
+
+        <!-- Header -->
+        <header class="h-24 glass-panel border-b border-white/5 flex items-center justify-between px-8 lg:px-10 z-20 shrink-0">
+            <button onclick="toggleSidebar()" class="lg:hidden size-10 rounded-xl bg-white/5 flex items-center justify-center mr-4">
+                <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5"></path></svg>
+            </button>
+            <div>
+                <h2 class="text-3xl font-black text-white tracking-tighter" id="panelTitle">Evaluación Técnica Pendiente</h2>
+                <div class="flex items-center gap-2 mt-1">
+                    <span class="size-2 bg-amber-400 rounded-full animate-pulse"></span>
+                    <p class="text-[11px] text-slate-400 font-bold uppercase tracking-widest">Jefe de Área — <span id="headerArea">Área</span></p>
+                </div>
+            </div>
+            <div class="hidden xl:flex items-center gap-6">
+                <div class="text-center">
+                    <div class="text-xl font-black text-amber-400" id="hdrPendientes">—</div>
+                    <div class="text-[9px] text-slate-500 uppercase tracking-widest">Pendientes</div>
+                </div>
+                <div class="w-px h-10 bg-white/10"></div>
+                <div class="text-center">
+                    <div class="text-xl font-black text-emerald-400" id="hdrAprobados">—</div>
+                    <div class="text-[9px] text-slate-500 uppercase tracking-widest">Aprobados</div>
+                </div>
+                <div class="w-px h-10 bg-white/10"></div>
+                <div class="text-center">
+                    <div class="text-xl font-black text-rose-400" id="hdrRechazados">—</div>
+                    <div class="text-[9px] text-slate-500 uppercase tracking-widest">Rechazados</div>
+                </div>
+            </div>
         </header>
 
-        <div class="panel active" id="panel-pendientes">
-            <div class="dept-banner" id="deptBanner">
-                <span>🏢</span> <span>Tu área: <strong id="deptName">Cargando...</strong></span>
+        <!-- Content -->
+        <div class="flex-1 overflow-y-auto p-6 lg:p-10 space-y-8 scroll-custom">
+
+            <!-- ─── PANEL: POR EVALUAR ─── -->
+            <div id="panel-pendientes" class="panel active space-y-8 animate-slide-up">
+
+                <!-- Stats -->
+                <section class="grid grid-cols-3 gap-6">
+                    <div class="glass-card p-6 rounded-[2rem]">
+                        <p class="text-[10px] font-black text-slate-500 uppercase tracking-[0.3em] mb-1">Por Evaluar</p>
+                        <h4 class="text-4xl font-black text-amber-400" id="statPendientes">—</h4>
+                    </div>
+                    <div class="glass-card p-6 rounded-[2rem]">
+                        <p class="text-[10px] font-black text-slate-500 uppercase tracking-[0.3em] mb-1">Aprobados</p>
+                        <h4 class="text-4xl font-black text-emerald-400" id="statAprobados">—</h4>
+                    </div>
+                    <div class="glass-card p-6 rounded-[2rem] border-l-4 border-l-rose-500">
+                        <p class="text-[10px] font-black text-slate-500 uppercase tracking-[0.3em] mb-1">Rechazados</p>
+                        <h4 class="text-4xl font-black text-rose-400" id="statRechazadosJefe">—</h4>
+                    </div>
+                </section>
+
+                <!-- Tabla -->
+                <section class="glass-panel rounded-[2.5rem] border border-white/5 overflow-hidden">
+                    <div class="p-8 border-b border-white/5 bg-white/[0.02]">
+                        <h3 class="font-black text-white text-xl tracking-tight flex items-center gap-3">
+                            <svg class="w-5 h-5 text-amber-400 inline-block mr-2" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" d="M11.42 15.17L17.25 21A2.652 2.652 0 0021 17.25l-5.877-5.83m-1.245-1.178L9.25 15.25M17.25 9.25L21 5.5M3 13.5L5.5 11M3 21l3-3m0-6.5L10.5 8M8.5 6L11 3.5M3 5.5L6.5 9"></path></svg>
+                            Candidatos en Espera de Evaluación Técnica
+                        </h3>
+                        <p class="text-xs text-slate-400 mt-1">Haz clic en <strong class="text-white">Evaluar</strong> para revisar el perfil y registrar tu veredicto</p>
+                    </div>
+                    <div class="overflow-x-auto min-h-[300px] scroll-custom" id="tablaJefe">
+                        <div class="p-20 text-center text-slate-500">
+                            <svg class="w-10 h-10 text-slate-500 mx-auto mb-4 animate-pulse" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                            Cargando candidatos...
+                        </div>
+                    </div>
+                </section>
             </div>
-            <div class="stats-grid">
-                <div class="stat-card">
-                    <div class="stat-icon">🕐</div>
-                    <div class="stat-num" id="statPendientes">—</div>
-                    <div class="stat-label">Por Evaluar</div>
+
+            <!-- ─── PANEL: YA EVALUADOS ─── -->
+            <div id="panel-evaluados" class="panel space-y-8">
+                <section class="glass-panel rounded-[2.5rem] border border-white/5 overflow-hidden">
+                    <div class="p-8 border-b border-white/5 bg-white/[0.02]">
+                        <h3 class="font-black text-white text-xl tracking-tight flex items-center gap-3">
+                            <svg class="w-5 h-5 text-emerald-400 inline-block mr-2" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                            Candidatos con Veredicto Registrado
+                        </h3>
+                    </div>
+                    <div class="overflow-x-auto min-h-[300px] scroll-custom" id="tablaEvaluados">
+                        <div class="p-20 text-center text-slate-500">Cargando histórico...</div>
+                    </div>
+                </section>
+            </div>
+
+            <!-- ─── PANEL: RESUMEN ─── -->
+            <div id="panel-resumen" class="panel space-y-8">
+                <section class="glass-panel rounded-[2.5rem] border border-white/5 p-8">
+                    <h3 class="font-black text-white text-xl tracking-tight flex items-center gap-3 mb-6">
+                        <svg class="w-5 h-5 text-amber-400 inline-block mr-2" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" d="M3 13.125C3 12.504 3.504 12 4.125 12h2.25c.621 0 1.125.504 1.125 1.125v6.75C7.5 20.496 6.996 21 6.375 21h-2.25A1.125 1.125 0 013 19.875v-6.75zM9.75 8.625c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125v11.25c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 01-1.125-1.125V8.625zM16.5 4.125c0-.621.504-1.125 1.125-1.125h2.25C20.496 3 21 3.504 21 4.125v15.75c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 01-1.125-1.125V4.125z"></path></svg>
+                        Resumen de tu Área
+                    </h3>
+                    <div class="grid grid-cols-2 md:grid-cols-4 gap-6" id="resumenStats">
+                        <div class="p-6 rounded-2xl bg-white/5 text-center">
+                            <div class="text-3xl font-black text-amber-400" id="resTotales">—</div>
+                            <div class="text-xs text-slate-400 mt-1">Total Candidatos</div>
+                        </div>
+                        <div class="p-6 rounded-2xl bg-white/5 text-center">
+                            <div class="text-3xl font-black text-amber-400" id="resPendientes">—</div>
+                            <div class="text-xs text-slate-400 mt-1">Pendientes</div>
+                        </div>
+                        <div class="p-6 rounded-2xl bg-white/5 text-center">
+                            <div class="text-3xl font-black text-emerald-400" id="resAprobados">—</div>
+                            <div class="text-xs text-slate-400 mt-1">Aprobados</div>
+                        </div>
+                        <div class="p-6 rounded-2xl bg-white/5 text-center">
+                            <div class="text-3xl font-black text-rose-400" id="resRechazados">—</div>
+                            <div class="text-xs text-slate-400 mt-1">Rechazados</div>
+                        </div>
+                    </div>
+                </section>
+            </div>
+
+        </div>
+    </main>
+</div>
+
+<!-- ══════════════════════════════════
+     MODAL: EVALUACIÓN TÉCNICA
+════════════════════════════════════ -->
+<div id="modalJefe" class="fixed inset-0 z-50 hidden flex items-center justify-center p-4">
+    <div class="absolute inset-0 bg-black/80 backdrop-blur-xl" onclick="cerrarModalJefe()"></div>
+    <div class="relative w-full max-w-3xl bg-[#0f172a] border border-white/10 rounded-[2.5rem] shadow-2xl overflow-y-auto max-h-[90vh] animate-slide-up">
+
+        <!-- Header modal -->
+        <div class="p-8 border-b border-white/5 bg-amber-900/20 flex justify-between items-center">
+            <div class="flex items-center gap-5">
+                <div id="modalInitials" class="size-14 rounded-full bg-amber-500/20 text-amber-400 flex items-center justify-center text-2xl font-black">
+                    CD
                 </div>
-                <div class="stat-card">
-                    <div class="stat-icon">✅</div>
-                    <div class="stat-num" id="statAprobados">—</div>
-                    <div class="stat-label">Aprobados</div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-icon">❌</div>
-                    <div class="stat-num" id="statRechazadosJefe">—</div>
-                    <div class="stat-label">Rechazados</div>
+                <div>
+                    <h3 class="text-2xl font-black text-white" id="modalJefeNombre">Candidato</h3>
+                    <p class="text-xs text-amber-400 font-bold uppercase tracking-widest" id="modalJefePuesto">Puesto</p>
                 </div>
             </div>
-            <div class="panel-section">
-                <h3 class="section-title">Candidatos en Espera de tu Evaluación Técnica</h3>
-                <p class="panel-hint">Revisa el perfil de cada candidato y registra tu veredicto (Aprobado / Rechazado).
-                </p>
-                <div id="tablaJefe" class="table-wrapper">
-                    <div class="loading-row">Cargando...</div>
-                </div>
-            </div>
+            <button onclick="cerrarModalJefe()" class="size-10 rounded-2xl hover:bg-white/10 flex items-center justify-center transition-all">
+                <svg class="w-6 h-6 text-slate-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"></path></svg>
+            </button>
         </div>
 
-        <div class="panel" id="panel-evaluados">
-            <div class="panel-toolbar">
-                <h2>✅ Candidatos Ya Evaluados</h2>
+        <!-- Body modal -->
+        <div class="p-8 max-h-[55vh] overflow-y-auto scroll-custom space-y-7">
+
+            <!-- Perfil del candidato (solo lectura) -->
+            <div>
+                <h4 class="text-[11px] font-black text-amber-400 uppercase tracking-widest mb-4 flex items-center gap-2">
+                    <svg class="w-4 h-4 text-amber-400 inline" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z"></path></svg>
+                    Perfil del Candidato
+                </h4>
+                <div class="grid grid-cols-2 gap-4 text-sm">
+                    <div class="bg-white/5 rounded-2xl p-4">
+                        <div class="text-[10px] text-slate-400 uppercase tracking-widest mb-1">Edad</div>
+                        <div class="font-bold text-white" id="perfil_edad">—</div>
+                    </div>
+                    <div class="bg-white/5 rounded-2xl p-4">
+                        <div class="text-[10px] text-slate-400 uppercase tracking-widest mb-1">Escolaridad</div>
+                        <div class="font-bold text-white" id="perfil_escolaridad">—</div>
+                    </div>
+                    <div class="bg-white/5 rounded-2xl p-4">
+                        <div class="text-[10px] text-slate-400 uppercase tracking-widest mb-1">Experiencia</div>
+                        <div class="font-bold text-white" id="perfil_exp">—</div>
+                    </div>
+                    <div class="bg-white/5 rounded-2xl p-4">
+                        <div class="text-[10px] text-slate-400 uppercase tracking-widest mb-1">Experiencia Laboral</div>
+                        <div class="font-bold text-white whitespace-pre-line text-xs leading-5" id="perfil_empresa">—</div>
+                    </div>
+                </div>
+                <!-- Score IA -->
+                <div class="mt-4 p-4 bg-amber-500/10 border border-amber-500/20 rounded-2xl flex items-center gap-4">
+                    <svg class="w-6 h-6 text-amber-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12h.01M12 12h.01M15 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path></svg>
+                    <div>
+                        <div class="text-[10px] text-amber-400 uppercase tracking-widest">Score IA de Preselección</div>
+                        <div class="text-2xl font-black text-white" id="perfil_score">—</div>
+                    </div>
+                </div>
             </div>
-            <div id="tablaEvaluados" class="table-wrapper">
-                <div class="loading-row">Cargando...</div>
+
+            <!-- Competencias candidato -->
+            <div>
+                <h4 class="text-[11px] font-black text-amber-400 uppercase tracking-widest mb-3 flex items-center gap-2">
+                    <svg class="w-4 h-4 text-amber-400 inline" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" d="M16.5 18.75h-9m9 0a3 3 0 013 3h-15a3 3 0 013-3m9-3.75h-9m9 0a3 3 0 013 3h-15a3 3 0 013-3m9-3.75h-9m9 0a3 3 0 013 3h-15a3 3 0 013-3m9-3.75h-9m9 0a3 3 0 013 3h-15a3 3 0 013-3"></path></svg>
+                    Habilidades Reportadas
+                </h4>
+                <div id="perfil_habilidades" class="flex flex-wrap gap-1">
+                    <span class="text-slate-500 text-sm">Sin información</span>
+                </div>
             </div>
+
+            <!-- Evaluación técnica del jefe -->
+            <div>
+                <h4 class="text-[11px] font-black text-amber-400 uppercase tracking-widest mb-4 flex items-center gap-2">
+                    <svg class="w-4 h-4 text-amber-400 inline" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0115.75 21H5.25A2.25 2.25 0 013 18.75V8.25A2.25 2.25 0 015.25 6H10"></path></svg>
+                    Tu Evaluación Técnica
+                </h4>
+
+                <!-- Puntuación técnica -->
+                <div class="mb-4">
+                    <label class="modal-label">Calificación Técnica (0–100)</label>
+                    <input type="number" id="jefe_score" min="0" max="100" class="modal-input" placeholder="ej. 85">
+                </div>
+
+                <!-- Fortalezas -->
+                <div class="mb-4">
+                    <label class="modal-label">Fortalezas Observadas</label>
+                    <textarea id="jefe_fortalezas" class="modal-input" rows="2" placeholder="Escribe las fortalezas técnicas del candidato..."></textarea>
+                </div>
+
+                <!-- Áreas de mejora -->
+                <div class="mb-4">
+                    <label class="modal-label">Áreas de Mejora</label>
+                    <textarea id="jefe_mejoras" class="modal-input" rows="2" placeholder="Áreas técnicas que el candidato deberá desarrollar..."></textarea>
+                </div>
+
+                <!-- Comentarios generales -->
+                <div>
+                    <label class="modal-label">Comentarios Generales para RRHH</label>
+                    <textarea id="jefe_comentarios" class="modal-input" rows="3" placeholder="Observaciones adicionales para el equipo de RRHH..."></textarea>
+                </div>
+            </div>
+
+            <!-- Veredicto -->
+            <div>
+                <h4 class="text-[11px] font-black text-amber-400 uppercase tracking-widest mb-4 flex items-center gap-2">
+                    <svg class="w-4 h-4 text-amber-400 inline" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12c0 1.268-.63 2.39-1.593 3.068a3.745 3.745 0 01-1.043 3.296 3.745 3.745 0 01-3.296 1.043A3.745 3.745 0 0112 21c-1.268 0-2.39-.63-3.068-1.593a3.746 3.746 0 01-3.296-1.043 3.745 3.745 0 01-1.043-3.296A3.745 3.745 0 013 12c0-1.268.63-2.39 1.593-3.068a3.746 3.746 0 011.043-3.296 3.746 3.746 0 013.296-1.043A3.746 3.746 0 0112 3c1.268 0 2.39.63 3.068 1.593a3.746 3.746 0 013.296 1.043 3.746 3.746 0 011.043 3.296A3.745 3.745 0 0121 12z"></path></svg>
+                    Veredicto Final
+                </h4>
+                <div class="flex gap-4">
+                    <button onclick="seleccionarVeredicto('APROBADO')" id="btnAprobado"
+                        class="veredicto-btn flex-1 py-6">
+                        <svg class="w-12 h-12 text-emerald-400 mb-2" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" d="M6.633 10.5c.806 0 1.533-.446 2.031-1.08a9.041 9.041 0 012.861-2.4c.723-.384 1.35-.956 1.653-1.715a4.498 4.498 0 00.322-1.672V3a.75.75 0 01.75-.75A2.25 2.25 0 0116.5 4.5c0 1.152-.26 2.243-.723 3.218-.266.558.107 1.282.725 1.282h3.126c1.026 0 1.919.699 2.114 1.7L22.22 17.5a3.498 3.498 0 01-3.252 4H9.721a3.497 3.497 0 01-3.088-1.85L4.4 15.65a2.25 2.25 0 01.442-2.732l1.79-1.418z"></path></svg>
+                        <span class="font-black text-sm text-white uppercase tracking-wider">APROBADO</span>
+                        <span class="text-[10px] text-slate-400 mt-1">Recomendado para contratación</span>
+                    </button>
+                    <button onclick="seleccionarVeredicto('RECHAZADO')" id="btnRechazadoJefe"
+                        class="veredicto-btn flex-1 py-6">
+                        <svg class="w-12 h-12 text-rose-400 mb-2" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" d="M17.367 13.5c-.806 0-1.533.446-2.031 1.08a9.041 9.041 0 01-2.861 2.4c-.723.384-1.35.956-1.653 1.715a4.498 4.498 0 00-.322 1.672V21a.75.75 0 01-.75.75A2.25 2.25 0 019 19.5c0-1.152.26-2.243.723-3.218.266-.558-.107-1.282-.725-1.282H5.872c-1.026 0-1.919-.699-2.114-1.7L1.78 6.5a3.498 3.498 0 013.252-4h9.227a3.497 3.497 0 013.088 1.85L19.6 8.35a2.25 2.25 0 01-.442 2.732l-1.79 1.418z"></path></svg>
+                        <span class="font-black text-sm text-white uppercase tracking-wider">RECHAZADO</span>
+                        <span class="text-[10px] text-slate-400 mt-1">No cumple perfil técnico</span>
+                    </button>
+                </div>
+                <input type="hidden" id="jefe_veredicto" value="">
+            </div>
+
+        </div>
+
+        <!-- Footer -->
+        <div class="p-8 pt-4 flex justify-end gap-4 border-t border-white/5">
+            <button id="btnCerrarJefe" onclick="cerrarModalJefe()" class="px-8 py-4 rounded-2xl border border-white/10 text-slate-400 font-black text-xs uppercase tracking-widest hover:bg-white/5 transition-all">
+                Cancelar
+            </button>
+            <button onclick="guardarVeredictoJefe()" id="btnGuardarJefe"
+                class="px-8 py-4 rounded-2xl bg-amber-600 text-white font-black text-xs uppercase tracking-widest hover:scale-105 active:scale-95 transition-all shadow-xl shadow-amber-500/20 flex items-center gap-3">
+                <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12c0 1.268-.63 2.39-1.593 3.068a3.745 3.745 0 01-1.043 3.296 3.745 3.745 0 01-3.296 1.043A3.745 3.745 0 0112 21c-1.268 0-2.39-.63-3.068-1.593a3.746 3.746 0 01-3.296-1.043 3.745 3.745 0 01-1.043-3.296A3.745 3.745 0 013 12c0-1.268.63-2.39 1.593-3.068a3.746 3.746 0 011.043-3.296 3.746 3.746 0 013.296-1.043A3.746 3.746 0 0112 3c1.268 0 2.39.63 3.068 1.593a3.746 3.746 0 013.296 1.043 3.746 3.746 0 011.043 3.296A3.745 3.745 0 0121 12z"></path></svg>
+                Registrar Veredicto
+            </button>
         </div>
     </div>
-    <script src="js/auth.js"></script>
-    <script src="js/dashboard.js"></script>
-    <script>initDashboard('jefe');</script>
-</body>
+</div>
 
+<!-- Scripts -->
+<script src="js/config.js"></script>
+<script src="js/auth.js"></script>
+<script>
+/* ================================================================
+   MÓDULO JEFE DE ÁREA — Evaluación Técnica de Candidatos
+================================================================ */
+
+const CFG   = window.MB_CONFIG || {};
+const SUPA_URL = CFG.SUPABASE_URL || '';
+const SUPA_KEY = CFG.SUPABASE_SERVICE_ROLE_KEY || CFG.SUPABASE_ANON_KEY || '';
+const HEADERS = {
+    apikey: SUPA_KEY,
+    Authorization: `Bearer ${SUPA_KEY}`,
+    'Content-Type': 'application/json',
+    Prefer: 'return=representation'
+};
+
+const state = { candidatoActual: null, veredicto: '', departamento: '' };
+
+const $ = id => document.getElementById(id);
+const setText = (id, v) => { const el=$(id); if(el) el.textContent = (v ?? '—'); };
+const setVal  = (id, v) => { const el=$(id); if(el) el.value = v ?? ''; };
+const esc = v => String(v ?? '').replace(/[<>"'&]/g, c => ({'<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;','&':'&amp;'})[c]);
+
+function getWorkExperiences(candidato) {
+    const fromDecision = Array.isArray(candidato?.decision_agente?.experiencia_laboral)
+        ? candidato.decision_agente.experiencia_laboral
+        : [];
+    const parsed = fromDecision
+        .map((item, idx) => ({
+            orden: item.orden || idx + 1,
+            empresa: String(item.empresa || '').trim(),
+            puesto: String(item.puesto || '').trim(),
+            inicio: String(item.inicio_mes_anio || item.inicio || '').trim(),
+            termino: String(item.termino_mes_anio || item.termino || '').trim(),
+        }))
+        .filter(x => x.empresa || x.puesto || x.inicio || x.termino);
+    if (parsed.length > 0) return parsed;
+
+    const legacy = [];
+    for (let i = 1; i <= 4; i++) {
+        const empresa = String(candidato[`empresa_${i}`] || '').trim();
+        const puesto = String(candidato[`puesto_${i}`] || '').trim();
+        const periodo = String(candidato[`antiguedad_${i}`] || '').trim();
+        if (!empresa && !puesto && !periodo) continue;
+        legacy.push({
+            orden: i,
+            empresa,
+            puesto,
+            inicio: periodo,
+            termino: ''
+        });
+    }
+    return legacy;
+}
+
+function summarizeExperience(candidato) {
+    const count = getWorkExperiences(candidato).length;
+    return count > 0 ? `${count} REGISTRO(S)` : '—';
+}
+
+function formatExperiencesForProfile(candidato) {
+    const items = getWorkExperiences(candidato);
+    if (!items.length) return 'SIN EXPERIENCIA REGISTRADA';
+    return items
+        .map((x) => {
+            const periodo = x.termino ? `${x.inicio || 'N/A'} A ${x.termino}` : (x.inicio || 'N/A');
+            return `${x.orden}) ${x.empresa || 'EMPRESA'} | ${x.puesto || 'PUESTO'} | ${periodo}`;
+        })
+        .join('\n');
+}
+
+async function supaGet(ep) {
+    const r = await fetch(`${SUPA_URL}${ep}`, { headers: HEADERS });
+    if (!r.ok) throw new Error(`GET ${ep} → ${r.status}`);
+    return r.json();
+}
+async function supaPatch(ep, body) {
+    const r = await fetch(`${SUPA_URL}${ep}`, {
+        method: 'PATCH', headers: HEADERS, body: JSON.stringify(body)
+    });
+    if (!r.ok) throw new Error(`PATCH ${ep} → ${r.status}`);
+    return r.json();
+}
+
+// ── Inicialización ───────────────────────────────────────────
+document.addEventListener('DOMContentLoaded', async () => {
+    const token = localStorage.getItem('mb_token');
+    const rol   = localStorage.getItem('mb_rol');
+    if (!token || (rol !== 'jefe' && rol !== 'admin')) {
+        window.location.href = 'login.html';
+        return;
+    }
+
+    const nombre = localStorage.getItem('mb_nombre') || 'Jefe';
+    const dept   = localStorage.getItem('mb_departamento') || '';
+    state.departamento = dept.toLowerCase();
+
+    // Sidebar perfil
+    const userInfo = $('userInfo');
+    if (userInfo) {
+        userInfo.innerHTML = `
+          <div class="flex items-center gap-3">
+            <div class="size-9 rounded-xl bg-amber-500/20 flex items-center justify-center">
+              <svg class="w-5 h-5 text-amber-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" d="M12 21v-8.25M15.75 21v-8.25M8.25 21v-8.25M3 9l9-6 9 6m-1.5 12V10.33l-7.5-5-7.5 5V21h15z"></path></svg>
+            </div>
+            <div>
+              <span class="block text-sm font-bold text-white">${esc(nombre)}</span>
+              <span class="text-[10px] text-amber-400 uppercase tracking-widest">Jefe · ${esc(dept||'General')}</span>
+            </div>
+          </div>`;
+    }
+
+    setText('sidebarArea', dept || 'General');
+    setText('headerArea',  dept || 'General');
+
+    await cargarDatos();
+});
+
+// ── Cargar datos ──────────────────────────────────────────────
+async function cargarDatos() {
+    try {
+        const lista = await supaGet('/rest/v1/candidatos_activos?select=*&order=created_at.desc');
+
+        // Filtrar por departamento del jefe
+        const dept = state.departamento;
+        const propios = dept
+            ? lista.filter(x => (x.departamento || x.nombre_puesto || '').toLowerCase().includes(dept))
+            : lista;
+
+        renderizarTablas(propios);
+    } catch (err) {
+        console.error(err);
+        $('tablaJefe').innerHTML = `<div class="p-16 text-center text-rose-400">Error: ${esc(err.message)}</div>`;
+    }
+}
+
+function renderizarTablas(lista) {
+    // Clasificar
+    const pendientes = lista.filter(x => {
+        const f = (x.fase_actual || '').toLowerCase();
+        return f.includes('jefe') || f.includes('tecnic') || f.includes('espera_jefe');
+    });
+    const evaluados = lista.filter(x => x.veredicto_jefe);
+    const aprobados = evaluados.filter(x => (x.veredicto_jefe||'').toLowerCase().includes('aprob'));
+    const rechazados = evaluados.filter(x => (x.veredicto_jefe||'').toLowerCase().includes('rechaz'));
+
+    // Stats
+    setText('statPendientes',    pendientes.length);
+    setText('statAprobados',     aprobados.length);
+    setText('statRechazadosJefe',rechazados.length);
+    setText('hdrPendientes',     pendientes.length);
+    setText('hdrAprobados',      aprobados.length);
+    setText('hdrRechazados',     rechazados.length);
+    setText('badgePendientes',   pendientes.length);
+    setText('resTotales',        lista.length);
+    setText('resPendientes',     pendientes.length);
+    setText('resAprobados',      aprobados.length);
+    setText('resRechazados',     rechazados.length);
+
+    // ─── Tabla Pendientes ─────────────────────────────────────
+    const tPend = $('tablaJefe');
+    if (tPend) {
+        if (pendientes.length === 0) {
+            tPend.innerHTML = `<div class="p-20 text-center text-slate-500">
+                <svg class="w-10 h-10 text-amber-400 mx-auto mb-3" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                No hay candidatos pendientes de evaluación técnica</div>`;
+        } else {
+            tPend.innerHTML = `
+              <table class="w-full text-sm">
+                <thead>
+                  <tr class="text-left border-b border-white/5">
+                    <th class="px-6 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest">Candidato</th>
+                    <th class="px-6 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest">Puesto</th>
+                    <th class="px-6 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest">Score IA</th>
+                    <th class="px-6 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest">Experiencia</th>
+                    <th class="px-6 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest">Escolaridad</th>
+                    <th class="px-6 py-4 text-right text-[10px] font-black text-slate-400 uppercase tracking-widest">Acción</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  ${pendientes.map(x => {
+                    const score = x.score_ia || x.score || null;
+                    const scoreColor = score >= 80 ? 'text-emerald-400' : score >= 60 ? 'text-amber-400' : 'text-rose-400';
+                    return `
+                    <tr class="border-b border-white/5 hover:bg-white/5 transition-colors">
+                      <td class="px-6 py-4">
+                        <div class="flex items-center gap-3">
+                          <div class="size-9 rounded-full bg-amber-500/20 flex items-center justify-center text-amber-400 font-black text-xs shrink-0">
+                            ${(x.nombre_completo||x.nombre||'?').split(' ').slice(0,2).map(n=>n[0]).join('').toUpperCase()}
+                          </div>
+                          <div>
+                            <div class="font-bold text-white">${esc(x.nombre_completo||x.nombre||'Sin nombre')}</div>
+                            <div class="text-[11px] text-slate-400">${esc(x.email||x.correo||'-')}</div>
+                          </div>
+                        </div>
+                      </td>
+                      <td class="px-6 py-4 text-slate-300">${esc(x.nombre_puesto||x.puesto||'-')}</td>
+                      <td class="px-6 py-4">
+                        ${score !== null
+                            ? `<span class="font-black text-lg ${scoreColor}">${score}</span><span class="text-slate-500 text-xs">/100</span>`
+                            : `<span class="text-slate-500">—</span>`}
+                      </td>
+                      <td class="px-6 py-4 text-slate-300 text-xs">${x.anios_experiencia != null ? x.anios_experiencia + ' años' : summarizeExperience(x)}</td>
+                      <td class="px-6 py-4 text-slate-300 text-xs">${esc(x.escolaridad||'-')}</td>
+                      <td class="px-6 py-4 text-right">
+                        <button onclick='abrirModalJefe(${JSON.stringify(x)})'
+                          class="px-4 py-2 rounded-xl bg-amber-500/20 text-amber-400 text-xs font-black hover:bg-amber-500 hover:text-white transition-all flex items-center gap-2 ml-auto">
+                          <svg class="w-3.5 h-3.5 text-amber-400 inline-block" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" d="M11.42 15.17L17.25 21A2.652 2.652 0 0021 17.25l-5.877-5.83m-1.245-1.178L9.25 15.25M17.25 9.25L21 5.5M3 13.5L5.5 11M3 21l3-3m0-6.5L10.5 8M8.5 6L11 3.5M3 5.5L6.5 9"></path></svg> Evaluar
+                        </button>
+                      </td>
+                    </tr>`;
+                  }).join('')}
+                </tbody>
+              </table>`;
+        }
+    }
+
+    // ─── Tabla Evaluados ──────────────────────────────────────
+    const tEval = $('tablaEvaluados');
+    if (tEval) {
+        if (evaluados.length === 0) {
+            tEval.innerHTML = `<div class="p-20 text-center text-slate-500">Aún no has evaluado candidatos</div>`;
+        } else {
+            tEval.innerHTML = `
+              <table class="w-full text-sm">
+                <thead>
+                  <tr class="text-left border-b border-white/5">
+                    <th class="px-6 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest">Candidato</th>
+                    <th class="px-6 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest">Puesto</th>
+                    <th class="px-6 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest">Veredicto</th>
+                    <th class="px-6 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest">Calif. Técnica</th>
+                    <th class="px-6 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest">Fase Actual</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  ${evaluados.map(x => {
+                    const v = (x.veredicto_jefe||'').toUpperCase();
+                    const badgeClass = v.includes('APROB') ? 'badge-aprob' : 'badge-rechazo';
+                    return `
+                    <tr class="border-b border-white/5 hover:bg-white/5 transition-colors">
+                      <td class="px-6 py-4 font-semibold text-white">${esc(x.nombre_completo||x.nombre||'-')}</td>
+                      <td class="px-6 py-4 text-slate-300">${esc(x.nombre_puesto||x.puesto||'-')}</td>
+                      <td class="px-6 py-4"><span class="badge ${badgeClass}">${esc(v||'-')}</span></td>
+                      <td class="px-6 py-4 text-amber-400 font-black">${x.calificacion_tecnica != null ? x.calificacion_tecnica + '/100' : '—'}</td>
+                      <td class="px-6 py-4"><span class="badge badge-pend">${esc(x.fase_actual||'-')}</span></td>
+                    </tr>`;
+                  }).join('')}
+                </tbody>
+              </table>`;
+        }
+    }
+}
+
+// ── Modal evaluación ──────────────────────────────────────────
+function abrirModalJefe(candidato) {
+    state.candidatoActual = candidato;
+    state.veredicto = '';
+
+    const nombre = candidato.nombre_completo || candidato.nombre || 'Sin nombre';
+    setText('modalJefeNombre', nombre);
+    setText('modalJefePuesto', candidato.nombre_puesto || candidato.puesto || 'Sin puesto');
+    $('modalInitials').textContent = nombre.split(' ').slice(0,2).map(n=>n[0]).join('').toUpperCase();
+
+    // Perfil (solo lectura)
+    setText('perfil_edad',       candidato.edad ? `${candidato.edad} años` : '—');
+    setText('perfil_escolaridad', candidato.escolaridad || '—');
+    setText('perfil_exp',
+        candidato.anios_experiencia != null
+            ? `${candidato.anios_experiencia} años`
+            : summarizeExperience(candidato));
+    setText('perfil_empresa', formatExperiencesForProfile(candidato));
+    setText('perfil_score',      candidato.score_ia || candidato.score || '—');
+
+    // Habilidades / conocimientos
+    const habEl = $('perfil_habilidades');
+    const habs = candidato.conocimientos_tecnicos || candidato.habilidades || '';
+    if (habEl) {
+        habEl.innerHTML = habs
+            ? habs.split(/[,;\/\n]+/).filter(Boolean).map(h =>
+                `<span class="skill-tag">${esc(h.trim())}</span>`).join('')
+            : '<span class="text-slate-500 text-xs">Sin información de habilidades</span>';
+    }
+
+    // Limpiar campos evaluación
+    ['jefe_score','jefe_fortalezas','jefe_mejoras','jefe_comentarios'].forEach(id => setVal(id, ''));
+    setVal('jefe_veredicto', '');
+
+    // Reset botones
+    [$('btnAprobado'), $('btnRechazadoJefe')].forEach(b => {
+        if(b) { b.style.borderColor='rgba(255,255,255,.1)'; b.style.background='transparent'; }
+    });
+
+    $('modalJefe').classList.remove('hidden');
+}
+
+function cerrarModalJefe() {
+    $('modalJefe').classList.add('hidden');
+    state.candidatoActual = null;
+}
+
+function seleccionarVeredicto(valor) {
+    state.veredicto = valor;
+    setVal('jefe_veredicto', valor);
+
+    // Resetear
+    const bApro = $('btnAprobado');
+    const bRech = $('btnRechazadoJefe');
+    if(bApro) { bApro.style.borderColor='rgba(255,255,255,.1)'; bApro.style.background='transparent'; }
+    if(bRech) { bRech.style.borderColor='rgba(255,255,255,.1)'; bRech.style.background='transparent'; }
+
+    // Activar
+    if (valor === 'APROBADO' && bApro) {
+        bApro.style.borderColor = 'rgba(34,197,94,.5)';
+        bApro.style.background  = 'rgba(34,197,94,.1)';
+    }
+    if (valor === 'RECHAZADO' && bRech) {
+        bRech.style.borderColor = 'rgba(239,68,68,.5)';
+        bRech.style.background  = 'rgba(239,68,68,.1)';
+    }
+}
+
+async function guardarVeredictoJefe() {
+    if (!state.candidatoActual) return;
+    if (!state.veredicto) {
+        alert('Selecciona un veredicto: APROBADO o RECHAZADO');
+        return;
+    }
+
+    const btn = $('btnGuardarJefe');
+    btn.disabled = true;
+    btn.innerHTML = `<svg class="w-4 h-4 inline mr-1 animate-spin text-white" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg> Guardando...`;
+
+    try {
+        const scoreJefe = parseInt($('jefe_score').value) || null;
+        const payload = {
+            veredicto_jefe:       state.veredicto,
+            calificacion_tecnica: scoreJefe,
+            fortalezas_tecnicas:  $('jefe_fortalezas').value,
+            areas_mejora:         $('jefe_mejoras').value,
+            comentarios_jefe:     $('jefe_comentarios').value,
+            fase_actual: state.veredicto === 'APROBADO'
+                ? 'induccion_sgi'
+                : 'rechazado_jefe',
+        };
+
+        await supaPatch(
+            `/rest/v1/candidatos_activos?id=eq.${state.candidatoActual.id}`,
+            window.MB_UPPERCASE ? window.MB_UPPERCASE.normalizePayload(payload) : payload
+        );
+
+        cerrarModalJefe();
+        mostrarToast('✅ Veredicto registrado correctamente', 'success');
+        await cargarDatos();
+
+    } catch (err) {
+        mostrarToast('❌ Error al guardar: ' + err.message, 'error');
+    } finally {
+        btn.disabled = false;
+        btn.innerHTML = `<svg class="w-4 h-4 text-white inline mr-1" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12c0 1.268-.63 2.39-1.593 3.068a3.745 3.745 0 01-1.043 3.296 3.745 3.745 0 01-3.296 1.043A3.745 3.745 0 0112 21c-1.268 0-2.39-.63-3.068-1.593a3.746 3.746 0 01-3.296-1.043 3.745 3.745 0 01-1.043-3.296A3.745 3.745 0 013 12c0-1.268.63-2.39 1.593-3.068a3.746 3.746 0 011.043-3.296 3.746 3.746 0 013.296-1.043A3.746 3.746 0 0112 3c1.268 0 2.39.63 3.068 1.593a3.746 3.746 0 013.296 1.043 3.746 3.746 0 011.043 3.296A3.745 3.745 0 0121 12z"></path></svg> Registrar Veredicto`;
+    }
+}
+
+// ── Navegación ────────────────────────────────────────────────
+function activarPanel(panel, source) {
+    document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+    const target = $(`panel-${panel}`);
+    if (target) target.classList.add('active');
+
+    document.querySelectorAll('[data-panel]').forEach(n => {
+        n.classList.remove('nav-item-active');
+        n.classList.add('text-slate-400');
+    });
+    if (source) { source.classList.add('nav-item-active'); source.classList.remove('text-slate-400'); }
+
+    const titles = {
+        pendientes: 'Evaluación Técnica Pendiente',
+        evaluados:  'Candidatos Ya Evaluados',
+        resumen:    'Resumen del Área',
+    };
+    setText('panelTitle', titles[panel] || 'Jefe de Área');
+}
+
+function toggleSidebar() {
+    document.querySelector('aside').classList.toggle('hidden');
+}
+
+function logout() {
+    ['mb_token','mb_rol','mb_nombre','mb_departamento','mb_expira','mabaker_session']
+        .forEach(k => localStorage.removeItem(k));
+    window.location.href = 'login.html';
+}
+
+function mostrarToast(msg, tipo = 'success') {
+    const t = document.createElement('div');
+    t.className = `fixed bottom-6 right-6 z-[9999] px-6 py-4 rounded-2xl font-bold text-sm shadow-2xl
+        ${tipo === 'success' ? 'bg-amber-600 text-white' : 'bg-rose-600 text-white'}`;
+    t.textContent = msg;
+    document.body.appendChild(t);
+    setTimeout(() => t.remove(), 3500);
+}
+
+function fmtDate(v) {
+    if (!v) return '-';
+    try { return new Date(v).toLocaleString('es-MX'); } catch { return '-'; }
+}
+</script>
+</body>
 </html>

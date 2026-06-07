@@ -249,6 +249,9 @@
             cursor: pointer;
         }
     </style>
+<script src="js/theme.js"></script>
+    <script src="js/help-overlay.js"></script>
+<script src="js/uppercase.js"></script>
 </head>
 
 <body class="dashboard-body">
@@ -401,6 +404,7 @@
         </div>
     </div>
 
+    <script src="js/config.js"></script>
     <script src="js/auth.js"></script>
     <script>
         /* ============================================================
@@ -408,9 +412,10 @@
            Acceso: rol 'sgi' y 'admin'.
            Función: evaluar los 7 puntos de inducción de calidad.
            ============================================================ */
-        const URL = 'https://znskpdixdyxdbvpapqrg.supabase.co';
-        const KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inpuc2twZGl4ZHl4ZGJ2cGFwcXJnIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc3Mjg1ODgwOCwiZXhwIjoyMDg4NDM0ODA4fQ.s7yC5ODssUgqHjH0PsAhTZuNQ1R-lMuJAt62OKDwryg';
+        const URL = window.MB_CONFIG.SUPABASE_URL;
+        const KEY = window.MB_CONFIG.SUPABASE_SERVICE_ROLE_KEY || window.MB_CONFIG.SUPABASE_ANON_KEY;
         const H = { 'apikey': KEY, 'Authorization': 'Bearer ' + KEY, 'Content-Type': 'application/json', 'Prefer': 'return=representation' };
+        const esc = window.MB_CONFIG.escapeHTML;
 
         /* Estado de los puntos del formulario de evaluación activo */
         const S = { reglamento: null, bpm: null, calidad: null, haccp: null, alergenos: null, plagas: null, trazabilidad: null };
@@ -424,7 +429,7 @@
 
             document.getElementById('userInfo').innerHTML =
                 `<div style="font-size:12px;color:#94A3B8;font-weight:500;">📋 SGI · Calidad<br>
-        <strong style="color:white;">${localStorage.getItem('mb_nombre') || 'Usuario'}</strong></div>`;
+        <strong style="color:white;">${esc(localStorage.getItem('mb_nombre') || 'Usuario')}</strong></div>`;
 
             /* Activar navegación del sidebar */
             document.querySelectorAll('.nav-item[data-panel]').forEach(a => {
@@ -440,12 +445,13 @@
             await cargar();
         }
 
-        /* ── Cargar candidatos en fases de inducción o listos para contrato ── */
+        /* ── Cargar candidatos en fases de SGI / Seguridad / listos para contrato ── */
         async function cargar() {
-            const r = await fetch(`${URL}/rest/v1/candidatos_activos?select=*&fase_actual=in.(induccion_sgi,listo_para_contrato)&order=created_at.desc`, { headers: H });
-            const todos = (await r.json()) || [];
+            const r = await fetch(`${URL}/rest/v1/candidatos_activos?select=*&fase_actual=in.(induccion_sgi,induccion_seguridad,listo_para_contrato)&order=created_at.desc`, { headers: H });
+            const raw = r.ok ? await r.json() : [];
+            const todos = Array.isArray(raw) ? raw : [];
             const pend = todos.filter(c => c.fase_actual === 'induccion_sgi');
-            const comp = todos.filter(c => c.fase_actual === 'listo_para_contrato');
+            const comp = todos.filter(c => c.fase_actual === 'induccion_seguridad' || c.fase_actual === 'listo_para_contrato');
 
             /* Actualizar contadores */
             document.getElementById('stPend').textContent = pend.length;
@@ -465,7 +471,7 @@
                     const col = pct === 100 ? '#10B981' : pct > 50 ? '#F59E0B' : '#EF4444';
                     return `<div class="cand-card">
                 <div style="display:flex;justify-content:space-between;align-items:flex-start;">
-                    <div><div class="cand-nombre">${c.nombre_completo}</div><div class="cand-puesto">${c.nombre_puesto || c.codigo_puesto || '—'}</div></div>
+                    <div><div class="cand-nombre">${esc(c.nombre_completo)}</div><div class="cand-puesto">${esc(c.nombre_puesto || c.codigo_puesto || '—')}</div></div>
                     <span style="background:${col}20;color:${col};font-size:10px;font-weight:700;padding:3px 8px;border-radius:20px;">${ok}/${PTS.length}</span>
                 </div>
                 <div class="progress-bg"><div class="progress-fill" style="width:${pct}%;background:${col};"></div></div>
@@ -478,7 +484,7 @@
                     <li><span class="${d.plagas ? 'ok' : 'pend'}">${d.plagas ? '✅' : '⏳'}</span>Control de Plagas</li>
                     <li><span class="${d.trazabilidad ? 'ok' : 'pend'}">${d.trazabilidad ? '✅' : '⏳'}</span>Trazabilidad</li>
                 </ul>
-                <button class="btn-eval" onclick="abrirEval('${c.id}','${c.nombre_completo}')">📝 Evaluar</button>
+                <button class="btn-eval" onclick="abrirEval('${esc(c.id)}','${esc(c.nombre_completo)}')">📝 Evaluar</button>
             </div>`;
                 }).join('');
             }
@@ -488,10 +494,10 @@
             el.innerHTML = !comp.length ? '<div class="loading-row">Sin candidatos completados aún.</div>' :
                 `<table class="data-table"><thead><tr><th>Candidato</th><th>Puesto</th><th>Score IA</th><th>Estado</th></tr></thead>
         <tbody>${comp.map(c => `<tr>
-            <td><strong>${c.nombre_completo}</strong></td>
-            <td>${c.nombre_puesto || '—'}</td>
-            <td style="font-weight:800;color:#10B981;">${c.match_score || '—'}%</td>
-            <td><span style="background:#D1FAE5;color:#065F46;font-size:11px;padding:3px 10px;border-radius:30px;font-weight:700;">✅ Listo Para Contrato</span></td>
+            <td><strong>${esc(c.nombre_completo)}</strong></td>
+            <td>${esc(c.nombre_puesto || '—')}</td>
+            <td style="font-weight:800;color:#10B981;">${esc(c.match_score || '—')}%</td>
+            <td><span style="background:#D1FAE5;color:#065F46;font-size:11px;padding:3px 10px;border-radius:30px;font-weight:700;">${c.fase_actual === 'induccion_seguridad' ? '✅ Enviado a Seguridad' : '✅ Listo Para Contrato'}</span></td>
         </tr>`).join('')}</tbody></table>`;
         }
 
@@ -527,12 +533,12 @@
             await fetch(`${URL}/rest/v1/candidatos_activos?id=eq.${id}`, {
                 method: 'PATCH', headers: H,
                 body: JSON.stringify({
-                    fase_actual: aprobado ? 'listo_para_contrato' : 'induccion_sgi',
-                    decision_agente: { sgi_puntos: { ...S }, sgi_aprobado: aprobado, sgi_obs: document.getElementById('obsSGI').value, sgi_fecha: new Date().toISOString() }
+                    fase_actual: aprobado ? 'induccion_seguridad' : 'induccion_sgi',
+                    decision_agente: { sgi_puntos: { ...S }, sgi_aprobado: aprobado, sgi_obs: window.MB_UPPERCASE ? window.MB_UPPERCASE.transformValue(document.getElementById('obsSGI').value) : document.getElementById('obsSGI').value, sgi_fecha: new Date().toISOString() }
                 })
             });
             document.getElementById('modalSGI').classList.remove('open');
-            alert(aprobado ? '✅ Candidato aprobado — Listo Para Contrato.' : '⚠️ Inducción incompleta registrada.');
+            alert(aprobado ? '✅ Candidato aprobado — Enviado a Seguridad e Higiene.' : '⚠️ Inducción incompleta registrada.');
             await cargar();
         }
 

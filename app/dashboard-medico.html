@@ -1,101 +1,796 @@
 <!DOCTYPE html>
-<html lang="es">
-
+<html lang="es" class="dark">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Ma Baker — Médico</title>
-    <link
-        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Playfair+Display:wght@700&display=swap"
-        rel="stylesheet">
-    <link rel="stylesheet" href="styles/main.css">
-    <link rel="stylesheet" href="styles/dashboard.css">
+    <title>Ma Baker — Módulo Médico</title>
+    <meta name="description" content="Dashboard médico confidencial del sistema de reclutamiento Ma Baker and Chef.">
+    <link rel="stylesheet" href="styles/tailwind.build.css">
+    <script src="js/config.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Montserrat', sans-serif;
+            background: radial-gradient(circle at top left, #0d2137, #020617 60%);
+            min-height: 100vh;
+            color: #f1f5f9;
+        }
+        .glass-panel {
+            background: rgba(15, 23, 42, 0.7);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+        .glass-sidebar {
+            background: rgba(2, 6, 23, 0.92);
+            backdrop-filter: blur(20px);
+            border-right: 1px solid rgba(34, 197, 94, 0.15);
+        }
+        .glass-card {
+            background: rgba(255, 255, 255, 0.03);
+            backdrop-filter: blur(8px);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .glass-card:hover {
+            background: rgba(255, 255, 255, 0.06);
+            border-color: rgba(34, 197, 94, 0.3);
+            transform: translateY(-4px);
+        }
+        .medico-glow { box-shadow: 0 0 20px rgba(34, 197, 94, 0.2); }
+        .panel { display: none; }
+        .panel.active { display: block; }
+        .nav-item-active {
+            background: linear-gradient(90deg, rgba(34, 197, 94, 0.3) 0%, rgba(34, 197, 94, 0.05) 100%);
+            border-left: 4px solid #22c55e;
+            color: white;
+        }
+        .scroll-custom::-webkit-scrollbar { width: 5px; }
+        .scroll-custom::-webkit-scrollbar-track { background: transparent; }
+        .scroll-custom::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.12); border-radius: 10px; }
+        .animate-slide-up { animation: slideUp 0.7s cubic-bezier(0.16, 1, 0.3, 1) both; }
+        @keyframes slideUp {
+            from { transform: translateY(30px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+        .badge-apto    { background: rgba(34,197,94,0.15);  color: #22c55e;  }
+        .badge-cond    { background: rgba(245,158,11,0.15); color: #f59e0b;  }
+        .badge-noApto  { background: rgba(239,68,68,0.15);  color: #ef4444;  }
+        .badge-pend    { background: rgba(148,163,184,0.15);color: #94a3b8;  }
+        .badge { display:inline-flex; align-items:center; gap:4px; padding: 3px 12px; border-radius: 999px; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing:.05em; }
+        /* Modal form inputs */
+        .modal-input {
+            width: 100%;
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 1rem;
+            padding: 14px 18px;
+            color: white;
+            font-family: 'Montserrat', sans-serif;
+            font-size: 14px;
+            outline: none;
+            transition: border-color .2s;
+        }
+        .modal-input:focus { border-color: rgba(34,197,94,0.5); }
+        .modal-label { display: block; font-size: 10px; font-weight: 700; color: #94a3b8; text-transform: uppercase; letter-spacing: .2em; margin-bottom: 6px; padding-left: 4px; }
+        .vitales-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+        @media(max-width:640px) { .vitales-grid { grid-template-columns: 1fr; } }
+        /* alerta privacidad */
+        .privacy-bar {
+            display: flex; align-items: center; gap: 10px;
+            background: rgba(34,197,94,0.08);
+            border: 1px solid rgba(34,197,94,0.2);
+            border-radius: 1rem; padding: 12px 18px;
+            font-size: 12px; color: #86efac;
+        }
+    </style>
+    <script src="js/theme.js"></script>
+    <script src="js/help-overlay.js"></script>
+    <script src="js/uppercase.js"></script>
 </head>
+<body class="antialiased overflow-hidden">
 
-<body class="dashboard-body">
-    <nav class="sidebar" id="sidebar">
-        <div class="sidebar-brand"><span class="brand-emoji">🧁</span>
-            <div>
-                <div class="brand-name">Ma Baker</div>
-                <div class="brand-sub">Módulo Médico</div>
+<div class="flex h-screen w-full relative">
+
+    <!-- ══════════ SIDEBAR ══════════ -->
+    <aside class="w-72 glass-sidebar hidden lg:flex flex-col z-30 shadow-2xl relative overflow-hidden">
+        <div class="p-8 pb-4">
+            <div class="flex items-center gap-4">
+                <div class="size-12 rounded-2xl bg-emerald-600 flex items-center justify-center shadow-lg shadow-emerald-500/30 medico-glow rotate-3">
+                    <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" d="M9 3h6m-6 4h6m-9 14h12a2 2 0 002-2V9a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path><path stroke-linecap="round" stroke-linejoin="round" d="M12 11v6m3-3H9"></path></svg>
+                </div>
+                <div>
+                    <h1 class="font-extrabold text-lg leading-tight tracking-tighter uppercase text-white">Ma Baker</h1>
+                    <p class="text-[10px] text-emerald-400 font-black uppercase tracking-[0.3em] italic leading-none">Módulo Médico</p>
+                </div>
             </div>
         </div>
-        <nav class="sidebar-nav">
-            <a href="#" class="nav-item active" data-panel="pendientes"><span>🕐</span> Pendientes de Revisión</a>
-            <a href="#" class="nav-item" data-panel="evaluados"><span>✅</span> Evaluados</a>
-            <a href="#" class="nav-item" data-panel="alertas"><span>⚠️</span> Alertas Médicas</a>
-        </nav>
-        <div class="sidebar-footer">
-            <div class="user-info" id="userInfo"></div><button class="btn-logout" onclick="logout()">Cerrar
-                sesión</button>
+
+        <!-- AVISO CONFIDENCIAL -->
+        <div class="mx-4 mt-4 px-4 py-3 rounded-2xl bg-emerald-500/10 border border-emerald-500/20">
+            <div class="flex items-center gap-2 mb-1">
+                <svg class="w-4 h-4 text-emerald-400 inline" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 10-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 002.25-2.25v-6.75a2.25 2.25 0 00-2.25-2.25H6.75a2.25 2.25 0 00-2.25 2.25v6.75a2.25 2.25 0 002.25 2.25z"></path></svg>
+                <span class="text-[10px] font-black text-emerald-400 uppercase tracking-widest">Datos Confidenciales</span>
+            </div>
+            <p class="text-[10px] text-slate-400 leading-relaxed">Acceso exclusivo para personal médico certificado. Tu sesión queda registrada.</p>
         </div>
-    </nav>
-    <div class="dashboard-main">
-        <header class="dash-header">
-            <button class="menu-toggle" onclick="toggleSidebar()">☰</button>
-            <div class="dash-header-title" id="panelTitle">🕐 Pendientes de Revisión Médica</div>
-            <div class="rol-badge medico">🏥 Médico</div>
+
+        <nav class="flex-1 px-4 space-y-1 mt-6 scroll-custom overflow-y-auto">
+            <div class="px-4 py-2 text-[10px] font-black text-slate-500 uppercase tracking-[0.3em] opacity-60">Evaluaciones</div>
+
+            <a href="#" id="nav-pendientes" class="nav-item flex items-center gap-4 px-5 py-3.5 rounded-2xl nav-item-active transition-all group" onclick="activarPanel('pendientes', this); return false;" data-panel="pendientes">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                <span class="text-sm font-bold tracking-wide">Por Evaluar</span>
+                <span id="badgePendientes" class="ml-auto px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-400 text-[10px] font-black">0</span>
+            </a>
+
+            <a href="#" id="nav-evaluados" class="nav-item flex items-center gap-4 px-5 py-3.5 rounded-2xl hover:bg-white/5 transition-all group text-slate-400 hover:text-white" onclick="activarPanel('evaluados', this); return false;" data-panel="evaluados">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                <span class="text-sm font-semibold">Evaluados</span>
+            </a>
+
+            <a href="#" id="nav-alertas" class="nav-item flex items-center gap-4 px-5 py-3.5 rounded-2xl hover:bg-white/5 transition-all group text-slate-400 hover:text-white" onclick="activarPanel('alertas', this); return false;" data-panel="alertas">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15M12 12l5.303-5.303m-10.606 10.606l10.606-10.606m-10.606 0L17.3 17.3"></path></svg>
+                <span class="text-sm font-semibold">Alertas Médicas</span>
+                <span id="badgeAlertas" class="ml-auto px-2 py-0.5 rounded-full bg-rose-500/20 text-rose-400 text-[10px] font-black hidden">0</span>
+            </a>
+        </nav>
+
+        <div class="p-6 border-t border-white/5 bg-black/20">
+            <div class="bg-white/5 rounded-[2rem] p-4 mb-4 border border-white/5" id="userInfo">
+                <!-- Cargado por auth.js -->
+            </div>
+            <button onclick="logout()" class="w-full flex items-center justify-center gap-3 px-4 py-4 rounded-2xl bg-rose-500/10 border border-rose-500/20 text-rose-400 hover:bg-rose-500 hover:text-white transition-all text-[11px] font-black uppercase tracking-widest group">
+                <svg class="w-4 h-4 text-rose-400 group-hover:rotate-12 transition-transform" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path></svg>
+                Cerrar Sesión
+            </button>
+        </div>
+    </aside>
+
+    <!-- ══════════ MAIN ══════════ -->
+    <main class="flex-1 flex flex-col overflow-hidden bg-black/40 backdrop-blur-3xl">
+
+        <!-- Header -->
+        <header class="h-24 glass-panel border-b border-white/5 flex items-center justify-between px-8 lg:px-10 z-20 shrink-0">
+            <!-- Botón menú móvil -->
+            <button onclick="toggleSidebar()" class="lg:hidden size-10 rounded-xl bg-white/5 flex items-center justify-center mr-4">
+                <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5"></path></svg>
+            </button>
+            <div>
+                <h2 class="text-3xl font-black text-white tracking-tighter" id="panelTitle">Evaluaciones Médicas Pendientes</h2>
+                <div class="flex items-center gap-2 mt-1">
+                    <span class="size-2 bg-emerald-500 rounded-full animate-pulse"></span>
+                    <p class="text-[11px] text-slate-400 font-bold uppercase tracking-widest">Módulo Médico — Sistema Confidencial</p>
+                </div>
+            </div>
+            <div class="flex items-center gap-4">
+                <!-- Stats rápidas en header -->
+                <div class="hidden xl:flex items-center gap-6">
+                    <div class="text-center">
+                        <div class="text-xl font-black text-amber-400" id="hdrPendientes">—</div>
+                        <div class="text-[9px] text-slate-500 uppercase tracking-widest">Pendientes</div>
+                    </div>
+                    <div class="w-px h-10 bg-white/10"></div>
+                    <div class="text-center">
+                        <div class="text-xl font-black text-emerald-400" id="hdrAptos">—</div>
+                        <div class="text-[9px] text-slate-500 uppercase tracking-widest">Aptos</div>
+                    </div>
+                    <div class="w-px h-10 bg-white/10"></div>
+                    <div class="text-center">
+                        <div class="text-xl font-black text-rose-400" id="hdrNoAptos">—</div>
+                        <div class="text-[9px] text-slate-500 uppercase tracking-widest">No Aptos</div>
+                    </div>
+                </div>
+            </div>
         </header>
 
-        <div class="panel active" id="panel-pendientes">
-            <div class="privacy-notice">
-                <span>🔒</span>
-                <p>Esta información es estrictamente confidencial. Acceso autorizado exclusivamente al personal médico
-                    certificado de Ma Baker and Chef. Tu acceso queda registrado.</p>
+        <!-- Content -->
+        <div class="flex-1 overflow-y-auto p-6 lg:p-10 space-y-8 scroll-custom">
+
+            <!-- ─── PANEL: POR EVALUAR ─── -->
+            <div id="panel-pendientes" class="panel active space-y-8 animate-slide-up">
+
+                <!-- Stats cards -->
+                <section class="grid grid-cols-2 md:grid-cols-4 gap-6">
+                    <div class="glass-card p-6 rounded-[2rem]">
+                        <p class="text-[10px] font-black text-slate-500 uppercase tracking-[0.3em] mb-1">Pendientes</p>
+                        <h4 class="text-4xl font-black text-amber-400" id="statPendientes">—</h4>
+                    </div>
+                    <div class="glass-card p-6 rounded-[2rem]">
+                        <p class="text-[10px] font-black text-slate-500 uppercase tracking-[0.3em] mb-1">Aptos</p>
+                        <h4 class="text-4xl font-black text-emerald-400" id="statAptos">—</h4>
+                    </div>
+                    <div class="glass-card p-6 rounded-[2rem]">
+                        <p class="text-[10px] font-black text-slate-500 uppercase tracking-[0.3em] mb-1">Condicionados</p>
+                        <h4 class="text-4xl font-black text-amber-300" id="statCondicionados">—</h4>
+                    </div>
+                    <div class="glass-card p-6 rounded-[2rem] border-l-4 border-l-rose-500">
+                        <p class="text-[10px] font-black text-slate-500 uppercase tracking-[0.3em] mb-1">No Aptos</p>
+                        <h4 class="text-4xl font-black text-rose-400" id="statNoAptos">—</h4>
+                    </div>
+                </section>
+
+                <!-- Tabla pendientes -->
+                <section class="glass-panel rounded-[2.5rem] border border-white/5 overflow-hidden">
+                    <div class="p-8 border-b border-white/5 bg-white/[0.02]">
+                        <h3 class="font-black text-white text-xl tracking-tight flex items-center gap-3">
+                            <svg class="w-5 h-5 text-amber-400 inline-block" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                            Candidatos en Espera de Examen Médico
+                        </h3>
+                        <p class="text-xs text-slate-400 mt-1">Haz clic en <strong class="text-white">Evaluar</strong> para registrar el dictamen médico</p>
+                    </div>
+                    <div class="overflow-x-auto min-h-[300px] scroll-custom" id="tablaMedico">
+                        <div class="p-20 text-center text-slate-500">
+                            <svg class="w-10 h-10 text-slate-500 mx-auto mb-4 animate-pulse" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                            Cargando candidatos...
+                        </div>
+                    </div>
+                </section>
             </div>
-            <div class="stats-grid">
-                <div class="stat-card">
-                    <div class="stat-icon">🕐</div>
-                    <div class="stat-num" id="statPendientes">—</div>
-                    <div class="stat-label">Pendientes</div>
+
+            <!-- ─── PANEL: EVALUADOS ─── -->
+            <div id="panel-evaluados" class="panel space-y-8">
+                <section class="glass-panel rounded-[2.5rem] border border-white/5 overflow-hidden">
+                    <div class="p-8 border-b border-white/5 bg-white/[0.02]">
+                        <h3 class="font-black text-white text-xl tracking-tight flex items-center gap-3">
+                            <svg class="w-5 h-5 text-emerald-400 inline-block" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                            Candidatos con Dictamen Registrado
+                        </h3>
+                    </div>
+                    <div class="overflow-x-auto min-h-[300px] scroll-custom" id="tablaEvaluados">
+                        <div class="p-20 text-center text-slate-500">
+                            <svg class="w-10 h-10 text-slate-500 mx-auto mb-4 animate-pulse" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                            Cargando histórico...
+                        </div>
+                    </div>
+                </section>
+            </div>
+
+            <!-- ─── PANEL: ALERTAS ─── -->
+            <div id="panel-alertas" class="panel space-y-8">
+                <section class="glass-panel rounded-[2.5rem] border border-white/5 overflow-hidden">
+                    <div class="p-8 border-b border-white/5 bg-rose-500/5">
+                        <h3 class="font-black text-white text-xl tracking-tight flex items-center gap-3">
+                            <svg class="w-5 h-5 text-rose-400 inline-block" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15M12 12l5.303-5.303m-10.606 10.606l10.606-10.606m-10.606 0L17.3 17.3"></path></svg>
+                            Alertas Médicas — Candidatos con Antecedentes
+                        </h3>
+                        <p class="text-xs text-slate-400 mt-1">Candidatos que reportaron enfermedades crónicas, alergias o condiciones especiales</p>
+                    </div>
+                    <div class="overflow-x-auto min-h-[300px] scroll-custom" id="tablaAlertas">
+                        <div class="p-20 text-center text-slate-500">
+                            <svg class="w-10 h-10 text-slate-500 mx-auto mb-4 animate-pulse" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15M12 12l5.303-5.303m-10.606 10.606l10.606-10.606m-10.606 0L17.3 17.3"></path></svg>
+                            Cargando alertas...
+                        </div>
+                    </div>
+                </section>
+            </div>
+
+        </div><!-- /content -->
+    </main>
+</div>
+
+<!-- ══════════════════════════════════
+     MODAL: REGISTRAR DICTAMEN MÉDICO
+════════════════════════════════════ -->
+<div id="modalMedico" class="fixed inset-0 z-50 hidden flex items-center justify-center p-4">
+    <div class="absolute inset-0 bg-black/80 backdrop-blur-xl" onclick="cerrarModalMedico()"></div>
+    <div class="relative w-full max-w-3xl bg-[#0f172a] border border-white/10 rounded-[2.5rem] shadow-2xl overflow-y-auto max-h-[90vh] animate-slide-up">
+
+        <!-- Header modal -->
+        <div class="p-8 border-b border-white/5 bg-emerald-900/20 flex justify-between items-center">
+            <div class="flex items-center gap-5">
+                <div class="size-14 rounded-2xl bg-emerald-500/20 text-emerald-400 flex items-center justify-center">
+                    <svg class="w-8 h-8 text-emerald-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12c0 1.268-.63 2.39-1.593 3.068a3.745 3.745 0 01-1.043 3.296 3.745 3.745 0 01-3.296 1.043A3.745 3.745 0 0112 21c-1.268 0-2.39-.63-3.068-1.593a3.746 3.746 0 01-3.296-1.043 3.745 3.745 0 01-1.043-3.296A3.745 3.745 0 013 12c0-1.268.63-2.39 1.593-3.068a3.746 3.746 0 011.043-3.296 3.746 3.746 0 013.296-1.043A3.746 3.746 0 0112 3c1.268 0 2.39.63 3.068 1.593a3.746 3.746 0 013.296 1.043 3.746 3.746 0 011.043 3.296A3.745 3.745 0 0121 12z"></path></svg>
                 </div>
-                <div class="stat-card">
-                    <div class="stat-icon">✅</div>
-                    <div class="stat-num" id="statAptos">—</div>
-                    <div class="stat-label">Aptos</div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-icon">⚠️</div>
-                    <div class="stat-num" id="statCondicionados">—</div>
-                    <div class="stat-label">Condicionados</div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-icon">❌</div>
-                    <div class="stat-num" id="statNoAptos">—</div>
-                    <div class="stat-label">No Aptos</div>
+                <div>
+                    <h3 class="text-2xl font-black text-white" id="modalMedicoNombre">Candidato</h3>
+                    <p class="text-xs text-emerald-400 font-bold uppercase tracking-widest" id="modalMedicoPuesto">Puesto</p>
                 </div>
             </div>
-            <div class="panel-section">
-                <h3 class="section-title">Candidatos en Espera de Examen Médico</h3>
-                <p class="panel-hint">Selecciona un candidato para ver sus datos de salud completos y registrar el
-                    veredicto.</p>
-                <div id="tablaMedico" class="table-wrapper">
-                    <div class="loading-row">Cargando...</div>
-                </div>
-            </div>
+            <button onclick="cerrarModalMedico()" class="size-10 rounded-2xl hover:bg-white/10 flex items-center justify-center transition-all">
+                <svg class="w-6 h-6 text-slate-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"></path></svg>
+            </button>
         </div>
 
-        <div class="panel" id="panel-evaluados">
-            <div class="panel-toolbar">
-                <h2>✅ Candidatos Ya Evaluados</h2>
+        <!-- Body -->
+        <div class="p-8 max-h-[55vh] overflow-y-auto scroll-custom space-y-8">
+
+            <!-- Aviso privacidad -->
+            <div class="privacy-bar">
+                <svg class="w-4 h-4 text-emerald-400 inline" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 10-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 002.25-2.25v-6.75a2.25 2.25 0 00-2.25-2.25H6.75a2.25 2.25 0 00-2.25 2.25v6.75a2.25 2.25 0 002.25 2.25z"></path></svg>
+                <p>Datos estrictamente confidenciales. Registra el dictamen médico con precisión. Tu evaluación queda firmada digitalmente.</p>
             </div>
-            <div id="tablaEvaluados" class="table-wrapper">
-                <div class="loading-row">Cargando...</div>
+
+            <!-- Datos vitales -->
+            <div>
+                <h4 class="text-[11px] font-black text-emerald-400 uppercase tracking-widest mb-4 flex items-center gap-2">
+                    <svg class="w-4 h-4 text-emerald-400 inline" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12z"></path></svg>
+                    Signos Vitales
+                </h4>
+                <div class="vitales-grid">
+                    <div>
+                        <label class="modal-label">Tensión Arterial (mmHg)</label>
+                        <input type="text" id="med_tension" class="modal-input" placeholder="ej. 120/80">
+                    </div>
+                    <div>
+                        <label class="modal-label">Frecuencia Cardíaca (lpm)</label>
+                        <input type="number" id="med_fc" class="modal-input" placeholder="ej. 72">
+                    </div>
+                    <div>
+                        <label class="modal-label">Peso (kg)</label>
+                        <input type="number" step="0.1" id="med_peso" class="modal-input" placeholder="ej. 70">
+                    </div>
+                    <div>
+                        <label class="modal-label">Talla (cm)</label>
+                        <input type="number" id="med_talla" class="modal-input" placeholder="ej. 170">
+                    </div>
+                    <div>
+                        <label class="modal-label">Glucosa en Ayuno (mg/dL)</label>
+                        <input type="number" id="med_glucosa" class="modal-input" placeholder="ej. 90">
+                    </div>
+                    <div>
+                        <label class="modal-label">Temperatura (°C)</label>
+                        <input type="number" step="0.1" id="med_temp" class="modal-input" placeholder="ej. 36.5">
+                    </div>
+                </div>
             </div>
+
+            <!-- Antecedentes -->
+            <div>
+                <h4 class="text-[11px] font-black text-emerald-400 uppercase tracking-widest mb-4 flex items-center gap-2">
+                    <svg class="w-4 h-4 text-emerald-400 inline" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                    Antecedentes Registrados por el Candidato
+                </h4>
+                <div class="vitales-grid">
+                    <div>
+                        <label class="modal-label">Enfermedades Crónicas</label>
+                        <textarea id="med_cronicas" class="modal-input" rows="2" readonly placeholder="(llenado por candidato)"></textarea>
+                    </div>
+                    <div>
+                        <label class="modal-label">Alergias</label>
+                        <textarea id="med_alergias" class="modal-input" rows="2" readonly placeholder="(llenado por candidato)"></textarea>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Observaciones médicas -->
+            <div>
+                <h4 class="text-[11px] font-black text-emerald-400 uppercase tracking-widest mb-4 flex items-center gap-2">
+                    <svg class="w-4 h-4 text-emerald-400 inline" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0115.75 21H5.25A2.25 2.25 0 013 18.75V8.25A2.25 2.25 0 015.25 6H10"></path></svg>
+                    Notas y Observaciones del Médico
+                </h4>
+                <textarea id="med_observaciones" class="modal-input" rows="4" placeholder="Escribe tus observaciones clínicas relevantes..."></textarea>
+            </div>
+
+            <!-- Dictamen final -->
+            <div>
+                <h4 class="text-[11px] font-black text-emerald-400 uppercase tracking-widest mb-4 flex items-center gap-2">
+                    <svg class="w-4 h-4 text-emerald-400 inline" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12c0 1.268-.63 2.39-1.593 3.068a3.745 3.745 0 01-1.043 3.296 3.745 3.745 0 01-3.296 1.043A3.745 3.745 0 0112 21c-1.268 0-2.39-.63-3.068-1.593a3.746 3.746 0 01-3.296-1.043 3.745 3.745 0 01-1.043-3.296A3.745 3.745 0 013 12c0-1.268.63-2.39 1.593-3.068a3.746 3.746 0 011.043-3.296 3.746 3.746 0 013.296-1.043A3.746 3.746 0 0112 3c1.268 0 2.39.63 3.068 1.593a3.746 3.746 0 013.296 1.043 3.746 3.746 0 011.043 3.296A3.745 3.745 0 0121 12z"></path></svg>
+                    Dictamen Médico Final
+                </h4>
+                <div class="grid grid-cols-3 gap-4">
+                    <button onclick="seleccionarDictamen('APTO')" id="btnApto"
+                        class="dictamen-btn flex flex-col items-center gap-3 p-6 rounded-2xl border-2 border-white/10 hover:border-emerald-500/50 hover:bg-emerald-500/10 transition-all group">
+                        <svg class="w-12 h-12 text-emerald-400 group-hover:scale-110 transition-transform" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" d="M6.633 10.5c.806 0 1.533-.446 2.031-1.08a9.041 9.041 0 012.861-2.4c.723-.384 1.35-.956 1.653-1.715a4.498 4.498 0 00.322-1.672V3a.75.75 0 01.75-.75A2.25 2.25 0 0116.5 4.5c0 1.152-.26 2.243-.723 3.218-.266.558.107 1.282.725 1.282h3.126c1.026 0 1.919.699 2.114 1.7L22.22 17.5a3.498 3.498 0 01-3.252 4H9.721a3.497 3.497 0 01-3.088-1.85L4.4 15.65a2.25 2.25 0 01.442-2.732l1.79-1.418z"></path></svg>
+                        <span class="font-black text-sm text-white uppercase tracking-wider">APTO</span>
+                        <span class="text-[10px] text-slate-400">Sin restricciones</span>
+                    </button>
+                    <button onclick="seleccionarDictamen('CONDICIONADO')" id="btnCondicionado"
+                        class="dictamen-btn flex flex-col items-center gap-3 p-6 rounded-2xl border-2 border-white/10 hover:border-amber-500/50 hover:bg-amber-500/10 transition-all group">
+                        <svg class="w-12 h-12 text-amber-400 group-hover:scale-110 transition-transform" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z"></path></svg>
+                        <span class="font-black text-sm text-white uppercase tracking-wider">CONDICIONADO</span>
+                        <span class="text-[10px] text-slate-400">Con observaciones</span>
+                    </button>
+                    <button onclick="seleccionarDictamen('NO_APTO')" id="btnNoApto"
+                        class="dictamen-btn flex flex-col items-center gap-3 p-6 rounded-2xl border-2 border-white/10 hover:border-rose-500/50 hover:bg-rose-500/10 transition-all group">
+                        <svg class="w-12 h-12 text-rose-400 group-hover:scale-110 transition-transform" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" d="M17.367 13.5c-.806 0-1.533.446-2.031 1.08a9.041 9.041 0 01-2.861 2.4c-.723.384-1.35.956-1.653 1.715a4.498 4.498 0 00-.322 1.672V21a.75.75 0 01-.75.75A2.25 2.25 0 019 19.5c0-1.152.26-2.243.723-3.218.266-.558-.107-1.282-.725-1.282H5.872c-1.026 0-1.919-.699-2.114-1.7L1.78 6.5a3.498 3.498 0 013.252-4h9.227a3.497 3.497 0 013.088 1.85L19.6 8.35a2.25 2.25 0 01-.442 2.732l-1.79 1.418z"></path></svg>
+                        <span class="font-black text-sm text-white uppercase tracking-wider">NO APTO</span>
+                        <span class="text-[10px] text-slate-400">No recomendado</span>
+                    </button>
+                </div>
+                <input type="hidden" id="med_dictamen" value="">
+            </div>
+
         </div>
 
-        <div class="panel" id="panel-alertas">
-            <div class="panel-toolbar">
-                <h2>⚠️ Alertas Médicas Activas</h2>
-            </div>
-            <div id="tablaAlertas" class="table-wrapper">
-                <div class="loading-row">Cargando...</div>
-            </div>
+        <!-- Footer modal -->
+        <div class="p-8 pt-4 flex justify-end gap-4 border-t border-white/5">
+            <button id="btnCerrarMedico" onclick="cerrarModalMedico()" class="px-8 py-4 rounded-2xl border border-white/10 text-slate-400 font-black text-xs uppercase tracking-widest hover:bg-white/5 transition-all">
+                Cancelar
+            </button>
+            <button onclick="guardarDictamen()" id="btnGuardarDictamen"
+                class="px-8 py-4 rounded-2xl bg-emerald-600 text-white font-black text-xs uppercase tracking-widest hover:scale-105 active:scale-95 transition-all shadow-xl shadow-emerald-500/20 flex items-center gap-3 disabled:opacity-40 disabled:cursor-not-allowed">
+                <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12c0 1.268-.63 2.39-1.593 3.068a3.745 3.745 0 01-1.043 3.296 3.745 3.745 0 01-3.296 1.043A3.745 3.745 0 0112 21c-1.268 0-2.39-.63-3.068-1.593a3.746 3.746 0 01-3.296-1.043 3.745 3.745 0 01-1.043-3.296A3.745 3.745 0 013 12c0-1.268.63-2.39 1.593-3.068a3.746 3.746 0 011.043-3.296 3.746 3.746 0 013.296-1.043A3.746 3.746 0 0112 3c1.268 0 2.39.63 3.068 1.593a3.746 3.746 0 013.296 1.043 3.746 3.746 0 011.043 3.296A3.745 3.745 0 0121 12z"></path></svg>
+                Registrar Dictamen
+            </button>
         </div>
     </div>
-    <script src="js/auth.js"></script>
-    <script src="js/dashboard.js"></script>
-    <script>initDashboard('medico');</script>
-</body>
+</div>
 
+<!-- Scripts -->
+<script src="js/config.js"></script>
+<script src="js/auth.js"></script>
+<script>
+/* ================================================================
+   MÓDULO MÉDICO — Lógica frontend
+   Conecta con Supabase: candidatos_activos + seguridad_medica
+================================================================ */
+
+// ── Config Supabase ──────────────────────────────────────────
+const CFG   = window.MB_CONFIG || {};
+const SUPA_URL = CFG.SUPABASE_URL || '';
+const SUPA_KEY = CFG.SUPABASE_SERVICE_ROLE_KEY || CFG.SUPABASE_ANON_KEY || '';
+const HEADERS = {
+    apikey: SUPA_KEY,
+    Authorization: `Bearer ${SUPA_KEY}`,
+    'Content-Type': 'application/json',
+    Prefer: 'return=representation'
+};
+
+// ── Estado interno ───────────────────────────────────────────
+const state = { candidatoActual: null, dictamenSeleccionado: '' };
+
+// ── Helpers DOM ──────────────────────────────────────────────
+const $ = id => document.getElementById(id);
+const setText = (id, v) => { const el=$(id); if(el) el.textContent = v; };
+const setVal  = (id, v) => { const el=$(id); if(el) el.value = v ?? ''; };
+const esc = v => String(v ?? '').replace(/[<>"'&]/g, c => ({'<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;','&':'&amp;'})[c]);
+
+// ── API helpers ──────────────────────────────────────────────
+async function supaGet(ep) {
+    const r = await fetch(`${SUPA_URL}${ep}`, { headers: HEADERS });
+    if (!r.ok) throw new Error(`GET ${ep} → ${r.status}`);
+    return r.json();
+}
+async function supaPatch(ep, body) {
+    const r = await fetch(`${SUPA_URL}${ep}`, {
+        method: 'PATCH', headers: HEADERS, body: JSON.stringify(body)
+    });
+    if (!r.ok) throw new Error(`PATCH ${ep} → ${r.status}`);
+    return r.json();
+}
+async function supaInsert(ep, body) {
+    const r = await fetch(`${SUPA_URL}${ep}`, {
+        method: 'POST', headers: HEADERS, body: JSON.stringify(body)
+    });
+    if (!r.ok) throw new Error(`INSERT ${ep} → ${r.status}`);
+    return r.json();
+}
+
+// ── Inicialización ───────────────────────────────────────────
+document.addEventListener('DOMContentLoaded', async () => {
+    // Verificar sesión
+    const token = localStorage.getItem('mb_token');
+    const rol   = localStorage.getItem('mb_rol');
+    if (!token || (rol !== 'medico' && rol !== 'admin')) {
+        window.location.href = 'login.html';
+        return;
+    }
+
+    // Hidratar sidebar con nombre usuario
+    const nombre = localStorage.getItem('mb_nombre') || 'Dr. Usuario';
+    const userInfo = $('userInfo');
+    if (userInfo) {
+        userInfo.innerHTML = `
+          <div class="flex items-center gap-3">
+            <div class="size-9 rounded-xl bg-emerald-500/20 flex items-center justify-center">
+              <svg class="w-5 h-5 text-emerald-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" d="M9 3h6m-6 4h6m-9 14h12a2 2 0 002-2V9a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path><path stroke-linecap="round" stroke-linejoin="round" d="M12 11v6m3-3H9"></path></svg>
+            </div>
+            <div>
+              <span class="block text-sm font-bold text-white">${esc(nombre)}</span>
+              <span class="text-[10px] text-emerald-400 uppercase tracking-widest">Médico</span>
+            </div>
+          </div>`;
+    }
+
+    await cargarDatos();
+});
+
+// ── Cargar candidatos ─────────────────────────────────────────
+async function cargarDatos() {
+    try {
+        const lista = await supaGet('/rest/v1/candidatos_activos?select=*&order=created_at.desc');
+        renderizar(lista);
+    } catch (err) {
+        console.error(err);
+        $('tablaMedico').innerHTML = `<div class="p-16 text-center text-rose-400">Error al conectar con Supabase: ${esc(err.message)}</div>`;
+    }
+}
+
+function renderizar(lista) {
+    // Clasificar candidatos
+    const pendientes = lista.filter(x => {
+        const f = (x.fase_actual || '').toLowerCase();
+        return f.includes('medic') || f.includes('espera_medic');
+    });
+    const evaluados = lista.filter(x => x.dictamen_medico || x.resultado_medico);
+    const alertas   = lista.filter(x => x.enfermedades_cronicas || x.alergias);
+
+    // Stats
+    const aptos    = evaluados.filter(x => (x.dictamen_medico||'').toUpperCase().includes('APTO') && !(x.dictamen_medico||'').toUpperCase().includes('NO'));
+    const cond     = evaluados.filter(x => (x.dictamen_medico||'').toUpperCase().includes('COND'));
+    const noAptos  = evaluados.filter(x => (x.dictamen_medico||'').toUpperCase().includes('NO_APTO') || (x.dictamen_medico||'').toUpperCase() === 'NO APTO');
+
+    setText('statPendientes',   pendientes.length);
+    setText('statAptos',        aptos.length);
+    setText('statCondicionados',cond.length);
+    setText('statNoAptos',      noAptos.length);
+    setText('hdrPendientes',    pendientes.length);
+    setText('hdrAptos',         aptos.length);
+    setText('hdrNoAptos',       noAptos.length);
+    setText('badgePendientes',  pendientes.length);
+
+    // Badge alertas
+    if (alertas.length > 0) {
+        const ba = $('badgeAlertas');
+        if (ba) { ba.textContent = alertas.length; ba.classList.remove('hidden'); }
+    }
+
+    // ─── Tabla Pendientes ─────────────────────────────────────
+    const tPend = $('tablaMedico');
+    if (tPend) {
+        if (pendientes.length === 0) {
+            tPend.innerHTML = `<div class="p-20 text-center text-slate-500">
+                <svg class="w-10 h-10 text-emerald-400 mx-auto mb-3" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                No hay candidatos pendientes de evaluación médica</div>`;
+        } else {
+            tPend.innerHTML = `
+              <table class="w-full text-sm">
+                <thead>
+                  <tr class="text-left border-b border-white/5">
+                    <th class="px-6 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest">Candidato</th>
+                    <th class="px-6 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest">Puesto</th>
+                    <th class="px-6 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest">Fase</th>
+                    <th class="px-6 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest">Alertas</th>
+                    <th class="px-6 py-4 text-right text-[10px] font-black text-slate-400 uppercase tracking-widest">Acción</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  ${pendientes.map(x => `
+                    <tr class="border-b border-white/5 hover:bg-white/5 transition-colors">
+                      <td class="px-6 py-4">
+                        <div class="flex items-center gap-3">
+                          <div class="size-9 rounded-full bg-emerald-500/20 flex items-center justify-center text-emerald-400 font-black text-xs shrink-0">
+                            ${(x.nombre_completo||x.nombre||'?').split(' ').slice(0,2).map(n=>n[0]).join('').toUpperCase()}
+                          </div>
+                          <div>
+                            <div class="font-bold text-white">${esc(x.nombre_completo||x.nombre||'Sin nombre')}</div>
+                            <div class="text-[11px] text-slate-400">${esc(x.email||x.correo||'-')}</div>
+                          </div>
+                        </div>
+                      </td>
+                      <td class="px-6 py-4 text-slate-300">${esc(x.nombre_puesto||x.puesto||'-')}</td>
+                      <td class="px-6 py-4">
+                        <span class="badge badge-pend">${esc(x.fase_actual||'-')}</span>
+                      </td>
+                      <td class="px-6 py-4">
+                        ${x.enfermedades_cronicas || x.alergias
+                            ? `<span class="badge" style="background:rgba(239,68,68,.15);color:#f87171;">⚠ Antecedentes</span>`
+                            : `<span class="text-slate-500 text-xs">—</span>`}
+                      </td>
+                      <td class="px-6 py-4 text-right">
+                        <button onclick='abrirModalMedico(${JSON.stringify(x)})'
+                          class="px-4 py-2 rounded-xl bg-emerald-500/20 text-emerald-400 text-xs font-black hover:bg-emerald-500 hover:text-white transition-all flex items-center gap-2 ml-auto">
+                          <svg class="w-3.5 h-3.5 text-emerald-400 inline-block" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12c0 1.268-.63 2.39-1.593 3.068a3.745 3.745 0 01-1.043 3.296 3.745 3.745 0 01-3.296 1.043A3.745 3.745 0 0112 21c-1.268 0-2.39-.63-3.068-1.593a3.746 3.746 0 01-3.296-1.043 3.745 3.745 0 01-1.043-3.296A3.745 3.745 0 013 12c0-1.268.63-2.39 1.593-3.068a3.746 3.746 0 011.043-3.296 3.746 3.746 0 013.296-1.043A3.746 3.746 0 0112 3c1.268 0 2.39.63 3.068 1.593a3.746 3.746 0 013.296 1.043 3.746 3.746 0 011.043 3.296A3.745 3.745 0 0121 12z"></path></svg> Evaluar
+                        </button>
+                      </td>
+                    </tr>`).join('')}
+                </tbody>
+              </table>`;
+        }
+    }
+
+    // ─── Tabla Evaluados ──────────────────────────────────────
+    const tEval = $('tablaEvaluados');
+    if (tEval) {
+        if (evaluados.length === 0) {
+            tEval.innerHTML = `<div class="p-20 text-center text-slate-500">Aún no hay evaluaciones registradas</div>`;
+        } else {
+            tEval.innerHTML = `
+              <table class="w-full text-sm">
+                <thead>
+                  <tr class="text-left border-b border-white/5">
+                    <th class="px-6 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest">Candidato</th>
+                    <th class="px-6 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest">Puesto</th>
+                    <th class="px-6 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest">Dictamen</th>
+                    <th class="px-6 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest">Observaciones</th>
+                    <th class="px-6 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest">Fecha</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  ${evaluados.map(x => {
+                    const d = (x.dictamen_medico || x.resultado_medico || '').toUpperCase();
+                    const badgeClass = d.includes('COND') ? 'badge-cond' : d.includes('NO') ? 'badge-noApto' : 'badge-apto';
+                    return `
+                    <tr class="border-b border-white/5 hover:bg-white/5 transition-colors">
+                      <td class="px-6 py-4 font-semibold text-white">${esc(x.nombre_completo||x.nombre||'-')}</td>
+                      <td class="px-6 py-4 text-slate-300">${esc(x.nombre_puesto||x.puesto||'-')}</td>
+                      <td class="px-6 py-4"><span class="badge ${badgeClass}">${esc(d||'-')}</span></td>
+                      <td class="px-6 py-4 text-slate-400 text-xs max-w-xs truncate">${esc(x.observaciones_medico||'-')}</td>
+                      <td class="px-6 py-4 text-slate-400 text-xs">${fmtDate(x.updated_at||x.created_at)}</td>
+                    </tr>`;
+                  }).join('')}
+                </tbody>
+              </table>`;
+        }
+    }
+
+    // ─── Tabla Alertas ────────────────────────────────────────
+    const tAlert = $('tablaAlertas');
+    if (tAlert) {
+        if (alertas.length === 0) {
+            tAlert.innerHTML = `<div class="p-20 text-center text-slate-500">
+                <svg class="w-10 h-10 text-emerald-400 mx-auto mb-3" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75m-3-7.036A11.959 11.959 0 013.598 6 11.99 11.99 0 003 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.57-.599-3.751A11.959 11.959 0 0112 5.714z"></path></svg>
+                Sin alertas médicas activas</div>`;
+        } else {
+            tAlert.innerHTML = `
+              <table class="w-full text-sm">
+                <thead>
+                  <tr class="text-left border-b border-white/5">
+                    <th class="px-6 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest">Candidato</th>
+                    <th class="px-6 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest">Puesto</th>
+                    <th class="px-6 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest">Enf. Crónicas</th>
+                    <th class="px-6 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest">Alergias</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  ${alertas.map(x => `
+                    <tr class="border-b border-white/5 hover:bg-rose-500/5 transition-colors">
+                      <td class="px-6 py-4 font-semibold text-white">${esc(x.nombre_completo||x.nombre||'-')}</td>
+                      <td class="px-6 py-4 text-slate-300">${esc(x.nombre_puesto||x.puesto||'-')}</td>
+                      <td class="px-6 py-4 text-rose-300 text-xs">${esc(x.enfermedades_cronicas||'—')}</td>
+                      <td class="px-6 py-4 text-amber-300 text-xs">${esc(x.alergias||'—')}</td>
+                    </tr>`).join('')}
+                </tbody>
+              </table>`;
+        }
+    }
+}
+
+// ── Modal dictamen ────────────────────────────────────────────
+function abrirModalMedico(candidato) {
+    state.candidatoActual = candidato;
+    state.dictamenSeleccionado = '';
+
+    setText('modalMedicoNombre', candidato.nombre_completo || candidato.nombre || 'Sin nombre');
+    setText('modalMedicoPuesto', candidato.nombre_puesto || candidato.puesto || 'Puesto no especificado');
+
+    // Limpiar campos
+    ['med_tension','med_fc','med_peso','med_talla','med_glucosa','med_temp','med_observaciones'].forEach(id => setVal(id, ''));
+    setVal('med_cronicas', candidato.enfermedades_cronicas || 'Sin antecedentes reportados');
+    setVal('med_alergias',  candidato.alergias || 'Sin alergias reportadas');
+    setVal('med_dictamen', '');
+
+    // Reiniciar botones dictamen
+    document.querySelectorAll('.dictamen-btn').forEach(b => {
+        b.classList.remove('border-emerald-500','bg-emerald-500/20','border-amber-500','bg-amber-500/20','border-rose-500','bg-rose-500/20');
+        b.classList.add('border-white/10');
+    });
+
+    $('modalMedico').classList.remove('hidden');
+}
+
+function cerrarModalMedico() {
+    $('modalMedico').classList.add('hidden');
+    state.candidatoActual = null;
+}
+
+function seleccionarDictamen(valor) {
+    state.dictamenSeleccionado = valor;
+    setVal('med_dictamen', valor);
+
+    // Resetear todos
+    document.querySelectorAll('.dictamen-btn').forEach(b => {
+        b.classList.remove('border-emerald-500','bg-emerald-500/20','border-amber-500','bg-amber-500/20','border-rose-500','bg-rose-500/20');
+        b.classList.add('border-white/10');
+    });
+
+    // Activar el seleccionado
+    const mapClass = {
+        'APTO':        ['border-emerald-500','bg-emerald-500/20','btnApto'],
+        'CONDICIONADO':['border-amber-500','bg-amber-500/20','btnCondicionado'],
+        'NO_APTO':     ['border-rose-500','bg-rose-500/20','btnNoApto'],
+    };
+    const [bc, bg, btnId] = mapClass[valor] || [];
+    const btn = $(btnId);
+    if (btn) { btn.classList.remove('border-white/10'); btn.classList.add(bc, bg); }
+}
+
+async function guardarDictamen() {
+    if (!state.candidatoActual) return;
+    if (!state.dictamenSeleccionado) {
+        alert('Selecciona un dictamen: APTO, CONDICIONADO o NO APTO');
+        return;
+    }
+
+    const btn = $('btnGuardarDictamen');
+    btn.disabled = true;
+    btn.innerHTML = `<svg class="w-4 h-4 inline mr-1 animate-spin text-white" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg> Guardando...`;
+
+    try {
+        const payload = {
+            dictamen_medico:      state.dictamenSeleccionado,
+            resultado_medico:     state.dictamenSeleccionado,
+            observaciones_medico: $('med_observaciones').value,
+            tension_arterial:     $('med_tension').value || null,
+            peso:                 parseFloat($('med_peso').value) || null,
+            talla:                parseFloat($('med_talla').value) || null,
+            glucosa:              parseFloat($('med_glucosa').value) || null,
+            temperatura:          parseFloat($('med_temp').value) || null,
+            // Avanzar fase según dictamen
+            fase_actual: state.dictamenSeleccionado === 'NO_APTO'
+                ? 'rechazado_medico'
+                : 'espera_jefe',
+        };
+
+        await supaPatch(
+            `/rest/v1/candidatos_activos?id=eq.${state.candidatoActual.id}`,
+            window.MB_UPPERCASE ? window.MB_UPPERCASE.normalizePayload(payload) : payload
+        );
+
+        cerrarModalMedico();
+
+        // Mostrar feedback
+        mostrarToast('✅ Dictamen registrado correctamente', 'success');
+        await cargarDatos();
+
+    } catch (err) {
+        mostrarToast('❌ Error al guardar: ' + err.message, 'error');
+    } finally {
+        btn.disabled = false;
+        btn.innerHTML = `<svg class="w-4 h-4 text-white inline mr-1" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12c0 1.268-.63 2.39-1.593 3.068a3.745 3.745 0 01-1.043 3.296 3.745 3.745 0 01-3.296 1.043A3.745 3.745 0 0112 21c-1.268 0-2.39-.63-3.068-1.593a3.746 3.746 0 01-3.296-1.043 3.745 3.745 0 01-1.043-3.296A3.745 3.745 0 013 12c0-1.268.63-2.39 1.593-3.068a3.746 3.746 0 011.043-3.296 3.746 3.746 0 013.296-1.043A3.746 3.746 0 0112 3c1.268 0 2.39.63 3.068 1.593a3.746 3.746 0 013.296 1.043 3.746 3.746 0 011.043 3.296A3.745 3.745 0 0121 12z"></path></svg> Registrar Dictamen`;
+    }
+}
+
+// ── Navegación paneles ────────────────────────────────────────
+function activarPanel(panel, source) {
+    document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+    const target = $(`panel-${panel}`);
+    if (target) target.classList.add('active');
+
+    document.querySelectorAll('[data-panel]').forEach(n => {
+        n.classList.remove('nav-item-active');
+        n.classList.add('text-slate-400');
+        n.classList.remove('text-white');
+    });
+    if (source) {
+        source.classList.add('nav-item-active');
+        source.classList.remove('text-slate-400');
+    }
+
+    const titles = {
+        pendientes: 'Evaluaciones Médicas Pendientes',
+        evaluados:  'Candidatos con Dictamen Registrado',
+        alertas:    'Alertas Médicas Activas',
+    };
+    setText('panelTitle', titles[panel] || 'Módulo Médico');
+}
+
+function toggleSidebar() {
+    document.querySelector('aside').classList.toggle('hidden');
+}
+
+function logout() {
+    ['mb_token','mb_rol','mb_nombre','mb_departamento','mb_expira','mabaker_session']
+        .forEach(k => localStorage.removeItem(k));
+    window.location.href = 'login.html';
+}
+
+// ── Toast ─────────────────────────────────────────────────────
+function mostrarToast(msg, tipo = 'success') {
+    const t = document.createElement('div');
+    t.className = `fixed bottom-6 right-6 z-[9999] px-6 py-4 rounded-2xl font-bold text-sm shadow-2xl transition-all
+        ${tipo === 'success' ? 'bg-emerald-600 text-white' : 'bg-rose-600 text-white'}`;
+    t.textContent = msg;
+    document.body.appendChild(t);
+    setTimeout(() => t.remove(), 3500);
+}
+
+function fmtDate(v) {
+    if (!v) return '-';
+    try { return new Date(v).toLocaleString('es-MX'); } catch { return '-'; }
+}
+</script>
+</body>
 </html>

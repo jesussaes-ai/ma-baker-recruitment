@@ -246,6 +246,9 @@
             cursor: pointer;
         }
     </style>
+<script src="js/theme.js"></script>
+    <script src="js/help-overlay.js"></script>
+<script src="js/uppercase.js"></script>
 </head>
 
 <body class="dashboard-body">
@@ -422,6 +425,7 @@
         </div>
     </div>
 
+    <script src="js/config.js"></script>
     <script src="js/auth.js"></script>
     <script>
         /* ============================================================
@@ -430,9 +434,10 @@
            Función: verificar los 7 puntos de inducción de S&H.
            Separado completamente del dashboard SGI (Calidad).
            ============================================================ */
-        const URL = 'https://znskpdixdyxdbvpapqrg.supabase.co';
-        const KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inpuc2twZGl4ZHl4ZGJ2cGFwcXJnIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc3Mjg1ODgwOCwiZXhwIjoyMDg4NDM0ODA4fQ.s7yC5ODssUgqHjH0PsAhTZuNQ1R-lMuJAt62OKDwryg';
+        const URL = window.MB_CONFIG.SUPABASE_URL;
+        const KEY = window.MB_CONFIG.SUPABASE_SERVICE_ROLE_KEY || window.MB_CONFIG.SUPABASE_ANON_KEY;
         const H = { 'apikey': KEY, 'Authorization': 'Bearer ' + KEY, 'Content-Type': 'application/json', 'Prefer': 'return=representation' };
+        const esc = window.MB_CONFIG.escapeHTML;
 
         /* Estado del formulario de verificación activo */
         const S = { higiene: null, epp: null, protocolos: null, quimicos: null, accidentes: null, emergencia: null, imss: null };
@@ -464,11 +469,12 @@
             await cargar();
         }
 
-        /* ── Cargar candidatos en la fase de inducción_sgi (que engloba ambos departamentos) ── */
+        /* ── Cargar candidatos en fase de Seguridad y listos para contrato ── */
         async function cargar() {
-            const r = await fetch(`${URL}/rest/v1/candidatos_activos?select=*&fase_actual=in.(induccion_sgi,listo_para_contrato)&order=created_at.desc`, { headers: H });
-            const todos = (await r.json()) || [];
-            const pend = todos.filter(c => c.fase_actual === 'induccion_sgi');
+            const r = await fetch(`${URL}/rest/v1/candidatos_activos?select=*&fase_actual=in.(induccion_seguridad,listo_para_contrato)&order=created_at.desc`, { headers: H });
+            const raw = r.ok ? await r.json() : [];
+            const todos = Array.isArray(raw) ? raw : [];
+            const pend = todos.filter(c => c.fase_actual === 'induccion_seguridad');
             const comp = todos.filter(c => c.fase_actual === 'listo_para_contrato');
 
             /* Actualizar contadores del resumen */
@@ -490,7 +496,7 @@
                     const col = pct === 100 ? '#10B981' : pct > 50 ? '#F59E0B' : '#EF4444';
                     return `<div class="cand-card">
                 <div style="display:flex;justify-content:space-between;align-items:flex-start;">
-                    <div><div class="cand-nombre">${c.nombre_completo}</div><div class="cand-puesto">${c.nombre_puesto || c.codigo_puesto || '—'}</div></div>
+                    <div><div class="cand-nombre">${esc(c.nombre_completo)}</div><div class="cand-puesto">${esc(c.nombre_puesto || c.codigo_puesto || '—')}</div></div>
                     <span style="background:${col}20;color:${col};font-size:10px;font-weight:700;padding:3px 8px;border-radius:20px;">${ok}/${PTS.length}</span>
                 </div>
                 <!-- Barra de progreso de verificación -->
@@ -505,7 +511,7 @@
                     <li><span class="${d.emergencia ? 'ok' : 'pend'}">${d.emergencia ? '✅' : '⏳'}</span>Plan de Emergencia</li>
                     <li><span class="${d.imss ? 'ok' : 'pend'}">${d.imss ? '✅' : '⏳'}</span>Alta IMSS</li>
                 </ul>
-                <button class="btn-eval" onclick="abrirEval('${c.id}','${c.nombre_completo}')">🦺 Verificar</button>
+                <button class="btn-eval" onclick="abrirEval('${esc(c.id)}','${esc(c.nombre_completo)}')">🦺 Verificar</button>
             </div>`;
                 }).join('');
             }
@@ -515,9 +521,9 @@
             el.innerHTML = !comp.length ? '<div class="loading-row">Sin candidatos verificados aún.</div>' :
                 `<table class="data-table"><thead><tr><th>Candidato</th><th>Puesto</th><th>Score IA</th><th>Estado</th></tr></thead>
         <tbody>${comp.map(c => `<tr>
-            <td><strong>${c.nombre_completo}</strong></td>
-            <td>${c.nombre_puesto || '—'}</td>
-            <td style="font-weight:800;color:#10B981;">${c.match_score || '—'}%</td>
+            <td><strong>${esc(c.nombre_completo)}</strong></td>
+            <td>${esc(c.nombre_puesto || '—')}</td>
+            <td style="font-weight:800;color:#10B981;">${esc(c.match_score || '—')}%</td>
             <td><span style="background:#D1FAE5;color:#065F46;font-size:11px;padding:3px 10px;border-radius:30px;font-weight:700;">✅ S&H Completo</span></td>
         </tr>`).join('')}</tbody></table>`;
         }
@@ -559,17 +565,18 @@
             await fetch(`${URL}/rest/v1/candidatos_activos?id=eq.${id}`, {
                 method: 'PATCH', headers: H,
                 body: JSON.stringify({
+                    fase_actual: aprobado ? 'listo_para_contrato' : 'induccion_seguridad',
                     decision_agente: {
                         sh_puntos: { ...S },
                         sh_aprobado: aprobado,
-                        sh_obs: document.getElementById('obsSH').value,
+                        sh_obs: window.MB_UPPERCASE ? window.MB_UPPERCASE.transformValue(document.getElementById('obsSH').value) : document.getElementById('obsSH').value,
                         sh_fecha: new Date().toISOString(),
                         sh_evaluado_por: localStorage.getItem('mb_nombre') || 'Seguridad'
                     }
                 })
             });
             cerrar();
-            alert(aprobado ? '✅ Verificación S&H completa registrada.' : '⚠️ Verificación incompleta registrada. Se requiere seguimiento.');
+            alert(aprobado ? '✅ Verificación S&H completa registrada. Candidato listo para contrato.' : '⚠️ Verificación incompleta registrada. Se mantiene en inducción de seguridad.');
             await cargar();
         }
 

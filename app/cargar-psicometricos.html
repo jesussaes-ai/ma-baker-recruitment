@@ -807,6 +807,9 @@
             border-radius: 10px;
         }
     </style>
+<script src="js/theme.js"></script>
+    <script src="js/help-overlay.js"></script>
+<script src="js/uppercase.js"></script>
 </head>
 
 <body>
@@ -962,11 +965,11 @@
                     <div class="form-group">
                         <label class="form-label">Categoría</label>
                         <select class="form-control" id="np_categoria">
-                            <option value="inteligencia">🧠 Inteligencia</option>
-                            <option value="personalidad">😊 Personalidad</option>
-                            <option value="liderazgo">🏆 Liderazgo</option>
-                            <option value="situacional">💼 Juicio Situacional</option>
-                            <option value="aptitud">📐 Aptitud Técnica</option>
+                            <option class='bg-slate-800 text-white' value="inteligencia">🧠 Inteligencia</option>
+                            <option class='bg-slate-800 text-white' value="personalidad">😊 Personalidad</option>
+                            <option class='bg-slate-800 text-white' value="liderazgo">🏆 Liderazgo</option>
+                            <option class='bg-slate-800 text-white' value="situacional">💼 Juicio Situacional</option>
+                            <option class='bg-slate-800 text-white' value="aptitud">📐 Aptitud Técnica</option>
                         </select>
                     </div>
                     <div class="form-group">
@@ -1014,7 +1017,7 @@
                 <div class="form-group">
                     <label class="form-label">Batería Psicométrica</label>
                     <select class="form-control" id="as_prueba_id">
-                        <option value="">— Selecciona una batería —</option>
+                        <option class='bg-slate-800 text-white' value="">— Selecciona una batería —</option>
                     </select>
                 </div>
                 <div class="form-row">
@@ -1075,7 +1078,7 @@
                     <div class="form-group">
                         <label class="form-label">Batería</label>
                         <select class="form-control" id="pq_prueba_id" onchange="actualizarSiguienteNum()">
-                            <option value="">— Selecciona batería —</option>
+                            <option class='bg-slate-800 text-white' value="">— Selecciona batería —</option>
                         </select>
                     </div>
                     <div class="form-group">
@@ -1092,11 +1095,11 @@
                     <div class="form-group">
                         <label class="form-label">Tipo de Respuesta</label>
                         <select class="form-control" id="pq_tipo" onchange="mostrarOpciones()">
-                            <option value="opcion_multiple">Opción Múltiple (A B C D)</option>
-                            <option value="escala_likert">Escala Likert (1-5 o 1-7)</option>
-                            <option value="verdadero_falso">Verdadero / Falso</option>
-                            <option value="ordenamiento">Ordenamiento</option>
-                            <option value="texto_libre">Texto Libre</option>
+                            <option class='bg-slate-800 text-white' value="opcion_multiple">Opción Múltiple (A B C D)</option>
+                            <option class='bg-slate-800 text-white' value="escala_likert">Escala Likert (1-5 o 1-7)</option>
+                            <option class='bg-slate-800 text-white' value="verdadero_falso">Verdadero / Falso</option>
+                            <option class='bg-slate-800 text-white' value="ordenamiento">Ordenamiento</option>
+                            <option class='bg-slate-800 text-white' value="texto_libre">Texto Libre</option>
                         </select>
                     </div>
                     <div class="form-group">
@@ -1110,9 +1113,9 @@
                     <div class="form-group">
                         <label class="form-label">Dificultad</label>
                         <select class="form-control" id="pq_dificultad">
-                            <option value="baja">🟢 Baja</option>
-                            <option value="media" selected>🟡 Media</option>
-                            <option value="alta">🔴 Alta</option>
+                            <option class='bg-slate-800 text-white' value="baja">🟢 Baja</option>
+                            <option class='bg-slate-800 text-white' value="media" selected>🟡 Media</option>
+                            <option class='bg-slate-800 text-white' value="alta">🔴 Alta</option>
                         </select>
                     </div>
                     <div class="form-group">
@@ -1135,11 +1138,12 @@
         <span id="toastMsg">Operación exitosa</span>
     </div>
 
+    <script src="js/config.js"></script>
     <script src="js/auth.js"></script>
     <script>
-        // ── SUPABASE CONFIG ──
-        const SUPA_URL = 'https://znskpdixdyxdbvpapqrg.supabase.co';
-        const SUPA_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inpuc2twZGl4ZHl4ZGJ2cGFwcXJnIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc3Mjg1ODgwOCwiZXhwIjoyMDg4NDM0ODA4fQ.s7yC5ODssUgqHjH0PsAhTZuNQ1R-lMuJAt62OKDwryg';
+        // ── SUPABASE CONFIG (Centralized via MB_CONFIG) ──
+        const SUPA_URL = window.MB_CONFIG.SUPABASE_URL;
+        const SUPA_KEY = window.MB_CONFIG.SUPABASE_ANON_KEY;
 
         const H = { 'apikey': SUPA_KEY, 'Authorization': 'Bearer ' + SUPA_KEY, 'Content-Type': 'application/json', 'Prefer': 'return=representation' };
         const api = async (path, opt = {}) => {
@@ -1186,14 +1190,15 @@
                 el.innerHTML = `<div class="empty"><div class="empty-icon">💼</div><h4>Sin puestos</h4><p>Carga descripciones de puesto primero</p></div>`;
                 return;
             }
+            const esc = window.MB_CONFIG.escapeHTML;
             el.innerHTML = lista.map(p => `
-            <div class="puesto-item" onclick="selPuesto('${p.id}')" id="pi_${p.id}">
-                <div class="puesto-avatar">${p.nombre_puesto.charAt(0)}</div>
+            <div class="puesto-item" onclick="selPuesto('${esc(p.id)}')" id="pi_${esc(p.id)}">
+                <div class="puesto-avatar">${esc(p.nombre_puesto).charAt(0)}</div>
                 <div class="puesto-info">
-                    <div class="puesto-nombre">${p.nombre_puesto}</div>
-                    <div class="puesto-depto">${p.departamento} · ${p.codigo_puesto}</div>
+                    <div class="puesto-nombre">${esc(p.nombre_puesto)}</div>
+                    <div class="puesto-depto">${esc(p.departamento)} · ${esc(p.codigo_puesto)}</div>
                 </div>
-                <div class="puesto-badge has-tests" id="badge_${p.id}">—</div>
+                <div class="puesto-badge has-tests" id="badge_${esc(p.id)}">—</div>
             </div>
         `).join('');
             // Contar configuraciones por puesto
@@ -1300,10 +1305,10 @@
         }
 
         function llenarSelectPruebas() {
-            const opts = (pruebas || []).map(p => `<option value="${p.id}">${p.codigo} — ${p.nombre}</option>`).join('');
+            const opts = (pruebas || []).map(p => `<option class='bg-slate-800 text-white' value="${p.id}">${p.codigo} — ${p.nombre}</option>`).join('');
             ['as_prueba_id', 'pq_prueba_id'].forEach(id => {
                 const el = document.getElementById(id);
-                if (el) el.innerHTML = '<option value="">— Selecciona —</option>' + opts;
+                if (el) el.innerHTML = '<option class='bg-slate-800 text-white' value="">— Selecciona —</option>' + opts;
             });
         }
 
@@ -1344,7 +1349,7 @@
                 <input class="form-control" id="pq_opC" placeholder="C) Opción C" style="margin-bottom:6px;">
                 <input class="form-control" id="pq_opD" placeholder="D) Opción D" style="margin-bottom:8px;">
                 <label class="form-label">Respuesta Correcta</label>
-                <select class="form-control" id="pq_correcta"><option value="A">A</option><option value="B">B</option><option value="C">C</option><option value="D">D</option></select></div>`;
+                <select class="form-control" id="pq_correcta"><option class='bg-slate-800 text-white' value="A">A</option><option class='bg-slate-800 text-white' value="B">B</option><option class='bg-slate-800 text-white' value="C">C</option><option class='bg-slate-800 text-white' value="D">D</option></select></div>`;
             } else if (tipo === 'escala_likert') {
                 area.innerHTML = `<div class="form-group"><label class="form-label">Rango de la Escala</label>
                 <div class="form-row">
@@ -1368,7 +1373,8 @@
                 activa: true
             };
             if (!body.codigo || !body.nombre) { toast('⚠️ Código y nombre son obligatorios'); return; }
-            const r = await api('/rest/v1/pruebas_psicometricas', { method: 'POST', body: JSON.stringify(body) });
+            const saveBody = window.MB_UPPERCASE ? window.MB_UPPERCASE.normalizePayload(body) : body;
+            const r = await api('/rest/v1/pruebas_psicometricas', { method: 'POST', body: JSON.stringify(saveBody) });
             if (r) { toast('✅ Batería guardada: ' + body.nombre); closeModal('modalNuevaPrueba'); pruebas = await api('/rest/v1/pruebas_psicometricas?select=*&activa=eq.true&order=codigo.asc') || []; llenarSelectPruebas(); renderStats(); }
             else toast('❌ Error al guardar. Verifica que el schema esté ejecutado en Supabase.');
         }
@@ -1386,7 +1392,8 @@
                 es_obligatoria: document.getElementById('as_obligatoria').value === 'true',
                 instrucciones_adicionales: document.getElementById('as_instrucciones').value.trim() || null
             };
-            const r = await api('/rest/v1/puesto_prueba_config', { method: 'POST', body: JSON.stringify(body) });
+            const saveBody = window.MB_UPPERCASE ? window.MB_UPPERCASE.normalizePayload(body) : body;
+            const r = await api('/rest/v1/puesto_prueba_config', { method: 'POST', body: JSON.stringify(saveBody) });
             if (r) { toast('✅ Batería asignada al puesto'); closeModal('modalAsignar'); await cargarBaterias(puestoActivo.id); }
             else toast('❌ Error. La batería ya puede estar asignada.');
         }
@@ -1420,7 +1427,14 @@
                 activa: true
             };
             if (!body.texto_pregunta) { toast('⚠️ Escribe el texto de la pregunta'); return; }
-            const r = await api('/rest/v1/preguntas_psicometricas', { method: 'POST', body: JSON.stringify(body) });
+            if (Array.isArray(body.opciones)) {
+                body.opciones = body.opciones.map((o) => ({
+                    ...o,
+                    texto: window.MB_UPPERCASE ? window.MB_UPPERCASE.transformValue(o.texto || '') : (o.texto || ''),
+                }));
+            }
+            const saveBody = window.MB_UPPERCASE ? window.MB_UPPERCASE.normalizePayload(body) : body;
+            const r = await api('/rest/v1/preguntas_psicometricas', { method: 'POST', body: JSON.stringify(saveBody) });
             if (r) { toast('✅ Pregunta guardada'); if (cerrar) closeModal('modalPregunta'); else { document.getElementById('pq_numero').value = body.numero_orden + 1; document.getElementById('pq_texto').value = ''; } renderStats(); cargarPreguntas(); }
             else toast('❌ Error al guardar pregunta');
         }

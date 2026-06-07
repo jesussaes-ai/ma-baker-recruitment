@@ -14,5 +14,10 @@ Este proyecto implementa un sistema agéntico avanzado para automatizar el proce
 - `docs/`: Documentación técnica y flujos.
 - `prompts/`: Definiciones de prompts maestros y auxiliares.
 
+### Ayuda contextual en la app
+- Se agregó `app/ayuda.html` como centro de ayuda por departamento.
+- Se agregó `app/js/help-overlay.js` para mostrar ayuda flotante en iconos y acciones.
+- El script de ayuda se carga en las pantallas principales para mejorar onboarding y operación diaria.
+
 > [!NOTE]
 > Este proyecto se basa en la arquitectura definida en el cuaderno de NotebookLM: "Reclutamiento y Seleccion de Personal Automatizado: Ma Baker and Chef".

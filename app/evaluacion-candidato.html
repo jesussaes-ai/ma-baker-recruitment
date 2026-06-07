@@ -8,6 +8,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700&display=swap"
         rel="stylesheet">
+    <script src="js/config.js"></script>
     <style>
         :root {
             --rojo: #D7282F;
@@ -456,6 +457,9 @@
             color: var(--azul);
         }
     </style>
+<script src="js/theme.js"></script>
+    <script src="js/help-overlay.js"></script>
+<script src="js/uppercase.js"></script>
 </head>
 
 <body>
@@ -510,12 +514,14 @@
         <div class="container" id="contenido-prueba"></div>
     </div>
 
+    <script src="js/config.js"></script>
     <script>
+
         // ============================================================
         // CONFIGURACIÓN
         // ============================================================
-        const SUPABASE_URL = 'https://znskpdixdyxdbvpapqrg.supabase.co';
-        const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inpuc2twZGl4ZHl4ZGJ2cGFwcXJnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI4NTg4MDgsImV4cCI6MjA4ODQzNDgwOH0.uS63CqYt_dRNO2DXXqzXJpzV3CIqiZqwEHyeQCIwLGg';
+        const SUPABASE_URL = window.MB_CONFIG.SUPABASE_URL;
+        const SUPABASE_ANON = window.MB_CONFIG.SUPABASE_ANON_KEY;
 
         // Estado de la aplicación
         const estado = {
