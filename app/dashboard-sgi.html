@@ -413,7 +413,7 @@
            Función: evaluar los 7 puntos de inducción de calidad.
            ============================================================ */
         const URL = window.MB_CONFIG.SUPABASE_URL;
-        const KEY = window.MB_CONFIG.SUPABASE_SERVICE_ROLE_KEY || window.MB_CONFIG.SUPABASE_ANON_KEY;
+        const KEY = window.MB_CONFIG.SUPABASE_ANON_KEY;
         const H = { 'apikey': KEY, 'Authorization': 'Bearer ' + KEY, 'Content-Type': 'application/json', 'Prefer': 'return=representation' };
         const esc = window.MB_CONFIG.escapeHTML;
 

@@ -13,6 +13,7 @@
     document.addEventListener('DOMContentLoaded', function () {
         injectThemeToggle();
         injectHelpButton();
+        injectBrandLogo();
     });
 
     /**
@@ -122,7 +123,7 @@
                 --bg-card: #FFFFFF;
                 --text-primary: #1E293B;
                 --text-secondary: #475569;
-                --text-muted: #94A3B8;
+                --text-muted: #64748B;
                 --border-color: #E2E8F0;
                 --shadow: 0 1px 3px rgba(0,0,0,0.08), 0 4px 16px rgba(0,0,0,0.06);
             }
@@ -280,8 +281,12 @@
         const btn = document.createElement('a');
         btn.id = 'mb-help-btn';
         btn.setAttribute('title', 'Centro de ayuda');
-        const role = (localStorage.getItem('mb_rol') || 'candidato').toLowerCase();
-        btn.href = `ayuda.html?dep=${encodeURIComponent(role)}`;
+        const roleFromSession = (localStorage.getItem('mb_rol') || '').toLowerCase();
+        const page = (window.location.pathname.split('/').pop() || '').toLowerCase();
+        const isCandidatePortal = page === 'index.html' || page === '' || page === 'postulacion-module.html';
+        const role = isCandidatePortal ? 'candidato' : (roleFromSession || 'candidato');
+        const scope = isCandidatePortal ? '&scope=externo' : '';
+        btn.href = `ayuda.html?dep=${encodeURIComponent(role)}${scope}`;
         btn.innerHTML = `
             <span class="help-icon">?</span>
             <span class="help-label">Ayuda</span>
@@ -341,6 +346,55 @@
 
         document.head.appendChild(style);
         document.body.appendChild(btn);
+    }
+
+    function injectBrandLogo() {
+        if (document.getElementById('mb-brand-logo-fixed')) return;
+
+        const wrap = document.createElement('a');
+        wrap.id = 'mb-brand-logo-fixed';
+        wrap.href = 'index.html';
+        wrap.setAttribute('title', 'Ma Baker and Chef');
+        wrap.innerHTML = '<img src="assets/logo-mabaker-chef.png" alt="Logo Ma Baker and Chef">';
+
+        const style = document.createElement('style');
+        style.textContent = `
+            #mb-brand-logo-fixed {
+                position: fixed;
+                top: 14px;
+                left: 14px;
+                z-index: 1200;
+                display: inline-flex;
+                align-items: center;
+                justify-content: center;
+                width: 68px;
+                height: 68px;
+                border-radius: 16px;
+                overflow: hidden;
+                background: rgba(255,255,255,0.92);
+                border: 1px solid rgba(15,23,42,0.12);
+                box-shadow: 0 6px 16px rgba(2,6,23,0.2);
+                transition: transform .2s ease;
+            }
+            #mb-brand-logo-fixed:hover { transform: scale(1.04); }
+            #mb-brand-logo-fixed img {
+                width: 100%;
+                height: 100%;
+                object-fit: cover;
+            }
+            @media (max-width: 900px) {
+                #mb-brand-logo-fixed {
+                    width: 54px;
+                    height: 54px;
+                    border-radius: 12px;
+                    top: 10px;
+                    left: 10px;
+                }
+            }
+        `;
+
+        document.head.appendChild(style);
+        document.body.appendChild(wrap);
     }
 
     // Exponer funciones al scope global por si alguna página las necesita

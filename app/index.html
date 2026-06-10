@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
     <meta name="description" content="Portal de aplicaciones de empleo Ma Baker and Chef.">
     <title>Unete al Equipo | Ma Baker & Chef</title>
-    <link rel="stylesheet" href="styles/tailwind.build.css">
+    <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght@100..700,0..1&display=swap" rel="stylesheet">
     <script>
@@ -32,6 +32,8 @@
             min-height: 100vh;
             color: #f8fafc;
             overflow-x: hidden;
+            -webkit-font-smoothing: antialiased;
+            text-rendering: optimizeLegibility;
         }
         .glass-panel {
             background: rgba(255, 255, 255, 0.03);
@@ -68,12 +70,136 @@
         .scroll-custom::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.1); border-radius: 10px; }
 
         .vacante-card {
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 24px;
+            padding: 18px;
+            display: grid;
+            grid-template-columns: auto 1fr auto;
+            gap: 12px;
+            cursor: pointer;
         }
         .vacante-card:hover {
             background: rgba(255, 255, 255, 0.08);
-            transform: scale(1.02);
+            transform: translateY(-2px);
             border-color: #D7282F;
+        }
+        .vacante-icon {
+            width: 34px;
+            height: 34px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(255,255,255,0.09);
+            font-size: 18px;
+        }
+        .vacante-info { min-width: 0; }
+        .vacante-nombre {
+            font-size: 22px;
+            line-height: 1.2;
+            font-weight: 800;
+            letter-spacing: -0.01em;
+            color: #FFFFFF;
+            word-break: break-word;
+            overflow-wrap: anywhere;
+        }
+        .vacante-depto {
+            margin-top: 2px;
+            font-size: 11px;
+            font-weight: 800;
+            color: #93C5FD;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            word-break: break-word;
+            overflow-wrap: anywhere;
+        }
+        .vacante-desc {
+            margin-top: 10px;
+            font-size: 13px;
+            line-height: 1.45;
+            color: #F1F5F9;
+            font-weight: 500;
+        }
+        .vacante-meta {
+            margin-top: 12px;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(128px, 1fr));
+            gap: 10px;
+        }
+        .meta-chip {
+            background: rgba(15, 23, 42, 0.55);
+            border: 1px solid rgba(148, 163, 184, 0.3);
+            border-radius: 12px;
+            padding: 10px 12px;
+            min-height: 86px;
+        }
+        .meta-chip .k {
+            font-size: 10px;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            color: #94A3B8;
+        }
+        .meta-chip .v {
+            margin-top: 4px;
+            font-size: 14px;
+            line-height: 1.35;
+            font-weight: 700;
+            color: #F8FAFC;
+            word-break: normal;
+            overflow-wrap: break-word;
+            hyphens: auto;
+        }
+        .vacante-arrow {
+            align-self: center;
+            font-size: 24px;
+            color: #E2E8F0;
+            padding: 0 4px;
+        }
+        .privacy-required-title { color: #A16207; }
+        .privacy-required-message { color: #334155; }
+        html[data-theme="dark"] .privacy-required-title { color: #FCD34D; }
+        html[data-theme="dark"] .privacy-required-message { color: #E2E8F0; }
+        .medical-warning-text { color: #9F1239; }
+        html[data-theme="dark"] .medical-warning-text { color: #FECDD3; }
+        .doc-uploader-row {
+            display: grid;
+            grid-template-columns: 1fr auto auto;
+            gap: 8px;
+            align-items: center;
+            padding: 10px;
+            border: 1px solid rgba(148, 163, 184, 0.25);
+            border-radius: 12px;
+            background: rgba(15, 23, 42, 0.15);
+        }
+        .doc-uploader-row .doc-name { font-size: 12px; font-weight: 700; color: #E2E8F0; }
+        .doc-uploader-row .doc-status { font-size: 11px; font-weight: 700; color: #94A3B8; }
+        .doc-uploader-row .doc-action {
+            padding: 7px 10px;
+            border-radius: 10px;
+            border: 1px solid rgba(255,255,255,0.2);
+            background: rgba(255,255,255,0.08);
+            color: #fff;
+            font-size: 10px;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+        }
+        html[data-theme="light"] .doc-uploader-row { background: rgba(15, 23, 42, 0.04); border-color: #CBD5E1; }
+        html[data-theme="light"] .doc-uploader-row .doc-name { color: #1E293B; }
+        html[data-theme="light"] .doc-uploader-row .doc-status { color: #475569; }
+        html[data-theme="light"] .doc-uploader-row .doc-action { color: #1E293B; border-color: #CBD5E1; background: #FFFFFF; }
+        html[data-theme="light"] .text-slate-400 { color: #475569 !important; }
+        html[data-theme="light"] .text-slate-500 { color: #334155 !important; }
+        html[data-theme="light"] .vacante-desc { color: #334155 !important; }
+        @media (max-width: 900px) {
+            .vacante-nombre { font-size: 19px; }
+            .vacante-meta { grid-template-columns: 1fr; }
+            .vacante-card { grid-template-columns: auto 1fr; }
+            .vacante-arrow { display: none; }
+            .doc-uploader-row { grid-template-columns: 1fr; }
         }
 
         /* Loading */
@@ -104,7 +230,7 @@
                 <p class="text-[9px] text-slate-500 font-bold uppercase tracking-widest mt-0.5">Gestión de Talento</p>
             </div>
         </div>
-        <a href="ayuda.html?dep=candidato" class="px-5 py-2 rounded-full border border-white/10 text-[10px] font-black uppercase tracking-widest text-slate-400 hover:text-white hover:bg-white/5 transition-all">
+        <a id="candidateHelpLink" href="ayuda.html?dep=candidato" class="px-5 py-2 rounded-full border border-white/10 text-[10px] font-black uppercase tracking-widest text-slate-400 hover:text-white hover:bg-white/5 transition-all">
             Ayuda en línea
         </a>
     </header>
@@ -165,6 +291,25 @@
                 </div>
 
                 <div class="text-left bg-white/5 border border-white/10 rounded-3xl p-5 space-y-3">
+                    <h4 class="text-[10px] font-black uppercase tracking-widest text-slate-400">Modalidad de postulación</h4>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+                        <select id="origenPostulacion" class="input-glass w-full rounded-2xl p-3 text-xs font-bold uppercase tracking-widest">
+                            <option class='bg-slate-800 text-white' value="ONLINE">ONLINE (WEB / WHATSAPP)</option>
+                            <option class='bg-slate-800 text-white' value="EN SITIO">EN SITIO (DENTRO DE LA EMPRESA)</option>
+                        </select>
+                        <select id="detalleOrigenPostulacionTipo" class="input-glass w-full rounded-2xl p-3 text-xs font-bold uppercase tracking-widest">
+                            <option class='bg-slate-800 text-white' value="EMPRESA">EMPRESA</option>
+                            <option class='bg-slate-800 text-white' value="FERIA">FERIA</option>
+                            <option class='bg-slate-800 text-white' value="EXPO">EXPO</option>
+                            <option class='bg-slate-800 text-white' value="BOLSA DE TRABAJO">BOLSA DE TRABAJO</option>
+                            <option class='bg-slate-800 text-white' value="RECOMENDACION">RECOMENDACIÓN</option>
+                            <option class='bg-slate-800 text-white' value="OTRO">OTRO</option>
+                        </select>
+                        <input id="detalleOrigenPostulacionOtro" class="input-glass w-full rounded-2xl p-3 text-xs font-medium hidden" placeholder="Especifica el origen">
+                    </div>
+                </div>
+
+                <div class="text-left bg-white/5 border border-white/10 rounded-3xl p-5 space-y-3">
                     <h4 class="text-[10px] font-black uppercase tracking-widest text-slate-400">Link directo para vacantes</h4>
                     <div class="flex flex-col md:flex-row gap-3">
                         <input id="publicVacantesLink" readonly class="input-glass w-full rounded-2xl p-3 text-xs font-medium" value="">
@@ -179,6 +324,15 @@
                         <div class="spinner"></div>
                         <p class="text-xs font-black uppercase tracking-widest">Consultando vacantes activas...</p>
                     </div>
+                </div>
+
+                <div class="flex flex-col md:flex-row items-center justify-between gap-3 px-4 py-3 rounded-2xl border border-white/10 bg-white/5">
+                    <p id="vacantesUpdateStatus" class="text-[10px] font-bold uppercase tracking-widest text-slate-500">
+                        Vacantes dinámicas activas
+                    </p>
+                    <button id="refreshVacantesBtn" type="button" class="px-4 py-2 rounded-xl bg-white/10 border border-white/10 text-[10px] font-black uppercase tracking-widest hover:bg-white/20 transition-all">
+                        Actualizar vacantes
+                    </button>
                 </div>
 
                 <div class="pt-8 border-t border-white/5 flex items-center justify-center gap-6">
@@ -198,6 +352,12 @@
                 <input type="hidden" id="id_puesto" name="id_puesto">
                 <input type="hidden" id="codigo_puesto" name="codigo_puesto">
                 <input type="hidden" id="privacy_accepted" name="privacy_accepted" value="false">
+                <input type="hidden" id="origen_postulacion" name="origen_postulacion" value="ONLINE">
+                <input type="hidden" id="detalle_origen_postulacion" name="detalle_origen_postulacion" value="EMPRESA">
+                <div class="mx-8 md:mx-12 mt-8 mb-2 p-4 rounded-2xl border border-mabaker-blue/30 bg-mabaker-blue/10">
+                    <p class="text-[10px] font-black uppercase tracking-widest text-mabaker-blue">Vacante seleccionada</p>
+                    <p id="puestoSeleccionadoTexto" class="text-sm md:text-base font-bold text-white">—</p>
+                </div>
 
                 <!-- STEP 1: PERSONAL -->
                 <div class="form-step active" id="step-1">
@@ -237,6 +397,18 @@
                             <div class="space-y-2">
                                 <label class="text-[9px] font-black uppercase tracking-widest text-slate-500 ml-1">Teléfono Móvil</label>
                                 <input type="tel" name="telefono" required class="input-glass w-full rounded-2xl p-4 text-sm font-medium" placeholder="10 dígitos">
+                            </div>
+                            <div class="col-span-full space-y-2">
+                                <label class="text-[9px] font-black uppercase tracking-widest text-slate-500 ml-1">¿Tienes familiar o amigo dentro de la organización?</label>
+                                <select id="vinculo_interno_select" name="vinculo_interno_select" required class="input-glass w-full rounded-2xl p-4 text-sm font-medium">
+                                    <option class='bg-slate-800 text-white' value="">Selecciona...</option>
+                                    <option class='bg-slate-800 text-white' value="SI">SI</option>
+                                    <option class='bg-slate-800 text-white' value="NO">NO</option>
+                                </select>
+                                <textarea id="vinculo_interno_detalle" name="vinculo_interno_detalle" class="input-glass w-full rounded-2xl p-4 text-sm font-medium h-20 hidden" placeholder="Indica nombre completo y relación"></textarea>
+                                <p class="text-[10px] text-amber-300 font-semibold leading-relaxed">
+                                    Declaración obligatoria sujeta a verificación interna. Omitir información relevante puede causar baja del proceso o cancelación laboral.
+                                </p>
                             </div>
                             <div class="col-span-full space-y-2 pt-4">
                                 <div class="h-px bg-white/5 w-full"></div>
@@ -460,17 +632,25 @@
 
                         <div class="bg-rose-500/10 border border-rose-500/20 rounded-3xl p-6 flex gap-4 items-start">
                             <svg class="size-5 text-rose-500 shrink-0 mt-0.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path></svg>
-                            <p class="text-[11px] text-rose-200/70 font-medium leading-relaxed">Esta información es <strong>sensible</strong> y será procesada únicamente por el personal médico autorizado bajo el amparo de la LFPDPPP. Ningún otro departamento tiene acceso a estos datos.</p>
+                            <p class="text-[11px] medical-warning-text font-medium leading-relaxed">Esta información es <strong>sensible</strong> y será procesada únicamente por el personal médico autorizado bajo el amparo de la LFPDPPP. Ningún otro departamento tiene acceso a estos datos.</p>
                         </div>
 
                         <div class="space-y-6">
                             <div class="space-y-2">
                                 <label class="text-[9px] font-black uppercase tracking-widest text-slate-500 ml-1">¿Padeces alguna enfermedad crónica?</label>
-                                <textarea name="enfermedades_cronicas" class="input-glass w-full rounded-2xl p-4 text-sm font-medium h-24" placeholder="Si no aplica, escribe 'Ninguna'"></textarea>
+                                <select id="enfermedades_cronicas_select" class="input-glass w-full rounded-2xl p-4 text-sm font-medium">
+                                    <option class='bg-slate-800 text-white' value="No">NO</option>
+                                    <option class='bg-slate-800 text-white' value="Si">SI</option>
+                                </select>
+                                <textarea id="enfermedades_cronicas_detalle" name="enfermedades_cronicas_detalle" class="input-glass w-full rounded-2xl p-4 text-sm font-medium h-24 hidden" placeholder="Describe la enfermedad y recomendaciones"></textarea>
                             </div>
                             <div class="space-y-2">
                                 <label class="text-[9px] font-black uppercase tracking-widest text-slate-500 ml-1">¿Tomas medicamentos regularmente?</label>
-                                <textarea name="medicamentos" class="input-glass w-full rounded-2xl p-4 text-sm font-medium h-24" placeholder="Especifica medicamento y dosis si aplica"></textarea>
+                                <select id="medicamentos_select" class="input-glass w-full rounded-2xl p-4 text-sm font-medium">
+                                    <option class='bg-slate-800 text-white' value="No">NO</option>
+                                    <option class='bg-slate-800 text-white' value="Si">SI</option>
+                                </select>
+                                <textarea id="medicamentos_detalle" name="medicamentos_detalle" class="input-glass w-full rounded-2xl p-4 text-sm font-medium h-24 hidden" placeholder="Indica medicamento, dosis y frecuencia"></textarea>
                             </div>
                             <div class="grid grid-cols-2 gap-4">
                                 <div class="space-y-2">
@@ -484,13 +664,18 @@
                                 </div>
                                 <div class="space-y-2">
                                     <label class="text-[9px] font-black uppercase tracking-widest text-slate-500 ml-1">Discapacidad</label>
-                                    <select name="discapacidades" required class="input-glass w-full rounded-2xl p-4 text-sm font-medium">
+                                    <select id="discapacidades_select" name="discapacidades" required class="input-glass w-full rounded-2xl p-4 text-sm font-medium">
                                         <option class='bg-slate-800 text-white' value="Ninguna">Ninguna</option>
                                         <option class='bg-slate-800 text-white' value="Visual">Visual</option>
                                         <option class='bg-slate-800 text-white' value="Motriz">Motriz</option>
                                         <option class='bg-slate-800 text-white' value="Auditiva">Auditiva</option>
+                                        <option class='bg-slate-800 text-white' value="Otra">Otra</option>
                                     </select>
                                 </div>
+                            </div>
+                            <div id="discapacidad_cuidados_wrap" class="space-y-2 hidden">
+                                <label class="text-[9px] font-black uppercase tracking-widest text-slate-500 ml-1">¿Qué cuidados requiere?</label>
+                                <textarea id="discapacidad_cuidados" name="discapacidad_cuidados" class="input-glass w-full rounded-2xl p-4 text-sm font-medium h-24" placeholder="Describe cuidados, apoyos o adaptaciones necesarias"></textarea>
                             </div>
                         </div>
                     </div>
@@ -550,6 +735,7 @@
             <div class="spinner mx-auto scale-150"></div>
             <div class="space-y-2">
                 <h3 class="text-2xl font-black uppercase tracking-tighter">Procesando Perfil</h3>
+                <p id="loadingPuestoTexto" class="text-xs font-black uppercase tracking-widest text-mabaker-blue"></p>
                 <p class="text-sm text-slate-400">Nuestra IA está analizando tu experiencia para calcular la compatibilidad con el puesto...</p>
             </div>
         </div>
@@ -563,17 +749,43 @@
             </div>
             <div class="space-y-2">
                 <h3 class="text-2xl font-black uppercase tracking-tighter">¡Registro Exitoso!</h3>
+                <p id="successPuestoTexto" class="text-[10px] font-black uppercase tracking-widest text-mabaker-blue"></p>
                 <p class="text-sm text-slate-400" id="successMessage"></p>
             </div>
             <div id="modalResult" class="p-6 bg-white/5 rounded-3xl border border-white/10 text-center">
                 <!-- Score Result -->
             </div>
-            <button onclick="window.location.reload()" class="w-full py-4 bg-white text-slate-900 rounded-2xl font-black uppercase tracking-widest text-[10px]">Cerrar</button>
+            <div id="docUploadSection" class="hidden p-6 bg-white/5 rounded-3xl border border-white/10 space-y-4 text-left">
+                <h5 class="text-xs font-black uppercase tracking-widest text-mabaker-blue">Carga opcional de documentos (acelera contratación)</h5>
+                <p class="text-xs text-slate-400">Has avanzado a siguiente etapa. Puedes adelantar tu proceso subiendo documentos ahora, o presentarlos físicamente en empresa.</p>
+                <div class="p-4 rounded-2xl border border-amber-500/30 bg-amber-500/10 space-y-3">
+                    <p class="text-[11px] leading-relaxed text-slate-200">
+                        <strong class="text-amber-300">Aviso de privacidad documental:</strong> al continuar, declaras que entregas esta documentación
+                        por tu propia voluntad y autorizas su tratamiento únicamente para fines de reclutamiento, evaluación y contratación en
+                        <span class="font-semibold">Ma Baker and Chef</span>, conforme a la normativa de protección de datos aplicable.
+                    </p>
+                    <label class="flex items-start gap-2 cursor-pointer">
+                        <input id="docsPrivacyConsent" type="checkbox" class="mt-0.5 size-4 rounded bg-white/10 border-white/20">
+                        <span class="text-[11px] font-semibold text-slate-200">Acepto el tratamiento de mis documentos para los fines de contratación indicados.</span>
+                    </label>
+                </div>
+                <div class="flex flex-col md:flex-row gap-2">
+                    <button type="button" id="docFlowAcceptBtn" class="px-4 py-3 rounded-xl bg-mabaker-blue text-white text-[10px] font-black uppercase tracking-widest">Sí, deseo escanear documentos</button>
+                    <button type="button" id="docFlowSkipBtn" class="px-4 py-3 rounded-xl bg-white/10 border border-white/10 text-[10px] font-black uppercase tracking-widest">No por ahora</button>
+                </div>
+                <p id="docFlowNotice" class="text-[11px] text-slate-300"></p>
+                <div id="docUploadListWrap" class="hidden">
+                    <div id="docUploadList" class="space-y-2"></div>
+                </div>
+            </div>
+            <button onclick="exitApplicationAfterSubmission()" class="w-full py-4 bg-white text-slate-900 rounded-2xl font-black uppercase tracking-widest text-[10px]">Aceptar y salir</button>
         </div>
     </div>
 
+    <script src="js/runtime-config.js"></script>
     <script src="js/config.js"></script>
-    <script src="js/app.js"></script>
+    <script src="js/uppercase.js"></script>
+    <script src="js/app.js?v=20260609-1830"></script>
     <script>
         // Inyectamos pequeña lógica de UI que antes estaba inline o dispersa
         function toggleCronicaInput() { /* Ya manejado por app.js pero movemos aquí si falta */ }

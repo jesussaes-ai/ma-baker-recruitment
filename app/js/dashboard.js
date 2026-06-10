@@ -5,7 +5,7 @@
 (function () {
   const CFG = window.MB_CONFIG || {};
   const SUPA_URL = CFG.SUPABASE_URL || "";
-  const SUPA_KEY = CFG.SUPABASE_SERVICE_ROLE_KEY || CFG.SUPABASE_ANON_KEY || "";
+  const SUPA_KEY = CFG.SUPABASE_ANON_KEY || "";
   const esc = CFG.escapeHTML || ((v) => String(v ?? ""));
 
   const HEADERS = {
@@ -14,11 +14,27 @@
     "Content-Type": "application/json",
     Prefer: "return=representation",
   };
+  const CANDIDATE_PUBLIC_SELECT = "id,created_at,nombre_completo,nombre,email,correo,telefono,edad,genero,fase_actual,id_puesto,nombre_puesto,puesto,codigo_puesto,departamento,escolaridad,empresa_1,empresa_2,empresa_3,empresa_4,empresa_5,puesto_1,puesto_2,puesto_3,puesto_4,puesto_5,antiguedad_1,antiguedad_2,antiguedad_3,antiguedad_4,antiguedad_5,motivo_salida_1,motivo_salida_2,motivo_salida_3,motivo_salida_4,motivo_salida_5,curp,rfc,domicilio,cedula_profesional,nivel_socioeconomico,decision_agente,match_score,veredicto_jefe,estatus_postulacion,origen_postulacion,detalle_origen_postulacion";
+  const CANDIDATOS_NON_MEDICAL_ENDPOINT = `/rest/v1/candidatos_activos?select=${CANDIDATE_PUBLIC_SELECT}&order=created_at.desc`;
+  const CANDIDATOS_MEDICAL_ENDPOINT = "/rest/v1/candidatos_activos?select=*&order=created_at.desc";
+  const MEDICAL_FIELDS = [
+    "enfermedades_cronicas",
+    "medicamentos",
+    "discapacidades",
+    "tipo_sangre",
+    "alergias",
+    "dictamen_medico",
+    "resultado_medico",
+    "recomendaciones_medicas",
+    "observaciones_medicas",
+  ];
 
   const state = {
     role: null,
+    resources: [],
     datasets: {},
     filteredCandidates: null,
+    vacanteFilter: "todas",
     currentVacanteId: null,
     currentCandidatoId: null,
   };
@@ -74,6 +90,21 @@
   function setText(id, value) {
     const el = byId(id);
     if (el) el.textContent = value;
+  }
+
+  function candidateEndpointForRole(role) {
+    return role === "medico" ? CANDIDATOS_MEDICAL_ENDPOINT : CANDIDATOS_NON_MEDICAL_ENDPOINT;
+  }
+
+  function removeMedicalFieldsFromCandidate(candidate) {
+    if (!candidate || typeof candidate !== "object") return candidate;
+    const clean = { ...candidate };
+    MEDICAL_FIELDS.forEach((key) => {
+      if (Object.prototype.hasOwnProperty.call(clean, key)) {
+        delete clean[key];
+      }
+    });
+    return clean;
   }
 
   function fmtDate(v) {
@@ -211,6 +242,7 @@
   async function initDashboard(role, resources) {
     console.log("🚀 initDashboard starting: role=" + role);
     state.role = role;
+    state.resources = Array.isArray(resources) ? resources : [];
     const s = requireSession();
     if (!s) {
       console.warn("🚀 initDashboard: session not found");
@@ -242,7 +274,12 @@
     await Promise.all(
       resources.map(async (r) => {
         try {
-          map[r.id] = await supaGet(r.endpoint);
+          let endpoint = r.endpoint;
+          if (r.id === "candidatos") endpoint = candidateEndpointForRole(state.role);
+          const data = await supaGet(endpoint);
+          map[r.id] = r.id === "candidatos"
+            ? data.map((c) => removeMedicalFieldsFromCandidate(c))
+            : data;
         } catch (e) {
           console.error("📋 loadRRHH: failed for " + r.id, e);
           map[r.id] = [];
@@ -254,6 +291,12 @@
     renderRRHHStats();
     renderRRHHTables();
     console.log("📋 loadRRHH: rendering completed!");
+  }
+
+  async function reloadCurrentRoleData() {
+    if (state.role === "rrhh" || state.role === "admin") {
+      await loadRRHH(state.resources || []);
+    }
   }
 
   function rrhhCandidates() {
@@ -268,7 +311,14 @@
     setText("statPsico", c.filter((x) => (x.fase_actual || "").includes("psico")).length);
     setText("statVacantesActivas", v.filter((x) => x.activo !== false).length);
     setText("statRechazados", r.length);
-  }  function renderRRHHTables() {
+  }
+
+  function setVacanteFilter(filter) {
+    state.vacanteFilter = filter || "todas";
+    renderRRHHTables();
+  }
+
+  function renderRRHHTables() {
     const c = rrhhCandidates();
     const v = state.datasets.vacantes || [];
     const r = state.datasets.rechazados || [];
@@ -378,14 +428,23 @@
       })
       .join("");
 
-    const vRows = v
+    const vacantesFiltradas = v.filter((item) => {
+      if (state.vacanteFilter === "activas") return item.activo !== false;
+      if (state.vacanteFilter === "pausadas") return item.activo === false;
+      return true;
+    });
+
+    const vRows = vacantesFiltradas
       .map((x) => {
-        const id = esc(x.id || "");
+        const rawId = String(x.id || "");
+        const id = esc(rawId);
+        const idJs = rawId.replace(/\\/g, "\\\\").replace(/'/g, "\\'");
         const code = esc(x.codigo_puesto || "-");
         const job = esc(resolveJobName(x));
         const dept = esc(x.departamento || "-");
         const salary = `${fmtMoney(x.sueldo_minimo)} - ${fmtMoney(x.sueldo_maximo)}`;
-        const status = x.activo !== false ? 'Activa' : 'Pausada';
+        const isActive = x.activo !== false;
+        const status = isActive ? 'Activa' : 'Pausada';
         const statusClass = x.activo !== false 
             ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20' 
             : 'bg-slate-500/10 text-slate-400 border border-slate-500/20';
@@ -408,9 +467,17 @@
               <td class="px-6 py-4 text-slate-300 font-semibold text-sm">${salary}</td>
               <td class="px-6 py-4 text-slate-300 text-xs">${exp} de exp. / ${school}</td>
               <td class="px-6 py-4">
-                <span class="px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest ${statusClass}">
-                  ${status}
-                </span>
+                <div class="flex items-center gap-3">
+                  <label class="inline-flex items-center cursor-pointer" title="Publicar / despublicar vacante">
+                    <input type="checkbox" class="sr-only peer" ${isActive ? "checked" : ""} onchange="toggleVacanteActiva('${idJs}', this.checked)">
+                    <div class="relative w-11 h-6 rounded-full bg-slate-600/60 peer-checked:bg-emerald-500/70 transition-colors">
+                      <span class="absolute top-[2px] left-[2px] w-5 h-5 rounded-full bg-white transition-transform peer-checked:translate-x-5"></span>
+                    </div>
+                  </label>
+                  <span class="px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest ${statusClass}">
+                    ${status}
+                  </span>
+                </div>
               </td>
               <td class="px-6 py-4 text-right">
                 <button onclick="editarVacante('${id}')" 
@@ -493,7 +560,21 @@
     const recentL = (state.datasets.logs || []).slice(0, 5);
 
     if (byId("tablaCandidatos")) byId("tablaCandidatos").innerHTML = table(["Candidato", "Puesto Aplicado", "Empresas", "Fase Proceso", "Score IA", "Acciones"], cRows);
-    if (byId("tablaVacantes")) byId("tablaVacantes").innerHTML = table(["Código / Puesto", "Rango Salarial", "Requisitos", "Estado", "Acción"], vRows);
+    if (byId("tablaVacantes")) {
+      const isTodas = state.vacanteFilter === "todas";
+      const isActivas = state.vacanteFilter === "activas";
+      const isPausadas = state.vacanteFilter === "pausadas";
+      const filterControls = `
+        <div class="px-6 py-4 border-b border-white/5 bg-white/[0.02] flex flex-wrap items-center gap-2">
+          <span class="text-[10px] font-black uppercase tracking-widest text-slate-500 mr-2">Filtrar</span>
+          <button type="button" onclick="setVacanteFilter('todas')" class="px-3 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${isTodas ? "bg-mabaker-blue/20 text-mabaker-blue border border-mabaker-blue/30" : "bg-white/5 text-slate-400 border border-white/10 hover:bg-white/10"}">Todas</button>
+          <button type="button" onclick="setVacanteFilter('activas')" class="px-3 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${isActivas ? "bg-emerald-500/20 text-emerald-400 border border-emerald-500/30" : "bg-white/5 text-slate-400 border border-white/10 hover:bg-white/10"}">Activas</button>
+          <button type="button" onclick="setVacanteFilter('pausadas')" class="px-3 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${isPausadas ? "bg-slate-500/20 text-slate-300 border border-slate-500/30" : "bg-white/5 text-slate-400 border border-white/10 hover:bg-white/10"}">Pausadas</button>
+          <span class="ml-auto text-[10px] font-bold uppercase tracking-widest text-slate-500">${vacantesFiltradas.length} visibles</span>
+        </div>
+      `;
+      byId("tablaVacantes").innerHTML = filterControls + table(["Código / Puesto", "Rango Salarial", "Requisitos", "Estado", "Acción"], vRows);
+    }
     if (byId("tablaRechazados")) byId("tablaRechazados").innerHTML = table(["Candidato", "Vacante Aplicada", "Motivo de Descarte", "Fecha"], rRows);
     if (byId("tablaLogs")) byId("tablaLogs").innerHTML = table(["Evento / Operación", "Actor / Usuario", "Fecha de Registro"], lRows);
     
@@ -565,7 +646,7 @@
 
   async function loadJefe(session) {
     const d = (session.departamento || "").toLowerCase();
-    const list = await supaGet("/rest/v1/candidatos_activos?select=*&order=created_at.desc").catch(() => []);
+    const list = await supaGet(candidateEndpointForRole("jefe")).catch(() => []);
     const scoped = d ? list.filter((x) => (x.departamento || "").toLowerCase().includes(d)) : list;
     const pendientes = scoped.filter((x) => (x.fase_actual || "").includes("tecnica") || (x.fase_actual || "").includes("jefe"));
     const evaluados = scoped.filter((x) => x.veredicto_jefe || (x.fase_actual || "").includes("rechaz") || (x.fase_actual || "") === "firma");
@@ -661,12 +742,21 @@
     };
     await supaPatch(`/rest/v1/catalogo_puestos?id=eq.${state.currentVacanteId}`, normalizeSavePayload(payload)).catch(() => alert("No se pudo guardar la vacante"));
     cerrarModalVacante();
-    await loadRRHH([
-      { id: "candidatos", endpoint: "/rest/v1/candidatos_activos?select=*&order=created_at.desc" },
-      { id: "rechazados", endpoint: "/rest/v1/prospectos_rechazados?select=*&order=created_at.desc" },
-      { id: "vacantes", endpoint: "/rest/v1/catalogo_puestos?select=*&order=creado_en.desc" },
-      { id: "logs", endpoint: "/rest/v1/log_agente?select=*&order=created_at.desc&limit=50" },
-    ]);
+    await reloadCurrentRoleData();
+  }
+
+  async function toggleVacanteActiva(id, nextActive) {
+    try {
+      await supaPatch(`/rest/v1/catalogo_puestos?id=eq.${encodeURIComponent(id)}`, {
+        activo: !!nextActive,
+      });
+      await reloadCurrentRoleData();
+      alert(`Vacante ${nextActive ? "publicada" : "pausada"} correctamente.`);
+    } catch (e) {
+      console.error("No se pudo cambiar estado de vacante:", e);
+      alert("No se pudo actualizar el estado de la vacante.");
+      await reloadCurrentRoleData();
+    }
   }
 
   function abrirModalCandidato(id) {
@@ -911,8 +1001,10 @@
   window.cargarEvaluacionesCandidato = cargarEvaluacionesCandidato;
   window.initDashboard = initDashboard;
   window.activarPanel = activarPanel;
+  window.setVacanteFilter = setVacanteFilter;
   window.toggleSidebar = toggleSidebar;
   window.editarVacante = editarVacante;
+  window.toggleVacanteActiva = toggleVacanteActiva;
   window.guardarCambiosVacante = guardarCambiosVacante;
   window.cerrarModalVacante = cerrarModalVacante;
   window.abrirModalCandidato = abrirModalCandidato;

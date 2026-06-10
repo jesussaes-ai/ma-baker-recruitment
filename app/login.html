@@ -9,7 +9,8 @@
 <link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
 <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet"/>
 <!-- Tailwind CSS v3 -->
-<link rel="stylesheet" href="styles/tailwind.build.css">
+<script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="styles/tailwind.build.css">
 <!-- Lucide Icons (via CDN for visual elements) -->
 <script src="https://unpkg.com/lucide@0.344.0/dist/umd/lucide.min.js" integrity="sha384-tTkFttkBclaU1cloKwOi9xk3pbao3VZxTjLNBt8iFABWDBQibbAbWpVmO28zMuxq" crossorigin="anonymous"></script>
 <script>
@@ -84,27 +85,27 @@
 <h2 class="text-xs font-semibold uppercase tracking-wider mb-4 text-white/80">Acceso Rápido por Rol</h2>
 <div class="grid grid-cols-2 md:grid-cols-5 gap-3" data-purpose="role-grid">
 <!-- Administrador -->
-<button class="role-btn flex flex-col items-center justify-center p-3 rounded-xl bg-white/10 border border-white/10" data-purpose="role-admin" type="button" onclick="quickLogin('admin@mabakerandchef.com','Admin2026!')">
+<button class="role-btn flex flex-col items-center justify-center p-3 rounded-xl bg-white/10 border border-white/10" data-purpose="role-admin" type="button" onclick="quickLoginByRole('admin')">
 <i class="w-6 h-6 mb-1" data-lucide="shield-check"></i>
 <span class="text-[10px] font-medium">Administrador</span>
 </button>
 <!-- RRHH -->
-<button class="role-btn flex flex-col items-center justify-center p-3 rounded-xl bg-white/10 border border-white/10" data-purpose="role-rrhh" type="button" onclick="quickLogin('rrhh@mabakerandchef.com','RRHH2026!')">
+<button class="role-btn flex flex-col items-center justify-center p-3 rounded-xl bg-white/10 border border-white/10" data-purpose="role-rrhh" type="button" onclick="quickLoginByRole('rrhh')">
 <i class="w-6 h-6 mb-1" data-lucide="users"></i>
 <span class="text-[10px] font-medium text-center">RRHH</span>
 </button>
 <!-- Médico -->
-<button class="role-btn flex flex-col items-center justify-center p-3 rounded-xl bg-white/10 border border-white/10" data-purpose="role-medico" type="button" onclick="quickLogin('medico@mabakerandchef.com','Medico2026!')">
+<button class="role-btn flex flex-col items-center justify-center p-3 rounded-xl bg-white/10 border border-white/10" data-purpose="role-medico" type="button" onclick="quickLoginByRole('medico')">
 <i class="w-6 h-6 mb-1" data-lucide="stethoscope"></i>
 <span class="text-[10px] font-medium text-center">Médico</span>
 </button>
 <!-- Jefe de Área -->
-<button class="role-btn flex flex-col items-center justify-center p-3 rounded-xl bg-white/10 border border-white/10" data-purpose="role-jefe" type="button" onclick="quickLogin('jefe@mabakerandchef.com','Jefe2026!')">
+<button class="role-btn flex flex-col items-center justify-center p-3 rounded-xl bg-white/10 border border-white/10" data-purpose="role-jefe" type="button" onclick="quickLoginByRole('jefe')">
 <i class="w-6 h-6 mb-1" data-lucide="briefcase"></i>
 <span class="text-[10px] font-medium text-center leading-tight">Jefe de Área</span>
 </button>
 <!-- Seguridad e Higiene -->
-<button class="role-btn flex flex-col items-center justify-center p-3 rounded-xl bg-white/10 border border-white/10 col-span-2 md:col-span-1" data-purpose="role-seguridad" type="button" onclick="quickLogin('sgi@mabakerandchef.com','SGI2026!')">
+<button class="role-btn flex flex-col items-center justify-center p-3 rounded-xl bg-white/10 border border-white/10 col-span-2 md:col-span-1" data-purpose="role-seguridad" type="button" onclick="quickLoginByRole('sgi')">
 <i class="w-6 h-6 mb-1" data-lucide="hard-hat"></i>
 <span class="text-[10px] font-medium text-center leading-tight">SGI / Seg. Industrial</span>
 </button>
@@ -177,9 +178,14 @@
             }
         });
 
-        function quickLogin(email, pwd) {
-            document.getElementById('email').value = email;
-            document.getElementById('password').value = pwd;
+        function quickLoginByRole(role) {
+            const demo = (window.MB_CONFIG && window.MB_CONFIG.DEMO_CREDENTIALS && window.MB_CONFIG.DEMO_CREDENTIALS[role]) || null;
+            if (!demo || !demo.email || !demo.password) {
+                alert('Acceso rápido no configurado. Ingresa tus credenciales manualmente.');
+                return;
+            }
+            document.getElementById('email').value = demo.email;
+            document.getElementById('password').value = demo.password;
             document.getElementById('loginForm').dispatchEvent(new Event('submit', { cancelable: true }));
         }
 

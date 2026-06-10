@@ -107,14 +107,14 @@ Configura qué batería psicométrica aplica a cada puesto: orden, si es obligat
 
 ## 6. RBAC — Roles y Dashboards
 
-| Rol | Email | Contraseña | Dashboard | Funciones |
-|---|---|---|---|---|
-| admin | admin@mabakerandchef.com | MaBaker2024! | dashboard-admin.html | Acceso total |
-| rrhh | rrhh@mabakerandchef.com | RRHH2024! | dashboard-rrhh.html | Candidatos, rechazados, psicométricos, PDFs |
-| medico | medico@mabakerandchef.com | Medico2024! | dashboard-medico.html | Solo datos clínicos |
-| jefe | jefe.calidad@mabakerandchef.com | Jefe2024! | dashboard-jefe.html | Solo su área |
-| sgi | sgi@mabakerandchef.com | SGI2024! | dashboard-sgi.html | BPM, HACCP, Alérgenos, Trazabilidad (7 puntos) |
-| seguridad | sh@mabakerandchef.com | SH2024! | dashboard-seguridad.html | EPP, NOM-017, Químicos, IMSS (7 puntos) |
+| Rol | Dashboard | Funciones |
+|---|---|---|
+| admin | dashboard-admin.html | Acceso total |
+| rrhh | dashboard-rrhh.html | Candidatos, rechazados, psicométricos, PDFs |
+| medico | dashboard-medico.html | Solo datos clínicos |
+| jefe | dashboard-jefe.html | Solo su área |
+| sgi | dashboard-sgi.html | BPM, HACCP, Alérgenos, Trazabilidad (7 puntos) |
+| seguridad | dashboard-seguridad.html | EPP, NOM-017, Químicos, IMSS (7 puntos) |
 
 ---
 
@@ -154,18 +154,17 @@ ma-baker-recruitment/
 
 ---
 
-## 8. Credenciales del Proyecto (resumen)
+## 8. Configuración sensible (resumen)
 
-| Servicio | Detalle |
+| Variable | Detalle |
 |---|---|
-| Supabase URL | https://znskpdixdyxdbvpapqrg.supabase.co |
-| Supabase Email | jesussaes@gmail.com |
-| PAT Supabase | sbp_5c53d56dc466b7fe0ca021dc07239d966a49967a |
-| Service Role Key | eyJhbGci... (ver CREDENCIALES.md) |
-| GitHub Usuario | jesusSan61 |
-| GitHub Repo | ma-baker-recruitment (pendiente crear) |
+| SUPABASE_URL | URL del proyecto Supabase |
+| SUPABASE_ANON_KEY | Llave pública para frontend |
+| SUPABASE_SERVICE_ROLE_KEY | Solo backend/scripts seguros |
+| SUPABASE_PAT | Solo administración vía API de Supabase |
+| SUPABASE_PROJECT_REF | Referencia del proyecto |
 
-> Las contraseñas completas están en `CREDENCIALES.md` (excluido de git).
+> No almacenar contraseñas, PATs o service role en archivos versionados.
 
 ---
 
@@ -186,4 +185,5 @@ ma-baker-recruitment/
 - **Las preguntas psicométricas son expandibles:** Se pueden agregar nuevas baterías y nuevas preguntas sin modificar el schema, simplemente agregando filas a las tablas correspondientes.
 - **SGI ≠ Seguridad e Higiene:** Son roles y dashboards completamente separados. El rol `sgi` evalúa los 7 puntos de Calidad e Inocuidad. El rol `seguridad` evalúa los 7 puntos de Seguridad e Higiene.
 - **El script `crear-tablas.js`** puede volver a ejecutarse en cualquier momento para recrear el schema (usa `IF NOT EXISTS`).
-- **El PAT de Supabase** debe usarse para la Management API (`api.supabase.com`). El service_role key se usa para la REST API (`supabase.co/rest/v1/`).
+- **El PAT de Supabase** debe usarse para la Management API (`api.supabase.com`).
+- **La service_role key** solo debe existir en backend/scripts protegidos, nunca en frontend.

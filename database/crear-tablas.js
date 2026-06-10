@@ -5,8 +5,13 @@
  */
 const https = require('https');
 
-const SERVICE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inpuc2twZGl4ZHl4ZGJ2cGFwcXJnIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc3Mjg1ODgwOCwiZXhwIjoyMDg4NDM0ODA4fQ.s7yC5ODssUgqHjH0PsAhTZuNQ1R-lMuJAt62OKDwryg';
-const REF = 'znskpdixdyxdbvpapqrg';
+const SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
+const REF = process.env.SUPABASE_PROJECT_REF;
+
+if (!SERVICE_KEY || !REF) {
+    console.error('Faltan variables de entorno: SUPABASE_SERVICE_ROLE_KEY y SUPABASE_PROJECT_REF.');
+    process.exit(1);
+}
 
 // Función que ejecuta un SQL via Management API
 function sql(query, label) {

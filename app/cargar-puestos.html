@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Ma Baker — Gestor de Vacantes</title>
+    <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="styles/tailwind.build.css">
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght@100..700,0..1&display=swap" rel="stylesheet">
@@ -419,7 +420,7 @@
     <script>
 
         const SUPA_URL = window.MB_CONFIG.SUPABASE_URL;
-        const SUPA_KEY = window.MB_CONFIG.SUPABASE_SERVICE_ROLE_KEY;
+        const SUPA_KEY = window.MB_CONFIG.SUPABASE_ANON_KEY;
         const HEADERS = { 'apikey': SUPA_KEY, 'Authorization': `Bearer ${SUPA_KEY}`, 'Content-Type': 'application/json' };
         const esc = window.MB_CONFIG.escapeHTML;
 

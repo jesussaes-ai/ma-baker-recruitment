@@ -2,6 +2,8 @@
 CREDENCIALES.md
 .env
 .env.*
+!.env.example
+app/js/runtime-config.js
 
 # Node
 node_modules/

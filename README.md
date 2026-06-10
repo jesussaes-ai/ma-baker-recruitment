@@ -19,5 +19,37 @@ Este proyecto implementa un sistema agéntico avanzado para automatizar el proce
 - Se agregó `app/js/help-overlay.js` para mostrar ayuda flotante en iconos y acciones.
 - El script de ayuda se carga en las pantallas principales para mejorar onboarding y operación diaria.
 
+### Seguridad de configuración
+- Se agregó `app/js/config.js` con configuración pública del frontend.
+- El frontend usa solo `SUPABASE_ANON_KEY`; no utiliza `service_role`.
+- Los scripts de `database/` ahora leen secretos desde variables de entorno.
+- Usa `.env.example` como plantilla local y nunca subas secretos reales.
+
+### Flujo de postulación y correos
+- Se captura el origen de la postulación desde inicio: `ONLINE` o `EN SITIO`.
+- Al enviar el formulario se registra `estatus_postulacion = RECIBIDA`.
+- Si `EMAIL_WEBHOOK_URL` está configurado en runtime, se envían:
+  - correo de agradecimiento al candidato;
+  - correo de notificación al reclutador con el resumen y payload completo.
+- Configuración esperada en runtime (`window.__MB_RUNTIME_CONFIG`):
+  - `EMAIL_WEBHOOK_URL`
+  - `RECRUITER_EMAILS` (arreglo de correos)
+  - `COMPANY_NAME` (opcional)
+- Se incluye ejemplo en `app/js/runtime-config.example.js`.
+
+### Webhook de correo (Supabase)
+- Se agregó Edge Function en `supabase/functions/send-postulacion-emails/index.ts`.
+- Guía de despliegue: `docs/deploy-email-webhook.md`.
+- Runbook operativo multiproveedor (Gmail/Resend/Postmark/Brevo): `docs/RUNBOOK-CORREO-MULTIPROVEEDOR.md`.
+- Espejo OneNote (seguimiento operativo): `docs/onenote/seguimiento-ma-baker.md`.
+- Skill de cierre documental (Obsidian + README + OneNote + GitHub): `.cursor/skills/documentacion-cierre-ma-baker/SKILL.md`.
+- Skills personales globales (auto-aprendizaje): `~/.cursor/skills/auto-skill-from-learning/`.
+
+### Carga documental opcional para candidatos >= 80%
+- Al finalizar con score >= 80% se habilita módulo para subir documentos uno por uno.
+- Endpoint seguro: `supabase/functions/upload-candidato-document/index.ts`.
+- Registro de metadatos en tabla `candidato_documentos`.
+- Migración SQL: `database/migracion-candidato-documentos.sql`.
+
 > [!NOTE]
 > Este proyecto se basa en la arquitectura definida en el cuaderno de NotebookLM: "Reclutamiento y Seleccion de Personal Automatizado: Ma Baker and Chef".

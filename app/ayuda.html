@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Centro de Ayuda | Ma Baker</title>
+    <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="styles/tailwind.build.css">
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;600;700;800;900&display=swap" rel="stylesheet">
     <style>
@@ -133,9 +134,39 @@
         (function () {
             const params = new URLSearchParams(window.location.search);
             const dep = (params.get('dep') || '').toLowerCase();
-            if (!dep) return;
-            const card = document.querySelector(`.dep-card[data-dep="${dep}"]`);
-            if (card) card.classList.add('active');
+            const scope = (params.get('scope') || '').toLowerCase();
+            const allCards = Array.from(document.querySelectorAll('.dep-card'));
+            const headerBadge = document.querySelector('header .badge');
+            const headerTitle = document.querySelector('header h1');
+            const headerText = document.querySelector('header p.text-slate-300');
+            const depLinks = Array.from(document.querySelectorAll('header .flex.flex-wrap.gap-3.pt-2 a'));
+            const isCandidateRestricted = dep === 'candidato' || scope === 'externo';
+
+            if (dep) {
+                const card = document.querySelector(`.dep-card[data-dep="${dep}"]`);
+                if (card) card.classList.add('active');
+            }
+
+            if (isCandidateRestricted) {
+                // Candidato externo: solo su guía, sin mostrar módulos internos.
+                allCards.forEach((card) => {
+                    card.style.display = card.getAttribute('data-dep') === 'candidato' ? '' : 'none';
+                });
+                depLinks.forEach((link) => {
+                    const txt = (link.textContent || '').trim().toLowerCase();
+                    if (txt !== 'portal candidato') link.style.display = 'none';
+                });
+                if (headerBadge) {
+                    headerBadge.textContent = 'Ayuda para candidato';
+                }
+                if (headerTitle) {
+                    headerTitle.textContent = 'Guía para tu postulación';
+                }
+                if (headerText) {
+                    headerText.textContent = 'Guía rápida para completar tu postulación. Aquí solo verás pasos y ayudas necesarias para llenar tus datos como candidato externo.';
+                }
+                document.title = 'Ayuda Candidato Externo | Ma Baker';
+            }
         })();
     </script>
 </body>

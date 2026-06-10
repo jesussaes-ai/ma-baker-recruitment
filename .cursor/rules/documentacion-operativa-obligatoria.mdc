@@ -1,0 +1,32 @@
+---
+description: Documentacion operativa obligatoria al cerrar tareas
+alwaysApply: true
+---
+
+# Regla de documentacion y cierre
+
+Al terminar una tarea tecnica en este proyecto, **aplicar la skill** `.cursor/skills/documentacion-cierre-ma-baker/SKILL.md` y ejecutar este checklist antes de responder "listo":
+
+- Actualizar documentacion tecnica en `docs/` cuando haya cambios de arquitectura, flujos o configuracion.
+- Actualizar `README.md` con enlace o nota de la nueva documentacion si aplica.
+- Actualizar nota de seguimiento en `docs/obsidian/` cuando el cambio impacte operacion diaria.
+- Actualizar espejo OneNote en `docs/onenote/` (misma informacion operativa, sin secretos).
+- Confirmar explicitamente al usuario que se actualizo en:
+  - Obsidian
+  - README
+  - OneNote (`docs/onenote/`)
+  - estado de Git/GitHub
+
+## Politica de GitHub
+
+- No asumir push remoto automatico.
+- Si no hubo commit/push, informar claramente "GitHub remoto pendiente".
+- Solo hacer commit o push cuando el usuario lo pida explicitamente.
+
+## Formato de cierre obligatorio
+
+Incluir bloque breve:
+
+- Inspeccionado:
+- Documentado:
+- Git/GitHub:

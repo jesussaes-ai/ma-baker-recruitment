@@ -9,8 +9,13 @@
 const https = require('https');
 const fs = require('fs');
 
-const PROJECT_REF = 'znskpdixdyxdbvpapqrg';
-const PAT = 'sbp_5c53d56dc466b7fe0ca021dc07239d966a49967a';
+const PROJECT_REF = process.env.SUPABASE_PROJECT_REF;
+const PAT = process.env.SUPABASE_PAT;
+
+if (!PROJECT_REF || !PAT) {
+    console.error('Faltan variables de entorno: SUPABASE_PROJECT_REF y SUPABASE_PAT.');
+    process.exit(1);
+}
 
 /**
  * Ejecuta SQL via Management API de Supabase (requiere PAT, no service key)

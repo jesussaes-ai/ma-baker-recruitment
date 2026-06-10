@@ -189,18 +189,13 @@ ma-baker-recruitment/
 4. Ejecutar
 
 ### Paso 2: Configurar Variables
-- El archivo `.env` ya tiene las credenciales configuradas
-- Las credenciales también están hardcoded en los archivos JS (para desarrollo)
-- En producción: usar variables de entorno
+- Copiar `.env.example` a `.env` y completar valores reales.
+- No guardar credenciales reales en el repositorio.
+- En frontend usar solo `SUPABASE_ANON_KEY`.
 
 ### Paso 3: Abrir la Aplicación
 - Abrir `app/login.html` en un navegador
-- Credenciales iniciales:
-  - Admin: `admin@mabakerandchef.com` / `Admin2026!`
-  - RRHH: `rrhh@mabakerandchef.com` / `RRHH2026!`
-  - Médico: `medico@mabakerandchef.com` / `Medico2026!`
-  - Jefe: `jefe@mabakerandchef.com` / `Jefe2026!`
-  - SGI: `sgi@mabakerandchef.com` / `SGI2026!`
+- Crear usuarios de acceso mediante scripts seguros o panel de administración.
 
 ---
 

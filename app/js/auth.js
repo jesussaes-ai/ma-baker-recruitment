@@ -27,7 +27,7 @@ const ROLE_ROUTES = {
    Cada otro rol solo entra a su propia pantalla.
 ───────────────────────────────────────────────────── */
 const ROLE_ACCESS = {
-    admin: ['dashboard-admin.html', 'dashboard-rrhh.html', 'dashboard-medico.html',
+    admin: ['dashboard-admin.html', 'dashboard-rrhh.html',
         'dashboard-jefe.html', 'dashboard-sgi.html', 'dashboard-seguridad.html',
         'cargar-puestos.html', 'cargar-psicometricos.html'],
     rrhh: ['dashboard-rrhh.html', 'cargar-puestos.html', 'cargar-psicometricos.html'],
