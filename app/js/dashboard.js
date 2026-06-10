@@ -34,8 +34,9 @@
     resources: [],
     datasets: {},
     filteredCandidates: null,
-    vacanteFilter: "todas",
+    vacanteFilter: "activas",
     currentVacanteId: null,
+    viewingVacanteId: null,
     currentCandidatoId: null,
   };
 
@@ -254,7 +255,9 @@
 
     if (role === "rrhh" || role === "admin") {
       console.log("🚀 initDashboard: loading RRHH/Admin resources (" + resources.length + ")");
-      return loadRRHH(resources || []);
+      await loadRRHH(resources || []);
+      initVacantesUploadWidget();
+      return;
     }
     if (role === "jefe") return loadJefe(s);
     if (role === "medico") return loadMedico();
@@ -268,18 +271,35 @@
     userInfo.innerHTML = `<span class="user-name">${nombre}</span><span class="user-rol">${rol}</span>`;
   }
 
+  async function loadCandidatesForRole() {
+    if (window.MB_CANDIDATES && localStorage.getItem("mb_token")) {
+      const medical = state.role === "medico";
+      const data = await window.MB_CANDIDATES.listCandidates({ medical });
+      return medical ? data : data.map((c) => removeMedicalFieldsFromCandidate(c));
+    }
+    const endpoint = candidateEndpointForRole(state.role);
+    const data = await supaGet(endpoint);
+    return state.role === "medico"
+      ? data
+      : data.map((c) => removeMedicalFieldsFromCandidate(c));
+  }
+
   async function loadRRHH(resources) {
     console.log("📋 loadRRHH: starting...");
     const map = {};
     await Promise.all(
       resources.map(async (r) => {
         try {
-          let endpoint = r.endpoint;
-          if (r.id === "candidatos") endpoint = candidateEndpointForRole(state.role);
-          const data = await supaGet(endpoint);
-          map[r.id] = r.id === "candidatos"
-            ? data.map((c) => removeMedicalFieldsFromCandidate(c))
-            : data;
+          if (r.id === "candidatos") {
+            map[r.id] = await loadCandidatesForRole();
+            return;
+          }
+          if (r.id === "rechazados" && window.MB_CANDIDATES && localStorage.getItem("mb_token")) {
+            map[r.id] = await window.MB_CANDIDATES.listRejected().catch(() => []);
+            return;
+          }
+          const data = await supaGet(r.endpoint);
+          map[r.id] = data;
         } catch (e) {
           console.error("📋 loadRRHH: failed for " + r.id, e);
           map[r.id] = [];
@@ -386,6 +406,13 @@
                    Link
                 </button>
             `;
+        } else if (phase === 'psicometricos_realizados') {
+            psicoBtn = `
+                <button onclick="avanzarAMedico('${id}')"
+                   class="px-3.5 py-2 rounded-xl bg-emerald-500/20 text-emerald-400 hover:bg-emerald-500 hover:text-white transition-all text-xs font-bold flex items-center gap-1.5">
+                   Enviar a médico
+                </button>
+            `;
         }
         
         return `
@@ -450,6 +477,7 @@
             : 'bg-slate-500/10 text-slate-400 border border-slate-500/20';
         const exp = x.experiencia_minima_anios != null ? `${x.experiencia_minima_anios} años` : '—';
         const school = esc(x.escolaridad_minima || '—');
+        const pdfName = esc((x.nombre_archivo_fuente || (x.fuente_pdf ? 'PDF' : 'Manual')).substring(0, 28));
         
         return `
             <tr class="border-b border-white/5 hover:bg-white/5 transition-colors">
@@ -464,8 +492,9 @@
                   </div>
                 </div>
               </td>
+              <td class="px-6 py-4 text-slate-400 text-xs font-mono">${pdfName}</td>
               <td class="px-6 py-4 text-slate-300 font-semibold text-sm">${salary}</td>
-              <td class="px-6 py-4 text-slate-300 text-xs">${exp} de exp. / ${school}</td>
+              <td class="px-6 py-4 text-slate-300 text-xs">${exp} / ${school}</td>
               <td class="px-6 py-4">
                 <div class="flex items-center gap-3">
                   <label class="inline-flex items-center cursor-pointer" title="Publicar / despublicar vacante">
@@ -480,11 +509,16 @@
                 </div>
               </td>
               <td class="px-6 py-4 text-right">
-                <button onclick="editarVacante('${id}')" 
-                   class="px-3.5 py-2 rounded-xl bg-mabaker-red/20 text-mabaker-red hover:bg-mabaker-red hover:text-white transition-all text-xs font-bold flex items-center gap-1.5 ml-auto shadow-md shadow-mabaker-red/5">
-                   <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0115.75 21H5.25A2.25 2.25 0 013 18.75V8.25A2.25 2.25 0 015.25 6H10"></path></svg>
-                   Editar
-                </button>
+                <div class="flex items-center justify-end gap-2">
+                  <button onclick="verDescripcionVacante('${id}')" 
+                     class="px-3 py-2 rounded-xl bg-mabaker-blue/20 text-mabaker-blue hover:bg-mabaker-blue hover:text-white transition-all text-xs font-bold">
+                     Ver descripción
+                  </button>
+                  <button onclick="editarVacante('${id}')" 
+                     class="px-3 py-2 rounded-xl bg-mabaker-red/20 text-mabaker-red hover:bg-mabaker-red hover:text-white transition-all text-xs font-bold">
+                     Editar
+                  </button>
+                </div>
               </td>
             </tr>
         `;
@@ -493,14 +527,25 @@
 
     const rRows = r
       .map((x) => {
+        const id = esc(x.id || "");
         const name = esc(resolveCandidateName(x));
         const job = esc(resolveJobName(x));
-        const reason = esc(x.razon_rechazo || x.motivo_rechazo || x.motivo || "-");
+        const score = x.match_score ?? x.decision_agente?.score ?? null;
+        const reason = esc(
+          x.razon_rechazo ||
+          x.decision_agente?.reasoning ||
+          x.motivo_rechazo ||
+          x.motivo ||
+          "-"
+        );
         const date = fmtDate(x.created_at);
         const initials = name.split(' ').slice(0,2).map(n=>n[0]).join('').toUpperCase() || "?";
+        const scoreHtml = score != null
+          ? `<span class="font-black text-rose-400">${esc(String(score))}</span><span class="text-[10px] text-slate-500">/100</span>`
+          : `<span class="text-slate-500">—</span>`;
         
         return `
-            <tr class="border-b border-white/5 hover:bg-white/5 transition-colors">
+            <tr class="border-b border-white/5 hover:bg-white/5 transition-colors cursor-pointer" onclick="abrirModalRechazado('${id}')">
               <td class="px-6 py-4">
                 <div class="flex items-center gap-3.5">
                   <div class="size-9 rounded-full bg-rose-500/10 text-rose-400 border border-rose-500/20 flex items-center justify-center font-bold text-xs shrink-0">
@@ -513,6 +558,7 @@
                 </div>
               </td>
               <td class="px-6 py-4 text-slate-300 font-medium text-sm">${job}</td>
+              <td class="px-6 py-4">${scoreHtml}</td>
               <td class="px-6 py-4">
                 <div class="text-rose-400 text-xs font-medium max-w-sm whitespace-pre-wrap">${reason}</div>
               </td>
@@ -573,9 +619,9 @@
           <span class="ml-auto text-[10px] font-bold uppercase tracking-widest text-slate-500">${vacantesFiltradas.length} visibles</span>
         </div>
       `;
-      byId("tablaVacantes").innerHTML = filterControls + table(["Código / Puesto", "Rango Salarial", "Requisitos", "Estado", "Acción"], vRows);
+      byId("tablaVacantes").innerHTML = filterControls + table(["Puesto / Depto", "PDF origen", "Rango Salarial", "Requisitos", "Estado", "Acciones"], vRows);
     }
-    if (byId("tablaRechazados")) byId("tablaRechazados").innerHTML = table(["Candidato", "Vacante Aplicada", "Motivo de Descarte", "Fecha"], rRows);
+    if (byId("tablaRechazados")) byId("tablaRechazados").innerHTML = table(["Candidato", "Vacante Aplicada", "Score", "Motivo de Descarte", "Fecha"], rRows);
     if (byId("tablaLogs")) byId("tablaLogs").innerHTML = table(["Evento / Operación", "Actor / Usuario", "Fecha de Registro"], lRows);
     
     if (byId("tablaRecentCandidatos")) {
@@ -644,9 +690,87 @@
     }
   }
 
+  function resolvePsychometricPublicUrl() {
+    if (CFG.PSYCHOMETRIC_PUBLIC_URL) return CFG.PSYCHOMETRIC_PUBLIC_URL.replace(/\/$/, "");
+    const base = window.location.href.replace(/[^/]*$/, "");
+    return `${base}evaluacion-candidato.html`;
+  }
+
+  async function prepararPsicometrico(candidatoId) {
+    const c = (state.datasets.candidatos || []).find((x) => x.id === candidatoId);
+    if (!c) {
+      alert("Candidato no encontrado");
+      return;
+    }
+    const setupUrl = CFG.PSYCHOMETRIC_SETUP_WEBHOOK_URL || "";
+    if (!setupUrl) {
+      alert("Configura PSYCHOMETRIC_SETUP_WEBHOOK_URL en runtime-config.js");
+      return;
+    }
+
+    try {
+      const setupResp = await fetch(setupUrl, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          candidatoId,
+          codigoPuesto: c.codigo_puesto || "",
+          email: c.email || c.correo || "",
+          nombre: c.nombre_completo || c.nombre || "",
+          publicBaseUrl: resolvePsychometricPublicUrl(),
+        }),
+      });
+      const setupData = await setupResp.json().catch(() => ({}));
+      if (!setupResp.ok || !setupData.ok) {
+        throw new Error(setupData.error || setupData.detail || `HTTP ${setupResp.status}`);
+      }
+
+      const link =
+        setupData.link ||
+        `${resolvePsychometricPublicUrl()}?token=${encodeURIComponent(setupData.token || "")}`;
+
+      const emailUrl = CFG.EMAIL_WEBHOOK_URL || "";
+      const to = (CFG.CANDIDATE_RESULT_EMAIL_OVERRIDE || c.email || c.correo || "").trim();
+      if (emailUrl && to && link.includes("token=")) {
+        await fetch(emailUrl, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            to,
+            subject: "Ma Baker and Chef — Evaluación psicométrica",
+            text: `Hola ${c.nombre_completo || c.nombre || ""},\n\nCompleta tu evaluación en:\n${link}\n\nEquipo de Reclutamiento`,
+            html: `<p>Hola <strong>${esc(c.nombre_completo || c.nombre || "Candidato")}</strong>,</p><p>Completa tu evaluación psicométrica aquí:</p><p><a href="${esc(link)}">Abrir evaluación</a></p>`,
+            meta: { tipo: "psicometrico_link", candidato_id: candidatoId },
+          }),
+        }).catch(() => null);
+      }
+
+      alert(`Link psicométrico generado.\n\n${link}`);
+      await reloadCurrentRoleData();
+    } catch (e) {
+      alert(`Error al generar link: ${e.message || e}`);
+    }
+  }
+
+  async function avanzarAMedico(candidatoId) {
+    if (!window.MB_CANDIDATES) {
+      alert("Falta candidates-api.js");
+      return;
+    }
+    try {
+      await window.MB_CANDIDATES.patchCandidate(candidatoId, { fase_actual: "espera_medico" });
+      await reloadCurrentRoleData();
+      alert("Candidato enviado a evaluación médica.");
+    } catch (e) {
+      alert(`No se pudo avanzar fase: ${e.message || e}`);
+    }
+  }
+
   async function loadJefe(session) {
     const d = (session.departamento || "").toLowerCase();
-    const list = await supaGet(candidateEndpointForRole("jefe")).catch(() => []);
+    const list = window.MB_CANDIDATES && localStorage.getItem("mb_token")
+      ? await window.MB_CANDIDATES.listCandidates().catch(() => [])
+      : await supaGet(candidateEndpointForRole("jefe")).catch(() => []);
     const scoped = d ? list.filter((x) => (x.departamento || "").toLowerCase().includes(d)) : list;
     const pendientes = scoped.filter((x) => (x.fase_actual || "").includes("tecnica") || (x.fase_actual || "").includes("jefe"));
     const evaluados = scoped.filter((x) => x.veredicto_jefe || (x.fase_actual || "").includes("rechaz") || (x.fase_actual || "") === "firma");
@@ -707,56 +831,196 @@
     if (sidebar) sidebar.classList.toggle("open");
   }
 
+  function fieldTextFromDb(val) {
+    if (Array.isArray(val)) return val.filter(Boolean).join(", ");
+    if (val == null) return "";
+    return String(val);
+  }
+
+  function renderTagList(containerId, csv, emptyLabel) {
+    const el = byId(containerId);
+    if (!el) return;
+    const items = fieldTextFromDb(csv)
+      .split(/[,;\n]+/)
+      .map((s) => s.trim())
+      .filter(Boolean);
+    el.innerHTML = items.length
+      ? items.map((c) => `<span class="px-2 py-1 bg-white/10 text-slate-200 rounded text-[10px] font-bold">${esc(c)}</span>`).join("")
+      : `<span class="text-slate-500 text-xs italic">${emptyLabel}</span>`;
+  }
+
+  function verDescripcionVacante(id) {
+    const v = (state.datasets.vacantes || []).find((x) => String(x.id) === String(id));
+    if (!v) return;
+    state.viewingVacanteId = v.id;
+    setText("verV_codigo", v.codigo_puesto || "—");
+    setText("verV_titulo", v.nombre_puesto || "Sin nombre");
+    setText("verV_depto", v.departamento || "General");
+    setText("verV_escolaridad", v.escolaridad_minima || "Sin especificar");
+    setText("verV_exp", `${v.experiencia_minima_anios || 0} años`);
+    setText("verV_edad", `${v.edad_minima || 18} - ${v.edad_maxima || 55} años`);
+    setText("verV_sueldo", `${fmtMoney(v.sueldo_minimo)} - ${fmtMoney(v.sueldo_maximo)}`);
+    setText("verV_archivo", v.nombre_archivo_fuente || (v.fuente_pdf ? "PDF" : "Manual"));
+    const descEl = byId("verV_desc");
+    if (descEl) {
+      descEl.textContent = v.descripcion_completa || v.descripcion_puesto || "Sin descripción disponible.";
+    }
+    renderTagList("verV_conocimientos", v.conocimientos_tecnicos, "No especificados");
+    renderTagList("verV_competencias", v.competencias_clave, "No especificadas");
+    const st = byId("verV_status");
+    if (st) {
+      const active = v.activo !== false;
+      st.textContent = active ? "ACTIVA" : "PAUSADA";
+      st.className = active
+        ? "px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest bg-emerald-500/20 text-emerald-400"
+        : "px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest bg-slate-500/20 text-slate-400";
+    }
+    const modal = byId("modalVerVacante");
+    if (modal) modal.classList.remove("hidden");
+  }
+
+  function cerrarModalVerVacante() {
+    const modal = byId("modalVerVacante");
+    if (modal) modal.classList.add("hidden");
+    state.viewingVacanteId = null;
+  }
+
+  function editarVacanteDesdeVer() {
+    const id = state.viewingVacanteId;
+    cerrarModalVerVacante();
+    if (id) editarVacante(id);
+  }
+
+  function toggleSubirVacantesPDFs() {
+    const section = byId("vacantesUploadSection");
+    if (!section) return;
+    section.classList.toggle("hidden");
+  }
+
+  function autoGrowTextarea(el) {
+    if (!el) return;
+    el.style.height = "auto";
+    const minH = parseInt(el.dataset.minHeight || "48", 10);
+    el.style.height = Math.max(el.scrollHeight, minH) + "px";
+  }
+
+  function refreshVacanteAutoGrow() {
+    document.querySelectorAll("#modalVacante .vacante-autogrow").forEach((el) => {
+      autoGrowTextarea(el);
+      if (!el.dataset.autogrowBound) {
+        el.dataset.autogrowBound = "1";
+        el.addEventListener("input", () => autoGrowTextarea(el));
+      }
+    });
+  }
+
   function editarVacante(id) {
     const v = (state.datasets.vacantes || []).find((x) => String(x.id) === String(id));
     if (!v) return;
     state.currentVacanteId = v.id;
     setInput("editV_nombre", v.nombre_puesto);
-    setText("editV_codigo", v.codigo_puesto || "COD-000");
+    setInput("editV_codigo", v.codigo_puesto || "");
+    setInput("editV_archivo", v.nombre_archivo_fuente || "");
     setInput("editV_depto", v.departamento);
     setInput("editV_sMin", v.sueldo_minimo);
     setInput("editV_sMax", v.sueldo_maximo);
     setInput("editV_escolaridad", v.escolaridad_minima || "Sin especificar");
     setInput("editV_exp", v.experiencia_minima_anios || 0);
+    setInput("editV_edadMin", v.edad_minima ?? 18);
+    setInput("editV_edadMax", v.edad_maxima ?? 55);
     setInput("editV_desc", v.descripcion_completa || v.descripcion_puesto || "");
-    setInput("editV_conocimientos", v.conocimientos_tecnicos || "");
+    setInput("editV_conocimientos", fieldTextFromDb(v.conocimientos_tecnicos));
+    setInput("editV_competencias", fieldTextFromDb(v.competencias_clave));
     const chk = byId("editV_activo");
     if (chk) chk.checked = v.activo !== false;
     const modal = byId("modalVacante");
     if (modal) modal.classList.remove("hidden");
+    requestAnimationFrame(refreshVacanteAutoGrow);
   }
 
   async function guardarCambiosVacante() {
     if (!state.currentVacanteId) return;
     const payload = {
+      codigo_puesto: getInput("editV_codigo"),
       nombre_puesto: getInput("editV_nombre"),
+      nombre_archivo_fuente: getInput("editV_archivo"),
       departamento: getInput("editV_depto"),
       sueldo_minimo: numberOrNull(getInput("editV_sMin")),
       sueldo_maximo: numberOrNull(getInput("editV_sMax")),
       escolaridad_minima: getInput("editV_escolaridad"),
       experiencia_minima_anios: numberOrNull(getInput("editV_exp")) || 0,
+      edad_minima: numberOrNull(getInput("editV_edadMin")) ?? 18,
+      edad_maxima: numberOrNull(getInput("editV_edadMax")) ?? 55,
       descripcion_completa: getInput("editV_desc"),
       descripcion_puesto: getInput("editV_desc"),
       conocimientos_tecnicos: getInput("editV_conocimientos"),
+      competencias_clave: getInput("editV_competencias"),
       activo: !!(byId("editV_activo") && byId("editV_activo").checked),
     };
-    await supaPatch(`/rest/v1/catalogo_puestos?id=eq.${state.currentVacanteId}`, normalizeSavePayload(payload)).catch(() => alert("No se pudo guardar la vacante"));
-    cerrarModalVacante();
-    await reloadCurrentRoleData();
+    const normalized = normalizeSavePayload(payload);
+    try {
+      if (window.MB_VACANTES) {
+        await window.MB_VACANTES.updateVacante(state.currentVacanteId, normalized);
+      } else {
+        await supaPatch(`/rest/v1/catalogo_puestos?id=eq.${state.currentVacanteId}`, normalized);
+      }
+      cerrarModalVacante();
+      await reloadCurrentRoleData();
+      alert("Vacante actualizada correctamente.");
+    } catch (e) {
+      alert("No se pudo guardar la vacante: " + (e.message || e));
+    }
   }
 
   async function toggleVacanteActiva(id, nextActive) {
     try {
-      await supaPatch(`/rest/v1/catalogo_puestos?id=eq.${encodeURIComponent(id)}`, {
-        activo: !!nextActive,
-      });
+      if (window.MB_VACANTES) {
+        await window.MB_VACANTES.updateVacante(id, { activo: !!nextActive });
+      } else {
+        await supaPatch(`/rest/v1/catalogo_puestos?id=eq.${encodeURIComponent(id)}`, {
+          activo: !!nextActive,
+        });
+      }
       await reloadCurrentRoleData();
-      alert(`Vacante ${nextActive ? "publicada" : "pausada"} correctamente.`);
     } catch (e) {
       console.error("No se pudo cambiar estado de vacante:", e);
       alert("No se pudo actualizar el estado de la vacante.");
       await reloadCurrentRoleData();
     }
+  }
+
+  function initVacantesUploadWidget() {
+    if (!window.MB_VACANTES_UPLOAD || !byId("vacantesDropZone")) return;
+    window.MB_VACANTES_UPLOAD.init({
+      escapeHTML: esc,
+      onComplete: async () => {
+        await reloadCurrentRoleData();
+        setVacanteFilter("activas");
+      },
+    });
+  }
+
+  function abrirModalRechazado(id) {
+    const x = (state.datasets.rechazados || []).find((r) => String(r.id) === String(id));
+    if (!x) return;
+    const score = x.match_score ?? x.decision_agente?.score ?? "—";
+    const reasoning = x.decision_agente?.reasoning || x.razon_rechazo || "Sin detalle";
+    const escolaridad = x.escolaridad || "—";
+    const empresa = x.empresa_1 || "—";
+    const curpRfc = (x.curp && x.rfc) ? "Sí (+5 pts)" : "No (+0 pts)";
+    alert(
+      `Evaluación de postulación\n\n` +
+      `Candidato: ${resolveCandidateName(x)}\n` +
+      `Score final: ${score}/100 (umbral para avanzar: 80)\n\n` +
+      `Desglose aproximado del score:\n` +
+      `• Base: 50 pts\n` +
+      `• Escolaridad (${escolaridad}): +10 si Preparatoria/Técnico, +20 si Licenciatura\n` +
+      `• Experiencia (${empresa}): +15 primera empresa\n` +
+      `• CURP + RFC completos: ${curpRfc}\n\n` +
+      `Decisión: ${x.decision_agente?.decision || "ARCHIVE"}\n` +
+      `Motivo: ${reasoning}\n\n` +
+      `Tip: RRHH puede promover manualmente un caso para revisar fases siguientes.`
+    );
   }
 
   function abrirModalCandidato(id) {
@@ -886,7 +1150,7 @@
                             return `
                                 <div class="bg-white/5 border border-white/5 rounded-2xl p-4 space-y-2">
                                     <div class="flex justify-between items-start">
-                                        <span class="text-[9px] font-black text-slate-500 uppercase tracking-widest font-mono">Reactivo ${ans.numero || (idx + 1)}</span>
+                                        <span class="text-xs font-black text-slate-200 uppercase tracking-wide font-mono">Reactivo ${ans.numero || (idx + 1)}</span>
                                         <span class="text-[9px] font-black uppercase tracking-widest ${resultClass}">${resultIcon}</span>
                                     </div>
                                     <p class="text-sm font-semibold text-white">${esc(qText)}</p>
@@ -914,7 +1178,7 @@
                         </div>
                         <div class="flex items-center gap-3">
                             <div class="px-4 py-2 bg-white/5 border border-white/10 rounded-xl text-center">
-                                <span class="text-[9px] font-black text-slate-500 uppercase tracking-widest block leading-none">Puntuación</span>
+                                <span class="text-xs font-black text-slate-200 uppercase tracking-wide block leading-none">Puntuación</span>
                                 <span class="text-lg font-black text-white leading-none mt-1 inline-block">${score}</span>
                             </div>
                             <span class="px-3 py-2 rounded-xl text-xs font-black uppercase tracking-widest ${resClass}">
@@ -1004,11 +1268,18 @@
   window.setVacanteFilter = setVacanteFilter;
   window.toggleSidebar = toggleSidebar;
   window.editarVacante = editarVacante;
+  window.verDescripcionVacante = verDescripcionVacante;
+  window.cerrarModalVerVacante = cerrarModalVerVacante;
+  window.editarVacanteDesdeVer = editarVacanteDesdeVer;
+  window.toggleSubirVacantesPDFs = toggleSubirVacantesPDFs;
   window.toggleVacanteActiva = toggleVacanteActiva;
   window.guardarCambiosVacante = guardarCambiosVacante;
   window.cerrarModalVacante = cerrarModalVacante;
+  window.abrirModalRechazado = abrirModalRechazado;
   window.abrirModalCandidato = abrirModalCandidato;
   window.guardarCambiosCandidato = guardarCambiosCandidato;
   window.cerrarModalCandidato = cerrarModalCandidato;
+  window.prepararPsicometrico = prepararPsicometrico;
+  window.avanzarAMedico = avanzarAMedico;
   window.logout = logout;
 })();

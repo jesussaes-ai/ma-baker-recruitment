@@ -25,7 +25,7 @@ INSERT INTO pruebas_psicometricas (
 
   -- Batería 3: Valores Laborales (OVP)
   ('VALORES-OVP', 'Orientación de Valores Personales', 'valores',
-   'Identifica la jerarquía de valores personales y su compatibilidad con la cultura organizacional de Ma Baker.',
+   'Identifica la jerarquía de valores personales y su compatibilidad con la cultura organizacional de Ma Baker and Chef.',
    'Ordena de mayor a menor importancia los siguientes aspectos de tu vida laboral.',
    20, 20, 65, true),
 

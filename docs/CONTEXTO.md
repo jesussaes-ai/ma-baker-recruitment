@@ -9,7 +9,7 @@
 
 ## 🏢 Empresa
 
-- **Nombre oficial**: Ma Baker and Chef
+- **Nombre oficial**: Ma Baker and Chef (usar siempre completo; ver `.cursor/rules/nombre-oficial-ma-baker-and-chef.mdc` y `app/js/brand.js`)
 - **Sitio web**: [www.mabakerandchef.com](https://www.mabakerandchef.com)
 - **Giro**: Distribución de insumos para repostería y panadería
 - **Slogan**: "Color and Flavor"

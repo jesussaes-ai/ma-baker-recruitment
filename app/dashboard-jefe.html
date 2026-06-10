@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Ma Baker — Jefe de Área</title>
+    <title>Ma Baker and Chef — Jefe de Área</title>
     <meta name="description" content="Dashboard de evaluación técnica para jefes de área del sistema de reclutamiento Ma Baker and Chef.">
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="styles/tailwind.build.css">
@@ -110,7 +110,7 @@
                     <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" d="M12 21v-8.25M15.75 21v-8.25M8.25 21v-8.25M3 9l9-6 9 6m-1.5 12V10.33l-7.5-5-7.5 5V21h15z"></path></svg>
                 </div>
                 <div>
-                    <h1 class="font-extrabold text-lg leading-tight tracking-tighter uppercase text-white">Ma Baker</h1>
+                    <h1 class="font-extrabold text-sm leading-snug tracking-tight uppercase text-white">Ma Baker and Chef</h1>
                     <p class="text-[10px] text-amber-400 font-black uppercase tracking-[0.3em] italic leading-none">Jefe de Área</p>
                 </div>
             </div>
@@ -310,19 +310,19 @@
                 </h4>
                 <div class="grid grid-cols-2 gap-4 text-sm">
                     <div class="bg-white/5 rounded-2xl p-4">
-                        <div class="text-[10px] text-slate-400 uppercase tracking-widest mb-1">Edad</div>
+                        <div class="text-xs font-black text-slate-200 uppercase tracking-wide mb-1">Edad</div>
                         <div class="font-bold text-white" id="perfil_edad">—</div>
                     </div>
                     <div class="bg-white/5 rounded-2xl p-4">
-                        <div class="text-[10px] text-slate-400 uppercase tracking-widest mb-1">Escolaridad</div>
+                        <div class="text-xs font-black text-slate-200 uppercase tracking-wide mb-1">Escolaridad</div>
                         <div class="font-bold text-white" id="perfil_escolaridad">—</div>
                     </div>
                     <div class="bg-white/5 rounded-2xl p-4">
-                        <div class="text-[10px] text-slate-400 uppercase tracking-widest mb-1">Experiencia</div>
+                        <div class="text-xs font-black text-slate-200 uppercase tracking-wide mb-1">Experiencia</div>
                         <div class="font-bold text-white" id="perfil_exp">—</div>
                     </div>
                     <div class="bg-white/5 rounded-2xl p-4">
-                        <div class="text-[10px] text-slate-400 uppercase tracking-widest mb-1">Experiencia Laboral</div>
+                        <div class="text-xs font-black text-slate-200 uppercase tracking-wide mb-1">Experiencia Laboral</div>
                         <div class="font-bold text-white whitespace-pre-line text-xs leading-5" id="perfil_empresa">—</div>
                     </div>
                 </div>
@@ -421,6 +421,7 @@
 <!-- Scripts -->
 <script src="js/config.js"></script>
 <script src="js/auth.js"></script>
+<script src="js/candidates-api.js"></script>
 <script>
 /* ================================================================
    MÓDULO JEFE DE ÁREA — Evaluación Técnica de Candidatos
@@ -541,10 +542,12 @@ document.addEventListener('DOMContentLoaded', async () => {
 // ── Cargar datos ──────────────────────────────────────────────
 async function cargarDatos() {
     try {
-        const lista = await supaGet('/rest/v1/candidatos_activos?select=*&order=created_at.desc');
+        let lista = window.MB_CANDIDATES
+            ? await window.MB_CANDIDATES.listCandidates()
+            : await supaGet('/rest/v1/candidatos_activos?select=*&order=created_at.desc');
 
-        // Filtrar por departamento del jefe
-        const dept = state.departamento;
+        // Filtrar por departamento del jefe (RPC ya filtra; refuerzo local)
+        const dept = (state.departamento || '').toLowerCase();
         const propios = dept
             ? lista.filter(x => (x.departamento || x.nombre_puesto || '').toLowerCase().includes(dept))
             : lista;
@@ -558,10 +561,7 @@ async function cargarDatos() {
 
 function renderizarTablas(lista) {
     // Clasificar
-    const pendientes = lista.filter(x => {
-        const f = (x.fase_actual || '').toLowerCase();
-        return f.includes('jefe') || f.includes('tecnic') || f.includes('espera_jefe');
-    });
+    const pendientes = lista.filter(x => (x.fase_actual || '') === 'espera_jefe');
     const evaluados = lista.filter(x => x.veredicto_jefe);
     const aprobados = evaluados.filter(x => (x.veredicto_jefe||'').toLowerCase().includes('aprob'));
     const rechazados = evaluados.filter(x => (x.veredicto_jefe||'').toLowerCase().includes('rechaz'));
@@ -765,10 +765,15 @@ async function guardarVeredictoJefe() {
                 : 'rechazado_jefe',
         };
 
-        await supaPatch(
-            `/rest/v1/candidatos_activos?id=eq.${state.candidatoActual.id}`,
-            window.MB_UPPERCASE ? window.MB_UPPERCASE.normalizePayload(payload) : payload
-        );
+        const normalized = window.MB_UPPERCASE ? window.MB_UPPERCASE.normalizePayload(payload) : payload;
+        if (window.MB_CANDIDATES) {
+            await window.MB_CANDIDATES.patchCandidate(state.candidatoActual.id, normalized);
+        } else {
+            await supaPatch(
+                `/rest/v1/candidatos_activos?id=eq.${state.candidatoActual.id}`,
+                normalized
+            );
+        }
 
         cerrarModalJefe();
         mostrarToast('✅ Veredicto registrado correctamente', 'success');

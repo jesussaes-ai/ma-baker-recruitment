@@ -3,6 +3,9 @@
 
 Este proyecto implementa un sistema agéntico avanzado para automatizar el proceso de reclutamiento, validación y onboarding de talento en Ma Baker and Chef.
 
+### Marca oficial
+- Nombre completo obligatorio: **Ma Baker and Chef** (regla Cursor: `.cursor/rules/nombre-oficial-ma-baker-and-chef.mdc`, skill: `.cursor/skills/ma-baker-brand-name/SKILL.md`, constante: `app/js/brand.js`).
+
 ### Componentes Clave
 1. **Orquestador de Talento (System Prompt):** Gobierna el flujo completo y aplica filtros duros.
 2. **Dynamic Job Matcher (Skill):** Valida los 23 puntos obligatorios del formulario y realiza el cálculo de Match Score.
@@ -18,6 +21,7 @@ Este proyecto implementa un sistema agéntico avanzado para automatizar el proce
 - Se agregó `app/ayuda.html` como centro de ayuda por departamento.
 - Se agregó `app/js/help-overlay.js` para mostrar ayuda flotante en iconos y acciones.
 - El script de ayuda se carga en las pantallas principales para mejorar onboarding y operación diaria.
+- Navegación global **Atrás / Inicio** vía `app/js/navigation.js` (cargado automáticamente desde `theme.js` en todas las pantallas).
 
 ### Seguridad de configuración
 - Se agregó `app/js/config.js` con configuración pública del frontend.
@@ -41,6 +45,9 @@ Este proyecto implementa un sistema agéntico avanzado para automatizar el proce
 - Se agregó Edge Function en `supabase/functions/send-postulacion-emails/index.ts`.
 - Guía de despliegue: `docs/deploy-email-webhook.md`.
 - Runbook operativo multiproveedor (Gmail/Resend/Postmark/Brevo): `docs/RUNBOOK-CORREO-MULTIPROVEEDOR.md`.
+- Fase 3 psicométricos (link automático al promovido): `docs/fase-3-psicometricos.md`.
+- Fase 4 médico + jefe (transición de fases y RPC dashboards): `docs/fase-4-medico-jefe.md`.
+- Catálogo de vacantes en dashboard (ver PDF, editar, subir): `docs/catalogo-vacantes-dashboard.md`.
 - Espejo OneNote (seguimiento operativo): `docs/onenote/seguimiento-ma-baker.md`.
 - Skill de cierre documental (Obsidian + README + OneNote + GitHub): `.cursor/skills/documentacion-cierre-ma-baker/SKILL.md`.
 - Skills personales globales (auto-aprendizaje): `~/.cursor/skills/auto-skill-from-learning/`.

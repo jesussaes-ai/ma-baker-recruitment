@@ -1,0 +1,37 @@
+---
+description: Usar siempre el nombre oficial completo de la empresa en UI, docs, correos y copy.
+alwaysApply: true
+---
+
+# Nombre oficial: Ma Baker and Chef
+
+## Regla obligatoria
+
+En **todo** texto visible para usuarios, documentación, correos, títulos, metadatos y mensajes del sistema, usar el nombre oficial completo:
+
+**Ma Baker and Chef**
+
+## Prohibido (salvo cita literal de terceros)
+
+- `Ma Baker` solo
+- `Ma Baker & Chef`
+- `Ma Baker &amp; Chef`
+- Abreviaturas tipo `MBC` en copy de producto
+- Dividir el nombre de forma que no se lea completo (p. ej. título "Ma Baker" sin "and Chef")
+
+## Permitido
+
+- Estilo visual con acento de color en **and Chef**, si el texto completo sigue siendo legible: `Ma Baker <span>and Chef</span>`
+- Razón social legal cuando aplique: `Ma Baker and Chef S.A. de C.V.`
+- Dominio/correo: `mabakerandchef.com`, `admin@mabakerandchef.com`
+- Constante central: `window.MB_BRAND.COMPANY_NAME` o `COMPANY_NAME` en `app/js/config.js`
+
+## Al crear o editar
+
+1. Preferir `MB_BRAND.COMPANY_NAME` / `CFG.COMPANY_NAME` en JS.
+2. Revisar `<title>`, banners, sidebars, footers, asuntos de correo y modales.
+3. Si encuentras variantes incorrectas, corregirlas en el mismo cambio.
+
+## Skill relacionada
+
+`.cursor/skills/ma-baker-brand-name/SKILL.md`

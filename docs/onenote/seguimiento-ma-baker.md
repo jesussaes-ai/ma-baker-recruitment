@@ -5,6 +5,34 @@
 
 ---
 
+## 2026-06-10 — Catálogo vacantes integrado en dashboard
+
+- **Cambio:** Panel *Catálogo Vacantes* en admin/RRHH: ver descripción PDF, editar activas, subir PDFs, filtros Activas/Pausadas.
+- **RPC:** `fn_catalogo_puesto_update` / `fn_catalogo_puesto_insert`.
+- **Docs:** `docs/catalogo-vacantes-dashboard.md`
+
+---
+
+## 2026-06-10 — Fase 4 médico + jefe + correos reenviados
+
+- **Correos:** Reenviados OK tras fix `verify_jwt: false` en `send-postulacion-emails` v7 (Gmail 200).
+- **Fase 4:** Cierre psicométricos actualiza candidato; RRHH → médico → jefe vía RPC con sesión.
+- **SQL aplicado:** `migracion-fase4-medico-jefe.sql` (`fn_candidatos_list`, `fn_candidato_update`, columna `veredicto_jefe`).
+- **Pendiente:** Fase 5 SGI/seguridad. Commit/push cuando se pida.
+- **Docs:** `docs/fase-4-medico-jefe.md`, runbook §401 JWT
+
+---
+
+## 2026-06-10 — Fase 3 psicométricos (link automático)
+
+- **Cambio:** Edge Function `setup-psicometric-access` + integración en `app.js` al promover candidato (≥80%).
+- **Flujo:** token UUID → correo con link → `evaluacion-candidato.html` → RRHH ve resultados.
+- **RLS:** políticas anon para portal psicométrico aplicadas (`migracion-fase3-psicometricos.sql`).
+- **Pendiente:** Fase 5 (SGI + seguridad). Producción: cambiar `PSYCHOMETRIC_PUBLIC_URL` a dominio real.
+- **Docs:** `docs/fase-3-psicometricos.md`
+
+---
+
 ## 2026-06-10 — Skill auto-aprendizaje (todos los proyectos)
 
 - **Cambio:** Meta-skill personal `auto-skill-from-learning` en `~/.cursor/skills/`. Crea skills al detectar patrones y avisa con bloque "Skill aprendida".

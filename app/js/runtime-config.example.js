@@ -2,6 +2,8 @@ window.__MB_RUNTIME_CONFIG = {
   // URL Edge Function para envio de correo
   EMAIL_WEBHOOK_URL: "https://<PROJECT_REF>.functions.supabase.co/send-postulacion-emails",
   DOCUMENT_UPLOAD_WEBHOOK_URL: "https://<PROJECT_REF>.functions.supabase.co/upload-candidato-document",
+  PSYCHOMETRIC_SETUP_WEBHOOK_URL: "https://<PROJECT_REF>.functions.supabase.co/setup-psicometric-access",
+  PSYCHOMETRIC_PUBLIC_URL: "http://localhost:8080/evaluacion-candidato.html",
   // Opcional: forzar envio de resultado del candidato a un correo temporal de pruebas
   CANDIDATE_RESULT_EMAIL_OVERRIDE: "",
   // Webhook para transferir la postulacion a otros modulos del sistema (opcional)

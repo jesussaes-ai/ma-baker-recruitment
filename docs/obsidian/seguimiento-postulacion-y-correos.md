@@ -39,7 +39,14 @@ El envío real debe resolverse en backend/servicio seguro (Edge Function, API in
 ## Estado actual (jun-2026)
 
 - Edge Function activa: `send-postulacion-emails`.
-- Estrategia de continuidad: failover multiproveedor.
+- **Fase 3 activa:** `setup-psicometric-access` genera token y envía link psicométrico al candidato promovido (≥80%).
+- **Fase 4 activa:** cierre psicométricos → RRHH envía a médico → jefe de área (`docs/fase-4-medico-jefe.md`).
+- Dashboards internos usan RPC `fn_candidatos_list` / `fn_candidato_update` con `mb_token` de sesión.
+- **Catálogo vacantes en dashboard:** ver descripción PDF, editar activas (todos los campos, nombre con autoaltura) y subir PDFs en panel *Catálogo Vacantes* (`docs/catalogo-vacantes-dashboard.md`). Etiquetas de campos con clase `.mb-field-label` (alto contraste en modales).
+- **Catálogo vacantes:** guardado vía RPC corrige `text[]` en conocimientos/competencias (`vacantes_array_fields_coalesce_fix`).
+- **Marca:** nombre oficial siempre **Ma Baker and Chef** (regla + skill en `.cursor/rules/` y `.cursor/skills/ma-baker-brand-name/`).
+- Portal candidato: `evaluacion-candidato.html?token=...`
+- Estrategia de continuidad correo: failover multiproveedor.
 - Orden de prioridad configurable:
   - `gmail`
   - `resend`
@@ -64,6 +71,7 @@ El envío real debe resolverse en backend/servicio seguro (Edge Function, API in
 - El flujo de postulación no debe depender de un solo proveedor.
 - Si falla `INSERT` por RLS en tablas de postulación, no habrá correo aunque el frontend termine flujo.
 - Ojo con `Prefer: return=representation` + RLS: devolver la fila insertada exige política SELECT para el rol. Para inserts anónimos usar `return=minimal` y generar el `id` en el cliente (`crypto.randomUUID()`). No dar SELECT a `anon` en tablas con PII.
+- Los correos al candidato y RRHH usan plantillas HTML legibles (sin JSON ni scores técnicos en el cuerpo).
 - Vault SQL (`vault.secrets`) y Secrets de Edge Function son distintos: si la funcion responde `missing_email_provider_credentials`, cargar secretos con `supabase secrets set --project-ref ...`.
 - OAuth2 Gmail requiere:
   - cliente OAuth tipo web para Playground;

@@ -1,0 +1,9 @@
+# Evita que un redeploy CLI reactive verify_jwt en webhooks públicos.
+[functions.send-postulacion-emails]
+verify_jwt = false
+
+[functions.setup-psicometric-access]
+verify_jwt = false
+
+[functions.upload-candidato-document]
+verify_jwt = false

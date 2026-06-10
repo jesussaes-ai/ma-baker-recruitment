@@ -1,5 +1,5 @@
 /* ==========================================
-   Ma Baker & Chef — App JavaScript
+   Ma Baker and Chef — App JavaScript
    Lógica: navegación, validación, Supabase
    ========================================== */
 
@@ -9,6 +9,8 @@ const SUPABASE_ANON_KEY = CFG.SUPABASE_ANON_KEY || '';
 const EMAIL_WEBHOOK_URL = CFG.EMAIL_WEBHOOK_URL || '';
 const DOCUMENT_UPLOAD_WEBHOOK_URL = CFG.DOCUMENT_UPLOAD_WEBHOOK_URL || '';
 const POSTULACION_TRANSFER_WEBHOOK_URL = CFG.POSTULACION_TRANSFER_WEBHOOK_URL || '';
+const PSYCHOMETRIC_SETUP_WEBHOOK_URL = CFG.PSYCHOMETRIC_SETUP_WEBHOOK_URL || '';
+const PSYCHOMETRIC_PUBLIC_URL = CFG.PSYCHOMETRIC_PUBLIC_URL || '';
 const CANDIDATE_RESULT_EMAIL_OVERRIDE = CFG.CANDIDATE_RESULT_EMAIL_OVERRIDE || '';
 const RECRUITER_EMAILS = Array.isArray(CFG.RECRUITER_EMAILS) ? CFG.RECRUITER_EMAILS : [];
 const COMPANY_NAME = CFG.COMPANY_NAME || 'Ma Baker and Chef';
@@ -547,15 +549,20 @@ async function submitForm() {
     try {
         const result = await submitToSupabase(payload);
         const mailResult = await sendSubmissionEmails(payload, result);
+        const psicoResult = result.decision === 'PROMOTE'
+            ? await setupPsychometricAccess(payload, result)
+            : { attempted: false, ok: false };
         await transferSubmissionData(payload, result, mailResult);
         document.getElementById('loadingOverlay').style.display = 'none';
-        showResult(result, payload);
-        if (mailResult.ok) {
+        showResult(result, payload, psicoResult);
+        if (mailResult.ok && (!psicoResult.attempted || psicoResult.ok)) {
             showToast('✅ Registro y notificaciones enviadas correctamente.', 'info');
         } else if (!mailResult.attempted) {
             showToast('⚠️ Registro guardado en base de datos, pero el correo no está configurado (EMAIL_WEBHOOK_URL).', 'warning');
         } else if (mailResult.attempted) {
             showToast('⚠️ Registro guardado, pero no se pudo enviar alguna notificación por correo.', 'warning');
+        } else if (psicoResult.attempted && !psicoResult.ok) {
+            showToast('⚠️ Registro guardado, pero no se pudo generar el enlace psicométrico.', 'warning');
         }
     } catch (err) {
         document.getElementById('loadingOverlay').style.display = 'none';
@@ -645,6 +652,8 @@ async function submitToSupabase(payload) {
     if (decision === 'ARCHIVE') {
         enrichedPayload.razon_rechazo = enrichedPayload.decision_agente.reasoning;
         enrichedPayload.filtro_fallido = 'score';
+    } else {
+        enrichedPayload.fase_actual = 'espera_psicometricos';
     }
 
     // Remover campos no relevantes para la tabla
@@ -712,7 +721,7 @@ function prepareForDB(data, tabla) {
         'empresa_3', 'puesto_3', 'antiguedad_3', 'motivo_salida_3', 'jefe_3', 'tel_jefe_3',
         'empresa_4', 'puesto_4', 'antiguedad_4', 'motivo_salida_4', 'jefe_4', 'tel_jefe_4',
         'empresa_5', 'puesto_5', 'antiguedad_5', 'motivo_salida_5', 'jefe_5', 'tel_jefe_5',
-        'match_score', 'decision_agente', 'privacy_accepted', 'fuente'];
+        'match_score', 'decision_agente', 'privacy_accepted', 'fuente', 'fase_actual'];
 
     if (tabla === 'prospectos_rechazados') {
         cleanFields.push('razon_rechazo', 'filtro_fallido');
@@ -724,15 +733,20 @@ function prepareForDB(data, tabla) {
 }
 
 /* ── Mostrar Resultado ── */
-function showResult(result, payload) {
+function showResult(result, payload, psicoResult = { attempted: false, ok: false }) {
     const isPromote = result.decision === 'PROMOTE';
     const modal = document.getElementById('successModal');
     const msg = document.getElementById('successMessage');
     const resultDiv = document.getElementById('modalResult');
 
-    msg.textContent = isPromote
-        ? `¡Felicidades ${payload.nombre_completo?.split(' ')[0]}! Tu perfil supera los requisitos básicos. Pronto te contactaremos para las siguientes etapas.`
-        : `Gracias ${payload.nombre_completo?.split(' ')[0]} por tu interés. En este momento tu perfil no cumple con todos los requisitos de la vacante. Guardaremos tu expediente para futuras oportunidades.`;
+    if (isPromote) {
+        const psicoNote = psicoResult?.ok
+            ? ' Revisa tu correo: te enviamos el enlace para completar tus evaluaciones psicométricas.'
+            : ' Nuestro equipo te contactará para las evaluaciones psicométricas.';
+        msg.textContent = `¡Felicidades ${payload.nombre_completo?.split(' ')[0]}! Tu perfil supera los requisitos básicos.${psicoNote}`;
+    } else {
+        msg.textContent = `Gracias ${payload.nombre_completo?.split(' ')[0]} por tu interés. En este momento tu perfil no cumple con todos los requisitos de la vacante. Guardaremos tu expediente para futuras oportunidades.`;
+    }
     updatePuestoDisplays();
 
     resultDiv.innerHTML = `
@@ -1093,34 +1107,244 @@ function parseBirthDateDMY(value) {
     return { valid: true, iso, edad };
 }
 
+function toDisplayName(value) {
+    const raw = String(value || '').trim();
+    if (!raw) return '';
+    return raw
+        .toLowerCase()
+        .split(/\s+/)
+        .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
+        .join(' ');
+}
+
+function formatOrigenHumano(origen, detalle) {
+    const base = String(origen || 'En línea').replace(/_/g, ' ').toLowerCase();
+    const label = base.includes('sitio') ? 'Registro en sitio' : 'Registro en línea';
+    return detalle ? `${label} (${detalle})` : label;
+}
+
+function buildSimpleMailHtml({ title, introHtml, sections = [], ctaHref, ctaLabel, closingHtml }) {
+    const brandRed = '#D7282F';
+    const brandBlue = '#0071BC';
+    const sectionsHtml = sections.map((s) => `
+      <tr><td style="padding:0 0 16px 0;">
+        ${s.title ? `<p style="margin:0 0 8px 0;font-size:13px;font-weight:700;color:${brandBlue};text-transform:uppercase;letter-spacing:0.04em;">${s.title}</p>` : ''}
+        <div style="font-size:15px;line-height:1.6;color:#334155;">${s.bodyHtml}</div>
+      </td></tr>`).join('');
+    const ctaHtml = (ctaHref && ctaLabel) ? `
+      <tr><td style="padding:8px 0 20px 0;text-align:center;">
+        <a href="${ctaHref}" style="display:inline-block;background:${brandRed};color:#ffffff;text-decoration:none;font-weight:700;font-size:15px;padding:14px 28px;border-radius:999px;">${ctaLabel}</a>
+      </td></tr>
+      <tr><td style="padding:0 0 16px 0;font-size:12px;color:#64748b;text-align:center;">Si el botón no funciona, copia y pega este enlace en tu navegador:<br><span style="word-break:break-all;">${ctaHref}</span></td></tr>` : '';
+    return `<!DOCTYPE html><html lang="es"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"></head>
+<body style="margin:0;padding:0;background:#f1f5f9;font-family:Segoe UI,Arial,sans-serif;">
+  <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background:#f1f5f9;padding:24px 12px;"><tr><td align="center">
+    <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="max-width:560px;background:#ffffff;border-radius:16px;overflow:hidden;box-shadow:0 4px 24px rgba(15,23,42,0.08);">
+      <tr><td style="background:linear-gradient(135deg,${brandRed},${brandBlue});padding:28px 32px;">
+        <p style="margin:0;font-size:12px;color:rgba(255,255,255,0.85);letter-spacing:0.12em;text-transform:uppercase;">${COMPANY_NAME}</p>
+        <h1 style="margin:8px 0 0 0;font-size:22px;line-height:1.3;color:#ffffff;font-weight:800;">${title}</h1>
+      </td></tr>
+      <tr><td style="padding:28px 32px 8px 32px;font-size:16px;line-height:1.6;color:#1e293b;">${introHtml}</td></tr>
+      ${sectionsHtml}
+      ${ctaHtml}
+      <tr><td style="padding:0 32px 28px 32px;font-size:14px;line-height:1.6;color:#64748b;border-top:1px solid #e2e8f0;">${closingHtml || `Con aprecio,<br><strong style="color:#1e293b;">Equipo de Reclutamiento</strong><br>${COMPANY_NAME}`}</td></tr>
+    </table>
+  </td></tr></table>
+</body></html>`;
+}
+
+function buildCandidatePostulationMail(payload, result, puesto) {
+    const nombre = toDisplayName(payload.nombre_completo) || 'Candidato';
+    const isPromote = result?.decision === 'PROMOTE';
+    const origen = formatOrigenHumano(payload.origen_postulacion, payload.detalle_origen_postulacion);
+
+    const subject = isPromote
+        ? `${COMPANY_NAME} — ¡Gracias por postularte! Siguiente paso en tu proceso`
+        : `${COMPANY_NAME} — Gracias por tu interés en trabajar con nosotros`;
+
+    const introHtml = isPromote
+        ? `<p style="margin:0 0 12px 0;">Hola <strong>${nombre}</strong>,</p>
+           <p style="margin:0;">Gracias por postularte a <strong>${puesto}</strong>. Revisamos tu información y <strong>tu perfil avanza a la siguiente etapa</strong> del proceso de selección.</p>`
+        : `<p style="margin:0 0 12px 0;">Hola <strong>${nombre}</strong>,</p>
+           <p style="margin:0;">Gracias por postularte a <strong>${puesto}</strong> y por confiar en ${COMPANY_NAME}. En esta ocasión tu perfil <strong>no cumple todos los requisitos de la vacante</strong>, pero conservamos tu información en nuestra bolsa de talento para futuras oportunidades.</p>`;
+
+    const sections = [
+        {
+            title: 'Resumen de tu postulación',
+            bodyHtml: `<ul style="margin:0;padding-left:18px;">
+              <li><strong>Vacante:</strong> ${puesto}</li>
+              <li><strong>Forma de registro:</strong> ${origen}</li>
+              <li><strong>Estado:</strong> ${isPromote ? 'En proceso — siguiente etapa' : 'Registrado en bolsa de talento'}</li>
+            </ul>`,
+        },
+    ];
+
+    if (isPromote) {
+        sections.push({
+            title: '¿Qué sigue?',
+            bodyHtml: `<p style="margin:0;">En breve recibirás un <strong>correo aparte</strong> con el enlace para completar tus <strong>evaluaciones psicométricas en línea</strong>. Te recomendamos hacerlas desde celular o computadora, en un lugar tranquilo y con buena conexión a internet.</p>`,
+        });
+    } else {
+        sections.push({
+            title: 'Te acompañamos',
+            bodyHtml: `<p style="margin:0;">Nuestro equipo de Reclutamiento y Selección podrá contactarte si surge una vacante acorde a tu perfil. Te deseamos mucho éxito.</p>`,
+        });
+    }
+
+    const text = isPromote
+        ? `Hola ${nombre},\n\nGracias por postularte a ${puesto}. Tu perfil avanza a la siguiente etapa.\n\nPronto recibirás otro correo con el enlace para tus evaluaciones psicométricas en línea.\n\nCon aprecio,\nEquipo de Reclutamiento\n${COMPANY_NAME}`
+        : `Hola ${nombre},\n\nGracias por postularte a ${puesto}. En esta ocasión tu perfil no cumple todos los requisitos, pero queda en nuestra bolsa de talento.\n\nCon aprecio,\nEquipo de Reclutamiento\n${COMPANY_NAME}`;
+
+    return {
+        subject,
+        text,
+        html: buildSimpleMailHtml({ title: isPromote ? '¡Buenas noticias!' : 'Gracias por postularte', introHtml, sections }),
+    };
+}
+
+function buildRecruiterPostulationMail(payload, result, puesto) {
+    const nombre = toDisplayName(payload.nombre_completo) || 'Sin nombre';
+    const isPromote = result?.decision === 'PROMOTE';
+    const origen = formatOrigenHumano(payload.origen_postulacion, payload.detalle_origen_postulacion);
+    const fecha = new Date().toLocaleString('es-MX', { dateStyle: 'long', timeStyle: 'short' });
+    const municipio = payload.municipio || payload.colonia || '—';
+    const vinculo = (payload.declaracion_vinculo_interno || '').toUpperCase() === 'SI'
+        ? (payload.vinculo_interno_quien || 'Declaró vínculo interno')
+        : 'Sin vínculo interno declarado';
+
+    const subject = `Nueva postulación — ${nombre} · ${puesto}`;
+
+    const introHtml = `<p style="margin:0;">Se registró una nueva postulación en el sistema. A continuación el resumen para seguimiento de RRHH.</p>`;
+
+    const sections = [
+        {
+            title: 'Datos del candidato',
+            bodyHtml: `<ul style="margin:0;padding-left:18px;">
+              <li><strong>Nombre:</strong> ${nombre}</li>
+              <li><strong>Correo:</strong> ${payload.email || '—'}</li>
+              <li><strong>Teléfono:</strong> ${payload.telefono || '—'}</li>
+              <li><strong>Edad:</strong> ${payload.edad ? `${payload.edad} años` : '—'}</li>
+              <li><strong>Ubicación:</strong> ${municipio}</li>
+            </ul>`,
+        },
+        {
+            title: 'Vacante y registro',
+            bodyHtml: `<ul style="margin:0;padding-left:18px;">
+              <li><strong>Puesto:</strong> ${puesto}</li>
+              <li><strong>Código:</strong> ${payload.codigo_puesto || '—'}</li>
+              <li><strong>Registro:</strong> ${origen}</li>
+              <li><strong>Fecha:</strong> ${fecha}</li>
+            </ul>`,
+        },
+        {
+            title: 'Perfil laboral',
+            bodyHtml: `<ul style="margin:0;padding-left:18px;">
+              <li><strong>Escolaridad:</strong> ${payload.escolaridad || '—'}</li>
+              <li><strong>Último empleo:</strong> ${payload.empresa_1 || '—'}${payload.puesto_1 ? ` (${payload.puesto_1})` : ''}</li>
+              <li><strong>Vínculo interno:</strong> ${vinculo}</li>
+            </ul>`,
+        },
+        {
+            title: 'Resultado preliminar',
+            bodyHtml: `<p style="margin:0;padding:12px 16px;background:${isPromote ? '#ecfdf5' : '#f8fafc'};border-left:4px solid ${isPromote ? '#10b981' : '#64748b'};border-radius:8px;">
+              ${isPromote
+                ? '<strong>Avanza a evaluaciones psicométricas.</strong> El sistema enviará al candidato el enlace por correo.'
+                : '<strong>Queda en bolsa de talento.</strong> No avanza a psicométricos en esta vacante.'}
+            </p>`,
+        },
+    ];
+
+    const text = [
+        `Nueva postulación — ${COMPANY_NAME}`,
+        '',
+        `Candidato: ${nombre}`,
+        `Correo: ${payload.email || '—'}`,
+        `Teléfono: ${payload.telefono || '—'}`,
+        `Vacante: ${puesto}`,
+        `Registro: ${origen}`,
+        `Resultado: ${isPromote ? 'Avanza a psicométricos' : 'Bolsa de talento'}`,
+        '',
+        `Escolaridad: ${payload.escolaridad || '—'}`,
+        `Último empleo: ${payload.empresa_1 || '—'}`,
+    ].join('\n');
+
+    return {
+        subject,
+        text,
+        html: buildSimpleMailHtml({
+            title: 'Nueva postulación recibida',
+            introHtml,
+            sections,
+            closingHtml: `Revisa el expediente completo en el <strong>dashboard de RRHH</strong>.<br><br>Equipo de Reclutamiento<br>${COMPANY_NAME}`,
+        }),
+    };
+}
+
+function buildPsychometricInviteMail(payload, puesto, link) {
+    const nombre = toDisplayName(payload.nombre_completo) || 'Candidato';
+    const subject = `${COMPANY_NAME} — Completa tus evaluaciones en línea`;
+
+    const introHtml = `<p style="margin:0 0 12px 0;">Hola <strong>${nombre}</strong>,</p>
+      <p style="margin:0;">¡Felicidades! Avanzaste en el proceso para la vacante de <strong>${puesto}</strong>. El siguiente paso son tus <strong>evaluaciones psicométricas en línea</strong>.</p>`;
+
+    const sections = [
+        {
+            title: 'Antes de comenzar',
+            bodyHtml: `<ul style="margin:0;padding-left:18px;">
+              <li>Busca un lugar tranquilo, sin interrupciones.</li>
+              <li>Usa celular o computadora con buena conexión.</li>
+              <li>El enlace es personal y válido por <strong>7 días</strong>.</li>
+              <li>Al entrar, deberás aceptar el aviso de privacidad para datos psicológicos.</li>
+            </ul>`,
+        },
+        {
+            title: 'Tiempo estimado',
+            bodyHtml: `<p style="margin:0;">Las evaluaciones toman aproximadamente <strong>30 a 45 minutos</strong>. Puedes hacerlas en una sola sesión.</p>`,
+        },
+    ];
+
+    const text = [
+        `Hola ${nombre},`,
+        '',
+        `Avanzaste en el proceso para ${puesto}. Completa tus evaluaciones psicométricas aquí:`,
+        link,
+        '',
+        'El enlace es personal y válido 7 días.',
+        '',
+        `Equipo de Reclutamiento`,
+        COMPANY_NAME,
+    ].join('\n');
+
+    return {
+        subject,
+        text,
+        html: buildSimpleMailHtml({
+            title: 'Tus evaluaciones psicométricas',
+            introHtml,
+            sections,
+            ctaHref: link,
+            ctaLabel: 'Comenzar evaluaciones',
+        }),
+    };
+}
+
 async function sendSubmissionEmails(payload, result) {
     if (!EMAIL_WEBHOOK_URL) return { attempted: false, ok: false };
 
-    const candidatoNombre = payload.nombre_completo || 'CANDIDATO';
-    const puesto = selectedVacante?.nombre || payload.codigo_puesto || 'VACANTE';
-    const origen = payload.origen_postulacion || 'ONLINE';
-    const detalleOrigen = payload.detalle_origen_postulacion ? ` (${payload.detalle_origen_postulacion})` : '';
-    const calificacion10 = (Number(result?.score || 0) / 10).toFixed(1);
-    const resultadoTexto = result?.decision === 'PROMOTE'
-        ? 'AVANZAS A LA SIGUIENTE ETAPA'
-        : 'TU PERFIL QUEDA EN BOLSA DE TRABAJO';
-    const resultadoDetalle = result?.decision === 'PROMOTE'
-        ? 'Tu perfil cumple los requisitos iniciales de la vacante.'
-        : 'Por el momento tu perfil no cumple todos los requisitos de esta vacante.';
-    const recruiterSummary = buildRecruiterSummary(payload, result, puesto);
+    const puesto = selectedVacante?.nombre || payload.codigo_puesto || 'Vacante';
+    const candidateMail = buildCandidatePostulationMail(payload, result, puesto);
+    const recruiterMail = buildRecruiterPostulationMail(payload, result, puesto);
 
     const candidateTo = (CANDIDATE_RESULT_EMAIL_OVERRIDE || payload.email || '').trim();
     const candidateMessages = candidateTo ? [{
         to: candidateTo,
-        subject: `${COMPANY_NAME} - Gracias por tu postulación`,
-        text: `Hola ${candidatoNombre},\n\nGracias por postularte a la vacante "${puesto}".\n\nResultado de tu postulación:\n- Estado: ${resultadoTexto}\n- Calificación interna: ${calificacion10}/10\n- Detalle: ${resultadoDetalle}\n\nModalidad de registro: ${origen}${detalleOrigen}\n\nNuestro equipo de Reclutamiento y Selección dará seguimiento a tu proceso.\n\nAtentamente,\n${COMPANY_NAME}`,
+        subject: candidateMail.subject,
+        text: candidateMail.text,
+        html: candidateMail.html,
         meta: {
             tipo: 'candidato_confirmacion',
             codigo_puesto: payload.codigo_puesto || '',
-            origen_postulacion: origen,
-            original_candidate_email: payload.email || '',
             decision: result?.decision || '',
-            score: result?.score ?? null,
         },
     }] : [];
 
@@ -1128,13 +1352,13 @@ async function sendSubmissionEmails(payload, result) {
         .filter(Boolean)
         .map((to) => ({
             to,
-            subject: `Nueva postulación recibida: ${puesto}`,
-            text: recruiterSummary,
+            subject: recruiterMail.subject,
+            text: recruiterMail.text,
+            html: recruiterMail.html,
             meta: {
                 tipo: 'reclutador_nueva_postulacion',
                 codigo_puesto: payload.codigo_puesto || '',
                 decision: result?.decision || '',
-                score: result?.score ?? null,
             },
         }));
 
@@ -1158,36 +1382,62 @@ async function sendSubmissionEmails(payload, result) {
     return { attempted: true, ok };
 }
 
-function buildRecruiterSummary(payload, result, puesto) {
-    const calificacion10 = (Number(result?.score || 0) / 10).toFixed(1);
-    const lines = [
-        `POSTULACION NUEVA - ${COMPANY_NAME}`,
-        `FECHA: ${new Date().toLocaleString('es-MX')}`,
-        '',
-        `CANDIDATO: ${payload.nombre_completo || '-'}`,
-        `EMAIL: ${payload.email || '-'}`,
-        `TELEFONO: ${payload.telefono || '-'}`,
-        `VACANTE: ${puesto}`,
-        `CODIGO PUESTO: ${payload.codigo_puesto || '-'}`,
-        `ORIGEN: ${payload.origen_postulacion || 'ONLINE'}${payload.detalle_origen_postulacion ? ` (${payload.detalle_origen_postulacion})` : ''}`,
-        `ESTATUS: ${payload.estatus_postulacion || 'RECIBIDA'}`,
-        `DECLARACION VINCULO INTERNO: ${payload.declaracion_vinculo_interno || 'NO'}`,
-        `VINCULO DECLARADO (QUIEN): ${payload.vinculo_interno_quien || 'NINGUNO DECLARADO'}`,
-        '',
-        `SCORE INTERNO (0-100): ${result?.score ?? '-'}`,
-        `CALIFICACION INTERNA (0-10): ${calificacion10}`,
-        `DECISION AGENTE: ${result?.decision || '-'}`,
-        '',
-        'RESUMEN DE PERFIL:',
-        `- ESCOLARIDAD: ${payload.escolaridad || '-'}`,
-        `- EXPERIENCIA RECIENTE: ${payload.empresa_1 || '-'} / ${payload.puesto_1 || '-'}`,
-        `- EDAD: ${payload.edad || '-'}`,
-        `- MUNICIPIO: ${payload.domicilio_municipio || payload.municipio || '-'}`,
-        '',
-        'DATOS COMPLETOS (JSON):',
-        JSON.stringify(payload, null, 2),
-    ];
-    return lines.join('\n');
+function resolvePsychometricPublicUrl() {
+    if (PSYCHOMETRIC_PUBLIC_URL) return PSYCHOMETRIC_PUBLIC_URL.replace(/\/$/, '');
+    const base = window.location.href.replace(/[^/]*$/, '');
+    return `${base}evaluacion-candidato.html`;
+}
+
+async function setupPsychometricAccess(payload, result) {
+    if (!PSYCHOMETRIC_SETUP_WEBHOOK_URL || !result?.insertedId) {
+        return { attempted: false, ok: false };
+    }
+
+    try {
+        const setupResp = await fetch(PSYCHOMETRIC_SETUP_WEBHOOK_URL, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                candidatoId: result.insertedId,
+                codigoPuesto: payload.codigo_puesto || '',
+                email: payload.email || '',
+                nombre: payload.nombre_completo || '',
+                publicBaseUrl: resolvePsychometricPublicUrl(),
+            }),
+        });
+        const setupData = await setupResp.json().catch(() => ({}));
+        if (!setupResp.ok || !setupData?.ok) {
+            return { attempted: true, ok: false, detail: setupData };
+        }
+
+        const link = setupData.link
+            || `${resolvePsychometricPublicUrl()}?token=${encodeURIComponent(setupData.token || '')}`;
+        const candidateTo = (CANDIDATE_RESULT_EMAIL_OVERRIDE || payload.email || '').trim();
+
+        if (EMAIL_WEBHOOK_URL && candidateTo && link.includes('token=')) {
+            const puesto = selectedVacante?.nombre || payload.codigo_puesto || 'Vacante';
+            const psicoMail = buildPsychometricInviteMail(payload, puesto, link);
+            await fetch(EMAIL_WEBHOOK_URL, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    to: candidateTo,
+                    subject: psicoMail.subject,
+                    text: psicoMail.text,
+                    html: psicoMail.html,
+                    meta: {
+                        tipo: 'psicometrico_link',
+                        candidato_id: result.insertedId,
+                        codigo_puesto: payload.codigo_puesto || '',
+                    },
+                }),
+            }).catch(() => null);
+        }
+
+        return { attempted: true, ok: true, link, evaluacionId: setupData.evaluacionId || null };
+    } catch (e) {
+        return { attempted: true, ok: false, detail: e instanceof Error ? e.message : String(e) };
+    }
 }
 
 /* =====================

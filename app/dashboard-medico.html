@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Ma Baker — Módulo Médico</title>
+    <title>Ma Baker and Chef — Módulo Médico</title>
     <meta name="description" content="Dashboard médico confidencial del sistema de reclutamiento Ma Baker and Chef.">
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="styles/tailwind.build.css">
@@ -102,7 +102,7 @@
                     <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" d="M9 3h6m-6 4h6m-9 14h12a2 2 0 002-2V9a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path><path stroke-linecap="round" stroke-linejoin="round" d="M12 11v6m3-3H9"></path></svg>
                 </div>
                 <div>
-                    <h1 class="font-extrabold text-lg leading-tight tracking-tighter uppercase text-white">Ma Baker</h1>
+                    <h1 class="font-extrabold text-sm leading-snug tracking-tight uppercase text-white">Ma Baker and Chef</h1>
                     <p class="text-[10px] text-emerald-400 font-black uppercase tracking-[0.3em] italic leading-none">Módulo Médico</p>
                 </div>
             </div>
@@ -412,6 +412,7 @@
 <!-- Scripts -->
 <script src="js/config.js"></script>
 <script src="js/auth.js"></script>
+<script src="js/candidates-api.js"></script>
 <script>
 /* ================================================================
    MÓDULO MÉDICO — Lógica frontend
@@ -491,7 +492,9 @@ document.addEventListener('DOMContentLoaded', async () => {
 // ── Cargar candidatos ─────────────────────────────────────────
 async function cargarDatos() {
     try {
-        const lista = await supaGet('/rest/v1/candidatos_activos?select=*&order=created_at.desc');
+        const lista = window.MB_CANDIDATES
+            ? await window.MB_CANDIDATES.listCandidates({ medical: true })
+            : await supaGet('/rest/v1/candidatos_activos?select=*&order=created_at.desc');
         renderizar(lista);
     } catch (err) {
         console.error(err);
@@ -501,10 +504,7 @@ async function cargarDatos() {
 
 function renderizar(lista) {
     // Clasificar candidatos
-    const pendientes = lista.filter(x => {
-        const f = (x.fase_actual || '').toLowerCase();
-        return f.includes('medic') || f.includes('espera_medic');
-    });
+    const pendientes = lista.filter(x => (x.fase_actual || '') === 'espera_medico');
     const evaluados = lista.filter(x => x.dictamen_medico || x.resultado_medico);
     const alertas   = lista.filter(x => x.enfermedades_cronicas || x.alergias);
 
@@ -719,16 +719,20 @@ async function guardarDictamen() {
             talla:                parseFloat($('med_talla').value) || null,
             glucosa:              parseFloat($('med_glucosa').value) || null,
             temperatura:          parseFloat($('med_temp').value) || null,
-            // Avanzar fase según dictamen
             fase_actual: state.dictamenSeleccionado === 'NO_APTO'
                 ? 'rechazado_medico'
                 : 'espera_jefe',
         };
 
-        await supaPatch(
-            `/rest/v1/candidatos_activos?id=eq.${state.candidatoActual.id}`,
-            window.MB_UPPERCASE ? window.MB_UPPERCASE.normalizePayload(payload) : payload
-        );
+        const normalized = window.MB_UPPERCASE ? window.MB_UPPERCASE.normalizePayload(payload) : payload;
+        if (window.MB_CANDIDATES) {
+            await window.MB_CANDIDATES.patchCandidate(state.candidatoActual.id, normalized);
+        } else {
+            await supaPatch(
+                `/rest/v1/candidatos_activos?id=eq.${state.candidatoActual.id}`,
+                normalized
+            );
+        }
 
         cerrarModalMedico();
 

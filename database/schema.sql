@@ -554,7 +554,7 @@ $$;
 -- =========================================================
 INSERT INTO public.usuarios_sistema (email, nombre, password_hash, rol, departamento) VALUES
     ('admin@mabakerandchef.com',  'Administrador General', crypt('Admin2026!',  gen_salt('bf')), 'admin',  NULL),
-    ('rrhh@mabakerandchef.com',   'RRHH Ma Baker',         crypt('RRHH2026!',   gen_salt('bf')), 'rrhh',   'Recursos Humanos'),
+    ('rrhh@mabakerandchef.com',   'RRHH Ma Baker and Chef',         crypt('RRHH2026!',   gen_salt('bf')), 'rrhh',   'Recursos Humanos'),
     ('medico@mabakerandchef.com', 'Médico del Trabajo',    crypt('Medico2026!', gen_salt('bf')), 'medico', 'Salud Ocupacional'),
     ('jefe@mabakerandchef.com',   'Jefe de Producción',    crypt('Jefe2026!',   gen_salt('bf')), 'jefe',   'Producción'),
     ('sgi@mabakerandchef.com',    'Auditor SGI',           crypt('SGI2026!',    gen_salt('bf')), 'sgi',    'SGI y Seguridad')

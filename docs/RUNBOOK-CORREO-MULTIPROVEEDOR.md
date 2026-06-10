@@ -158,6 +158,20 @@ curl -X POST "https://<PROJECT_REF>.functions.supabase.co/send-postulacion-email
 
 Esperado: HTTP 200 con `"ok":true,"provider":"gmail"`.
 
+### 9) Edge Function responde 401 tras redeploy con CLI
+
+Causa: `supabase functions deploy` puede activar `verify_jwt: true` por defecto. El frontend y los webhooks de postulación/psicométricos llaman sin JWT de Supabase Auth.
+
+Solución:
+
+```bash
+npx supabase functions deploy send-postulacion-emails --project-ref <PROJECT_REF> --no-verify-jwt
+```
+
+O mantener `supabase/config.toml` con `verify_jwt = false` y desplegar desde el repo.
+
+Esperado en Dashboard → Edge Functions: `verify_jwt: false` (p. ej. v7+).
+
 ## Seguridad y rotacion de secretos
 
 Debes rotar secretos si fueron compartidos en chats, capturas o canales no seguros:
@@ -174,12 +188,13 @@ Nunca usar usuario/contrasena de Gmail como sustituto de OAuth2.
 Deploy de funcion:
 
 ```bash
-supabase functions deploy send-postulacion-emails
+npx supabase functions deploy send-postulacion-emails --project-ref <PROJECT_REF> --no-verify-jwt
+npx supabase functions deploy setup-psicometric-access --project-ref <PROJECT_REF> --no-verify-jwt
 ```
 
-Prueba HTTP basica:
+Alternativa persistente: `supabase/config.toml` incluye `verify_jwt = false` para webhooks públicos.
 
-```bash
+Prueba HTTP basica:
 curl -X POST "https://<PROJECT_REF>.functions.supabase.co/send-postulacion-emails" \
   -H "Content-Type: application/json" \
   -d "{\"to\":\"tu-correo@dominio.com\",\"subject\":\"Prueba\",\"text\":\"Correo de prueba\"}"

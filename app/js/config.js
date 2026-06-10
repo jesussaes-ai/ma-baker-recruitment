@@ -3,6 +3,11 @@
  * Importante: este archivo NO debe contener credenciales privilegiadas.
  */
 (function () {
+    window.MB_BRAND = window.MB_BRAND || {
+        COMPANY_NAME: "Ma Baker and Chef",
+        COMPANY_NAME_LEGAL: "Ma Baker and Chef S.A. de C.V.",
+    };
+
     const runtime = window.__MB_RUNTIME_CONFIG || {};
 
     function escapeHTML(value) {
@@ -21,10 +26,12 @@
         EMAIL_WEBHOOK_URL: runtime.EMAIL_WEBHOOK_URL || "",
         DOCUMENT_UPLOAD_WEBHOOK_URL: runtime.DOCUMENT_UPLOAD_WEBHOOK_URL || "",
         POSTULACION_TRANSFER_WEBHOOK_URL: runtime.POSTULACION_TRANSFER_WEBHOOK_URL || "",
+        PSYCHOMETRIC_SETUP_WEBHOOK_URL: runtime.PSYCHOMETRIC_SETUP_WEBHOOK_URL || "",
+        PSYCHOMETRIC_PUBLIC_URL: runtime.PSYCHOMETRIC_PUBLIC_URL || "",
         POSTULACION_PUBLIC_URL: runtime.POSTULACION_PUBLIC_URL || "",
         CANDIDATE_RESULT_EMAIL_OVERRIDE: runtime.CANDIDATE_RESULT_EMAIL_OVERRIDE || "",
         RECRUITER_EMAILS: runtime.RECRUITER_EMAILS || ["rrhh@mabakerandchef.com"],
-        COMPANY_NAME: runtime.COMPANY_NAME || "Ma Baker and Chef",
+        COMPANY_NAME: runtime.COMPANY_NAME || window.MB_BRAND.COMPANY_NAME,
         escapeHTML,
     };
 })();

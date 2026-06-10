@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Ma Baker — Dashboard Admin</title>
+    <title>Ma Baker and Chef — Dashboard Admin</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="styles/tailwind.build.css">
     <script src="js/config.js"></script>
@@ -100,8 +100,7 @@
                         </svg>
                     </div>
                     <div>
-                        <h1 class="font-extrabold text-lg leading-tight tracking-tighter uppercase text-white">Ma Baker</h1>
-                        <p class="text-[10px] text-mabaker-red font-black uppercase tracking-[0.3em] italic leading-none">and chef</p>
+                        <h1 class="font-extrabold text-sm leading-snug tracking-tight text-white">Ma Baker and Chef</h1>
                     </div>
                 </div>
             </div>
@@ -223,7 +222,7 @@
                                     </svg>
                                 </div>
                                 <div class="flex-1 text-center xl:text-left">
-                                    <h3 class="text-4xl font-black mb-2 tracking-tight">Administración General — Ma Baker</h3>
+                                    <h3 class="text-4xl font-black mb-2 tracking-tight">Administración General — Ma Baker and Chef</h3>
                                     <p class="text-white/70 text-lg max-w-2xl font-medium leading-relaxed">Bienvenido al centro de mando. Gestiona vacantes y analiza candidatos con <span class="text-white font-black underline decoration-mabaker-blue decoration-4 underline-offset-4">IA Avanzada</span>.</p>
                                 </div>
                                 <a href="cargar-puestos.html" class="bg-white text-mabaker-red px-10 py-5 rounded-[2rem] font-black text-lg hover:scale-105 active:scale-95 transition-all shadow-2xl shadow-black/20 flex items-center gap-3">
@@ -343,17 +342,29 @@
                         <div class="p-10 border-b border-white/5 flex flex-col sm:flex-row items-center justify-between bg-white/[0.02] gap-6">
                             <div>
                                 <h3 class="font-black text-white text-2xl tracking-tight">Catálogo de Puestos</h3>
-                                <p class="text-xs text-slate-400 font-semibold uppercase tracking-widest mt-1">Gestión administrativa de vacantes y perfiles</p>
+                                <p class="text-xs text-slate-400 font-semibold uppercase tracking-widest mt-1">Revisa descripciones PDF, edita vacantes activas y publica nuevas</p>
                             </div>
-                            <div class="flex gap-4">
-                                <a href="cargar-puestos.html" class="flex items-center gap-3 px-6 py-3.5 bg-mabaker-red text-white rounded-2xl text-[11px] font-black uppercase tracking-widest transition-all hover:scale-105 shadow-lg shadow-mabaker-red/20">
-                                    <svg class="w-4 h-4 text-white inline-block" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v6m3-3H9m12 0a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                                    </svg>
-                                    Crear Puesto
-                                </a>
+                            <div class="flex flex-wrap gap-3">
+                                <button type="button" onclick="toggleSubirVacantesPDFs()" class="flex items-center gap-3 px-6 py-3.5 bg-mabaker-blue/20 text-mabaker-blue border border-mabaker-blue/30 rounded-2xl text-[11px] font-black uppercase tracking-widest transition-all hover:scale-105">
+                                    Subir descripciones PDF
+                                </button>
+                                <button type="button" onclick="setVacanteFilter('activas')" class="flex items-center gap-3 px-6 py-3.5 bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 rounded-2xl text-[11px] font-black uppercase tracking-widest transition-all hover:scale-105">
+                                    Ver solo activas
+                                </button>
                             </div>
                         </div>
+
+                        <div id="vacantesUploadSection" class="hidden border-b border-white/5 bg-white/[0.02] p-8 space-y-4">
+                            <div id="vacantesDropZone" class="border-2 border-dashed border-white/15 rounded-[2rem] p-10 text-center hover:border-mabaker-red/40 transition-all cursor-pointer" onclick="document.getElementById('vacantesFileInput').click()">
+                                <p class="text-white font-black text-lg mb-2">Arrastra PDFs de descripción de puesto aquí</p>
+                                <p class="text-slate-400 text-sm mb-4">O haz clic para seleccionar uno o varios archivos</p>
+                                <input type="file" id="vacantesFileInput" accept=".pdf" multiple class="hidden">
+                                <span class="inline-flex px-5 py-2.5 rounded-xl bg-mabaker-red text-white text-xs font-black uppercase tracking-widest">Seleccionar PDFs</span>
+                            </div>
+                            <div id="vacantesUploadQueue" class="space-y-3"></div>
+                            <div id="vacantesUploadSummary" class="hidden p-4 rounded-2xl bg-white/5 border border-white/10"></div>
+                        </div>
+
                         <div class="overflow-x-auto min-h-[400px] scroll-custom" id="tablaVacantes">
                             <div class="p-20 text-center text-slate-500">Sincronizando catálogo...</div>
                         </div>
@@ -366,77 +377,118 @@
     <!-- MODAL EDITAR VACANTE (PREMIUM) -->
     <div id="modalVacante" class="fixed inset-0 z-50 hidden flex items-center justify-center p-4">
         <div class="absolute inset-0 bg-dark-depth/90 backdrop-blur-xl" onclick="cerrarModalVacante()"></div>
-        <div class="relative w-full max-w-4xl bg-dark-surface border border-white/10 rounded-[3rem] shadow-3xl overflow-hidden animate-slide-up">
-            <div class="p-10 border-b border-white/5 bg-white/[0.02] flex justify-between items-center">
-                <div class="flex items-center gap-6">
-                    <div class="size-16 rounded-2xl bg-mabaker-red/20 text-mabaker-red flex items-center justify-center">
-                        <svg class="w-8 h-8 text-mabaker-red" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M20.25 14.15v4.25c0 .414-.336.75-.75.75H4.5a.75.75 0 01-.75-.75v-4.25m16.5 0a3 3 0 00-3-3H6.75a3 3 0 00-3 3m16.5 0a3 3 0 01-3 3H6.75a3 3 0 01-3-3m13.5-3V7.5a2.25 2.25 0 00-2.25-2.25h-3a2.25 2.25 0 00-2.25 2.25v3.375"></path>
+        <div class="relative w-full max-w-5xl bg-dark-surface border border-white/10 rounded-[3rem] shadow-3xl overflow-hidden animate-slide-up max-h-[95vh] flex flex-col">
+            <div class="p-8 md:p-10 border-b border-white/5 bg-white/[0.02] shrink-0">
+                <div class="flex justify-between items-start gap-4">
+                    <div class="flex items-start gap-5 flex-1 min-w-0">
+                        <div class="size-14 md:size-16 rounded-2xl bg-mabaker-red/20 text-mabaker-red flex items-center justify-center shrink-0">
+                            <svg class="w-8 h-8 text-mabaker-red" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M20.25 14.15v4.25c0 .414-.336.75-.75.75H4.5a.75.75 0 01-.75-.75v-4.25m16.5 0a3 3 0 00-3-3H6.75a3 3 0 00-3 3m16.5 0a3 3 0 01-3 3H6.75a3 3 0 01-3-3m13.5-3V7.5a2.25 2.25 0 00-2.25-2.25h-3a2.25 2.25 0 00-2.25 2.25v3.375"></path>
+                            </svg>
+                        </div>
+                        <div class="flex-1 min-w-0 space-y-4">
+                            <div>
+                                <label for="editV_nombre" class="mb-field-label">Nombre del puesto</label>
+                                <textarea id="editV_nombre" rows="1" data-min-height="56"
+                                    class="vacante-autogrow w-full min-h-[3.5rem] bg-white/5 border border-white/10 rounded-2xl px-5 py-3 text-lg md:text-2xl font-black text-white leading-snug focus:border-mabaker-red/50 transition-all outline-none resize-y scroll-custom"
+                                    placeholder="Nombre completo del puesto"></textarea>
+                            </div>
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                <div>
+                                    <label for="editV_codigo" class="mb-field-label">Código de vacante</label>
+                                    <input type="text" id="editV_codigo" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-xs font-bold text-slate-200 uppercase tracking-widest focus:border-mabaker-red/50 outline-none" placeholder="GEN-0000">
+                                </div>
+                                <div>
+                                    <label for="editV_archivo" class="mb-field-label">Archivo PDF origen</label>
+                                    <input type="text" id="editV_archivo" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-xs font-semibold text-slate-300 focus:border-mabaker-red/50 outline-none" placeholder="descripcion-puesto.pdf">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <button onclick="cerrarModalVacante()" class="size-12 rounded-2xl hover:bg-white/5 flex items-center justify-center transition-all shrink-0">
+                        <svg class="w-6 h-6 text-slate-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"></path>
                         </svg>
-                    </div>
-                    <div>
-                        <input type="text" id="editV_nombre" class="bg-transparent border-none text-3xl font-black text-white p-0 focus:ring-0 w-full" placeholder="Nombre del Puesto">
-                        <p class="text-xs text-slate-400 font-bold uppercase tracking-[0.2em]" id="editV_codigo">COD-000</p>
-                    </div>
+                    </button>
                 </div>
-                <button onclick="cerrarModalVacante()" class="size-12 rounded-2xl hover:bg-white/5 flex items-center justify-center transition-all">
-                    <svg class="w-6 h-6 text-slate-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"></path>
-                    </svg>
-                </button>
             </div>
             
-            <div class="p-10 max-h-[70vh] overflow-y-auto scroll-custom space-y-8">
+            <div class="p-8 md:p-10 overflow-y-auto scroll-custom flex-1 space-y-8">
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
                     <div class="space-y-6">
                         <div>
-                            <label class="text-[10px] font-black text-slate-500 uppercase tracking-widest block mb-2 px-1">Departamento</label>
-                            <input type="text" id="editV_depto" class="w-full bg-white/5 border border-white/10 rounded-2xl px-6 py-4 text-white font-semibold focus:border-mabaker-red/50 transition-all outline-none">
+                            <label for="editV_depto" class="mb-field-label px-1">Departamento</label>
+                            <textarea id="editV_depto" rows="2" data-min-height="52"
+                                class="vacante-autogrow w-full min-h-[3rem] bg-white/5 border border-white/10 rounded-2xl px-6 py-4 text-white font-semibold focus:border-mabaker-red/50 transition-all outline-none resize-y scroll-custom"></textarea>
                         </div>
                         <div class="grid grid-cols-2 gap-4">
                             <div>
-                                <label class="text-[10px] font-black text-slate-500 uppercase tracking-widest block mb-2 px-1">Sueldo Min ($)</label>
+                                <label class="mb-field-label px-1">Sueldo Min ($)</label>
                                 <input type="number" id="editV_sMin" class="w-full bg-white/5 border border-white/10 rounded-2xl px-6 py-4 text-white font-semibold focus:border-mabaker-red/50 transition-all outline-none">
                             </div>
                             <div>
-                                <label class="text-[10px] font-black text-slate-500 uppercase tracking-widest block mb-2 px-1">Sueldo Max ($)</label>
+                                <label class="mb-field-label px-1">Sueldo Max ($)</label>
                                 <input type="number" id="editV_sMax" class="w-full bg-white/5 border border-white/10 rounded-2xl px-6 py-4 text-white font-semibold focus:border-mabaker-red/50 transition-all outline-none">
                             </div>
                         </div>
                         <div class="grid grid-cols-2 gap-4">
                             <div>
-                                <label class="text-[10px] font-black text-slate-500 uppercase tracking-widest block mb-2 px-1">Escolaridad Mínima</label>
-                                <select id="editV_escolaridad" class="w-full bg-white/5 border border-white/10 rounded-2xl px-6 py-4 text-white font-semibold focus:border-mabaker-red/50 transition-all outline-none appearance-none">
-                                    <option value="Sin especificar" class="bg-dark-surface">Sin especificar</option>
-                                    <option value="Secundaria" class="bg-dark-surface">Secundaria</option>
-                                    <option value="Preparatoria" class="bg-dark-surface">Preparatoria</option>
-                                    <option value="Técnico" class="bg-dark-surface">Técnico</option>
-                                    <option value="Licenciatura" class="bg-dark-surface">Licenciatura</option>
-                                    <option value="Ingeniería" class="bg-dark-surface">Ingeniería</option>
-                                    <option value="Postgrado" class="bg-dark-surface">Postgrado</option>
-                                </select>
+                                <label class="mb-field-label px-1">Edad Mínima</label>
+                                <input type="number" id="editV_edadMin" class="w-full bg-white/5 border border-white/10 rounded-2xl px-6 py-4 text-white font-semibold focus:border-mabaker-red/50 transition-all outline-none">
                             </div>
                             <div>
-                                <label class="text-[10px] font-black text-slate-500 uppercase tracking-widest block mb-2 px-1">Años de Exp.</label>
+                                <label class="mb-field-label px-1">Edad Máxima</label>
+                                <input type="number" id="editV_edadMax" class="w-full bg-white/5 border border-white/10 rounded-2xl px-6 py-4 text-white font-semibold focus:border-mabaker-red/50 transition-all outline-none">
+                            </div>
+                        </div>
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <label for="editV_escolaridad" class="mb-field-label px-1">Escolaridad mínima</label>
+                                <input type="text" id="editV_escolaridad" list="editV_escolaridad_opts"
+                                    class="w-full bg-white/5 border border-white/10 rounded-2xl px-6 py-4 text-white font-semibold focus:border-mabaker-red/50 transition-all outline-none"
+                                    placeholder="Preparatoria, Licenciatura...">
+                                <datalist id="editV_escolaridad_opts">
+                                    <option value="Sin especificar"></option>
+                                    <option value="Secundaria"></option>
+                                    <option value="Preparatoria"></option>
+                                    <option value="Técnico"></option>
+                                    <option value="Licenciatura"></option>
+                                    <option value="Ingeniería"></option>
+                                    <option value="Postgrado"></option>
+                                    <option value="Perfil Abierto"></option>
+                                </datalist>
+                            </div>
+                            <div>
+                                <label class="mb-field-label px-1">Años de Exp.</label>
                                 <input type="number" id="editV_exp" class="w-full bg-white/5 border border-white/10 rounded-2xl px-6 py-4 text-white font-semibold focus:border-mabaker-red/50 transition-all outline-none">
                             </div>
                         </div>
                     </div>
                     <div class="space-y-6">
                         <div>
-                            <label class="text-[10px] font-black text-slate-500 uppercase tracking-widest block mb-2 px-1">Descriptivo Completo del Puesto</label>
-                            <textarea id="editV_desc" class="w-full h-80 bg-white/5 border border-white/10 rounded-[2rem] px-6 py-6 text-white text-sm leading-relaxed focus:border-mabaker-red/50 transition-all outline-none resize-none scroll-custom" placeholder="Pega aquí el perfil descriptivo completo..."></textarea>
+                            <label for="editV_desc" class="mb-field-label px-1">Descriptivo completo del puesto</label>
+                            <textarea id="editV_desc" rows="12" data-min-height="320"
+                                class="vacante-autogrow w-full min-h-[20rem] bg-white/5 border border-white/10 rounded-[2rem] px-6 py-6 text-white text-sm leading-relaxed focus:border-mabaker-red/50 transition-all outline-none resize-y scroll-custom"
+                                placeholder="Perfil descriptivo completo extraído del PDF o editado manualmente..."></textarea>
                         </div>
                     </div>
                 </div>
 
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-8 pt-4 border-t border-white/5">
-                    <div>
-                        <label class="text-[10px] font-black text-slate-500 uppercase tracking-widest block mb-2 px-1">Conocimientos Técnicos</label>
-                        <input type="text" id="editV_conocimientos" class="w-full bg-white/5 border border-white/10 rounded-2xl px-6 py-4 text-white text-xs focus:border-mabaker-red/50 outline-none" placeholder="Excel, SAP, SQL...">
+                    <div class="md:col-span-2">
+                        <label for="editV_conocimientos" class="mb-field-label px-1">Conocimientos técnicos</label>
+                        <textarea id="editV_conocimientos" rows="8" data-min-height="200"
+                            class="vacante-autogrow w-full min-h-[12rem] bg-white/5 border border-white/10 rounded-2xl px-6 py-4 text-white text-sm leading-relaxed focus:border-mabaker-red/50 outline-none resize-y scroll-custom"
+                            placeholder="Excel, SAP, SQL, CRM, herramientas de venta digital, plataformas de transmisión en vivo..."></textarea>
                     </div>
                     <div>
-                        <label class="text-[10px] font-black text-slate-500 uppercase tracking-widest block mb-2 px-1">Estado de la Vacante</label>
+                        <label for="editV_competencias" class="mb-field-label px-1">Competencias clave</label>
+                        <textarea id="editV_competencias" rows="2" data-min-height="52"
+                            class="vacante-autogrow w-full min-h-[3rem] bg-white/5 border border-white/10 rounded-2xl px-6 py-4 text-white text-sm focus:border-mabaker-red/50 outline-none resize-y scroll-custom"
+                            placeholder="Liderazgo, Comunicación, Trabajo en equipo..."></textarea>
+                    </div>
+                    <div>
+                        <label class="mb-field-label px-1">Estado de la Vacante</label>
                         <div class="flex items-center gap-4 mt-2 h-14">
                             <label class="relative inline-flex items-center cursor-pointer">
                                 <input type="checkbox" id="editV_activo" class="sr-only peer">
@@ -456,6 +508,47 @@
                     </svg>
                     Guardar Cambios
                 </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL VER DESCRIPCIÓN DE PUESTO -->
+    <div id="modalVerVacante" class="fixed inset-0 z-50 hidden flex items-center justify-center p-4">
+        <div class="absolute inset-0 bg-dark-depth/90 backdrop-blur-xl" onclick="cerrarModalVerVacante()"></div>
+        <div class="relative w-full max-w-4xl bg-dark-surface border border-white/10 rounded-[3rem] shadow-3xl overflow-hidden flex flex-col max-h-[90vh]">
+            <div class="p-10 border-b border-white/5 flex justify-between items-start shrink-0">
+                <div>
+                    <span id="verV_codigo" class="px-3 py-1 bg-white/10 rounded text-[10px] font-black uppercase tracking-widest text-slate-300">COD-000</span>
+                    <h2 id="verV_titulo" class="text-2xl md:text-3xl font-black text-white mt-2 leading-snug break-words whitespace-pre-wrap">Puesto</h2>
+                    <p id="verV_depto" class="text-sm font-bold text-mabaker-red uppercase tracking-widest mt-1">Departamento</p>
+                </div>
+                <button onclick="cerrarModalVerVacante()" class="size-12 rounded-2xl hover:bg-white/5 flex items-center justify-center">
+                    <svg class="w-6 h-6 text-slate-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"></path></svg>
+                </button>
+            </div>
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-4 p-8 border-b border-white/5 shrink-0">
+                <div class="bg-white/5 p-4 rounded-2xl border border-white/10"><p class="mb-field-caption mb-1">Escolaridad</p><p id="verV_escolaridad" class="text-sm font-bold text-white">—</p></div>
+                <div class="bg-white/5 p-4 rounded-2xl border border-white/10"><p class="mb-field-caption mb-1">Experiencia</p><p id="verV_exp" class="text-sm font-bold text-white">—</p></div>
+                <div class="bg-white/5 p-4 rounded-2xl border border-white/10"><p class="mb-field-caption mb-1">Edad</p><p id="verV_edad" class="text-sm font-bold text-white">—</p></div>
+                <div class="bg-white/5 p-4 rounded-2xl border border-white/10"><p class="mb-field-caption mb-1">Sueldo</p><p id="verV_sueldo" class="text-sm font-bold text-white">—</p></div>
+            </div>
+            <div class="p-8 overflow-y-auto scroll-custom flex-1 space-y-6">
+                <div>
+                    <h4 class="text-xs font-black uppercase tracking-widest text-amber-400 mb-3">Descriptivo del puesto (PDF / texto completo)</h4>
+                    <div id="verV_desc" class="text-sm leading-relaxed text-slate-300 whitespace-pre-wrap"></div>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div><h4 class="text-xs font-black uppercase tracking-widest text-emerald-400 mb-2">Conocimientos</h4><div id="verV_conocimientos" class="flex flex-wrap gap-2"></div></div>
+                    <div><h4 class="text-xs font-black uppercase tracking-widest text-amber-400 mb-2">Competencias</h4><div id="verV_competencias" class="flex flex-wrap gap-2"></div></div>
+                </div>
+                <p class="text-[10px] text-slate-500 italic">Archivo origen: <span id="verV_archivo" class="text-slate-300">—</span></p>
+            </div>
+            <div class="p-8 border-t border-white/5 flex justify-between items-center shrink-0">
+                <span id="verV_status" class="px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest bg-emerald-500/20 text-emerald-400">ACTIVA</span>
+                <div class="flex gap-3">
+                    <button onclick="editarVacanteDesdeVer()" class="px-6 py-3 rounded-2xl bg-mabaker-blue/20 text-mabaker-blue text-xs font-black uppercase tracking-widest hover:bg-mabaker-blue hover:text-white transition-all">Editar vacante</button>
+                    <button onclick="cerrarModalVerVacante()" class="px-6 py-3 rounded-2xl border border-white/10 text-slate-400 text-xs font-black uppercase tracking-widest">Cerrar</button>
+                </div>
             </div>
         </div>
     </div>
@@ -491,27 +584,27 @@
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
                     <div class="space-y-6">
                         <div>
-                            <label class="text-[10px] font-black text-slate-500 uppercase tracking-widest block mb-2 px-1">Correo Electrónico</label>
+                            <label class="mb-field-label px-1">Correo Electrónico</label>
                             <input type="email" id="editC_email" class="w-full bg-white/5 border border-white/10 rounded-2xl px-6 py-4 text-white font-semibold focus:border-mabaker-blue/50 outline-none">
                         </div>
                         <div>
-                            <label class="text-[10px] font-black text-slate-500 uppercase tracking-widest block mb-2 px-1">Teléfono</label>
+                            <label class="mb-field-label px-1">Teléfono</label>
                             <input type="text" id="editC_tel" class="w-full bg-white/5 border border-white/10 rounded-2xl px-6 py-4 text-white font-semibold focus:border-mabaker-blue/50 outline-none">
                         </div>
                         <div class="grid grid-cols-2 gap-4">
                             <div>
-                                <label class="text-[10px] font-black text-slate-500 uppercase tracking-widest block mb-2 px-1">Edad</label>
+                                <label class="mb-field-label px-1">Edad</label>
                                 <input type="number" id="editC_edad" class="w-full bg-white/5 border border-white/10 rounded-2xl px-6 py-4 text-white font-semibold outline-none">
                             </div>
                             <div>
-                                <label class="text-[10px] font-black text-slate-500 uppercase tracking-widest block mb-2 px-1">Género</label>
+                                <label class="mb-field-label px-1">Género</label>
                                 <input type="text" id="editC_genero" class="w-full bg-white/5 border border-white/10 rounded-2xl px-6 py-4 text-white font-semibold outline-none">
                             </div>
                         </div>
                     </div>
                     <div class="space-y-6">
                         <div>
-                            <label class="text-[10px] font-black text-slate-500 uppercase tracking-widest block mb-2 px-1">Fase Actual del Proceso</label>
+                            <label class="mb-field-label px-1">Fase Actual del Proceso</label>
                             <select id="editC_fase" class="w-full bg-white/5 border border-white/10 rounded-2xl px-6 py-4 text-white font-bold tracking-widest uppercase text-xs focus:border-mabaker-blue/50 outline-none appearance-none">
                                 <option value="espera_psicometricos" class="bg-dark-surface text-amber-500">ESPERA PSICOMÉTRICOS</option>
                                 <option value="psicometricos_realizados" class="bg-dark-surface text-blue-500">PSICOMÉTRICOS REALIZADOS</option>
@@ -525,15 +618,15 @@
                             </select>
                         </div>
                         <div>
-                            <label class="text-[10px] font-black text-slate-500 uppercase tracking-widest block mb-2 px-1">Última Empresa</label>
+                            <label class="mb-field-label px-1">Última Empresa</label>
                             <input type="text" id="editC_empresa" class="w-full bg-white/5 border border-white/10 rounded-2xl px-6 py-4 text-white font-semibold outline-none">
                         </div>
                         <div>
-                            <label class="text-[10px] font-black text-slate-500 uppercase tracking-widest block mb-2 px-1">Experiencias Laborales (Hasta 4)</label>
+                            <label class="mb-field-label px-1">Experiencias Laborales (Hasta 4)</label>
                             <textarea id="editC_experiencias" readonly class="w-full min-h-[140px] bg-white/5 border border-white/10 rounded-2xl px-6 py-4 text-white font-semibold outline-none" placeholder="Sin experiencia registrada"></textarea>
                         </div>
                         <div>
-                            <label class="text-[10px] font-black text-slate-500 uppercase tracking-widest block mb-2 px-1">Escolaridad</label>
+                            <label class="mb-field-label px-1">Escolaridad</label>
                             <input type="text" id="editC_escolaridad" class="w-full bg-white/5 border border-white/10 rounded-2xl px-6 py-4 text-white font-semibold outline-none">
                         </div>
                     </div>
@@ -548,25 +641,25 @@
                         <h4 class="text-xs font-black uppercase tracking-widest text-mabaker-blue border-b border-white/5 pb-2">Identificación Oficial y Fiscal</h4>
                         <div class="grid grid-cols-2 gap-4">
                             <div>
-                                <label class="text-[10px] font-black text-slate-500 uppercase tracking-widest block mb-2 px-1">Clave CURP</label>
+                                <label class="mb-field-label px-1">Clave CURP</label>
                                 <input type="text" id="editC_curp" class="w-full bg-white/5 border border-white/10 rounded-2xl px-6 py-4 text-white font-semibold outline-none" placeholder="CURP del candidato">
                             </div>
                             <div>
-                                <label class="text-[10px] font-black text-slate-500 uppercase tracking-widest block mb-2 px-1">Clave RFC</label>
+                                <label class="mb-field-label px-1">Clave RFC</label>
                                 <input type="text" id="editC_rfc" class="w-full bg-white/5 border border-white/10 rounded-2xl px-6 py-4 text-white font-semibold outline-none" placeholder="RFC del candidato">
                             </div>
                         </div>
                         <div>
-                            <label class="text-[10px] font-black text-slate-500 uppercase tracking-widest block mb-2 px-1">Domicilio Completo</label>
+                            <label class="mb-field-label px-1">Domicilio Completo</label>
                             <input type="text" id="editC_domicilio" class="w-full bg-white/5 border border-white/10 rounded-2xl px-6 py-4 text-white font-semibold outline-none" placeholder="Dirección residencial">
                         </div>
                         <div class="grid grid-cols-2 gap-4">
                             <div>
-                                <label class="text-[10px] font-black text-slate-500 uppercase tracking-widest block mb-2 px-1">Cédula Profesional</label>
+                                <label class="mb-field-label px-1">Cédula Profesional</label>
                                 <input type="text" id="editC_cedula" class="w-full bg-white/5 border border-white/10 rounded-2xl px-6 py-4 text-white font-semibold outline-none" placeholder="N/A o número de cédula">
                             </div>
                             <div>
-                                <label class="text-[10px] font-black text-slate-500 uppercase tracking-widest block mb-2 px-1">Nivel Socioeconómico</label>
+                                <label class="mb-field-label px-1">Nivel Socioeconómico</label>
                                 <input type="text" id="editC_nivel" class="w-full bg-white/5 border border-white/10 rounded-2xl px-6 py-4 text-white font-semibold outline-none" placeholder="Ej: Medio">
                             </div>
                         </div>
@@ -583,7 +676,7 @@
                                     <div class="size-10 rounded-xl bg-rose-500/10 text-rose-500 flex items-center justify-center font-bold text-xs shrink-0">PDF</div>
                                     <div>
                                         <p class="text-xs font-bold text-white" id="doc_cv_name">Curriculum_Vitae.pdf</p>
-                                        <p class="text-[9px] text-slate-500 font-bold uppercase tracking-widest">Tamaño: 2.1 MB • CV del Candidato</p>
+                                        <p class="text-xs text-slate-300 font-bold uppercase tracking-wide">Tamaño: 2.1 MB • CV del Candidato</p>
                                     </div>
                                 </div>
                                 <button type="button" onclick="visualizarDocumento('Curriculum Vitae', 'pdf')" class="px-4 py-2 rounded-xl bg-mabaker-blue/20 text-mabaker-blue hover:bg-mabaker-blue hover:text-white transition-all text-xs font-bold">👁 Ver</button>
@@ -595,7 +688,7 @@
                                     <div class="size-10 rounded-xl bg-blue-500/10 text-blue-500 flex items-center justify-center font-bold text-xs shrink-0">JPG</div>
                                     <div>
                                         <p class="text-xs font-bold text-white" id="doc_ine_name">INE_Anverso_Reverso.jpg</p>
-                                        <p class="text-[9px] text-slate-500 font-bold uppercase tracking-widest">Tamaño: 1.4 MB • Identificación Oficial</p>
+                                        <p class="text-xs text-slate-300 font-bold uppercase tracking-wide">Tamaño: 1.4 MB • Identificación Oficial</p>
                                     </div>
                                 </div>
                                 <button type="button" onclick="visualizarDocumento('Identificación Oficial (INE)', 'image')" class="px-4 py-2 rounded-xl bg-mabaker-blue/20 text-mabaker-blue hover:bg-mabaker-blue hover:text-white transition-all text-xs font-bold">👁 Ver</button>
@@ -607,7 +700,7 @@
                                     <div class="size-10 rounded-xl bg-emerald-500/10 text-emerald-500 flex items-center justify-center font-bold text-xs shrink-0">PDF</div>
                                     <div>
                                         <p class="text-xs font-bold text-white" id="doc_curp_name">Constancia_CURP.pdf</p>
-                                        <p class="text-[9px] text-slate-500 font-bold uppercase tracking-widest">Tamaño: 520 KB • Documento RENAPO</p>
+                                        <p class="text-xs text-slate-300 font-bold uppercase tracking-wide">Tamaño: 520 KB • Documento RENAPO</p>
                                     </div>
                                 </div>
                                 <button type="button" onclick="visualizarDocumento('CURP Oficial', 'pdf')" class="px-4 py-2 rounded-xl bg-mabaker-blue/20 text-mabaker-blue hover:bg-mabaker-blue hover:text-white transition-all text-xs font-bold">👁 Ver</button>
@@ -619,7 +712,7 @@
                                     <div class="size-10 rounded-xl bg-amber-500/10 text-amber-500 flex items-center justify-center font-bold text-xs shrink-0">PDF</div>
                                     <div>
                                         <p class="text-xs font-bold text-white" id="doc_rfc_name">Constancia_Situacion_Fiscal.pdf</p>
-                                        <p class="text-[9px] text-slate-500 font-bold uppercase tracking-widest">Tamaño: 1.1 MB • SAT Cédula Fiscal</p>
+                                        <p class="text-xs text-slate-300 font-bold uppercase tracking-wide">Tamaño: 1.1 MB • SAT Cédula Fiscal</p>
                                     </div>
                                 </div>
                                 <button type="button" onclick="visualizarDocumento('Constancia SAT (RFC)', 'pdf')" class="px-4 py-2 rounded-xl bg-mabaker-blue/20 text-mabaker-blue hover:bg-mabaker-blue hover:text-white transition-all text-xs font-bold">👁 Ver</button>
@@ -670,6 +763,14 @@
 
     <!-- Scripts Area -->
     <script src="js/auth.js"></script>
+    <script src="js/candidates-api.js"></script>
+    <script src="js/vacantes-api.js"></script>
+    <script type="module">
+        import * as pdfjsLib from 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.2.67/pdf.min.mjs';
+        pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.2.67/pdf.worker.min.mjs';
+        window.pdfjsLib = pdfjsLib;
+    </script>
+    <script src="js/vacantes-pdf-upload.js"></script>
     <script src="js/dashboard.js"></script>
     <script src="js/psicometricos.js"></script>
     <script>

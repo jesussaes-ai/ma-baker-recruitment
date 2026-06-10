@@ -910,6 +910,17 @@
                     version_prueba_aplicada: '1.0'
                 });
 
+                const candidatoId = estado.evaluacion.id_candidato;
+                if (candidatoId) {
+                    await supabasePatch('candidatos_activos', candidatoId, {
+                        fase_actual: 'psicometricos_realizados',
+                        score_psicometrico: scoreTotal,
+                        resultado_psicometria: resultado,
+                        perfil_psicologico: resultados,
+                        fecha_psicometria: new Date().toISOString(),
+                    });
+                }
+
                 // Mostrar éxito
                 document.getElementById('app-principal').style.display = 'none';
                 document.getElementById('pantalla-exito').style.display = 'flex';

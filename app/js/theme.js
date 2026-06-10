@@ -1,5 +1,5 @@
 /**
- * theme.js — Tema dinámico Claro/Oscuro para Ma Baker & Chef
+ * theme.js — Tema dinámico Claro/Oscuro para Ma Baker and Chef
  * Se aplica automáticamente en todas las páginas al incluir este script.
  * La preferencia se guarda en localStorage bajo la clave 'mb_theme'.
  */
@@ -14,7 +14,89 @@
         injectThemeToggle();
         injectHelpButton();
         injectBrandLogo();
+        injectFieldLabelStyles();
+        loadGlobalNavigation();
     });
+
+    function injectFieldLabelStyles() {
+        if (document.getElementById('mb-field-label-styles')) return;
+        const style = document.createElement('style');
+        style.id = 'mb-field-label-styles';
+        style.textContent = `
+            .mb-field-label {
+                display: block;
+                margin-bottom: 0.5rem;
+                font-family: 'Montserrat', sans-serif;
+                font-size: 12px;
+                font-weight: 800;
+                letter-spacing: 0.08em;
+                text-transform: uppercase;
+                line-height: 1.3;
+                opacity: 1 !important;
+            }
+            html[data-theme="dark"] .mb-field-label {
+                color: #F8FAFC !important;
+            }
+            html[data-theme="light"] .mb-field-label {
+                color: #0F172A !important;
+            }
+            /* Modales oscuros: etiquetas siempre claras aunque el tema global sea claro */
+            html[data-theme="light"] #modalVacante .mb-field-label,
+            html[data-theme="light"] #modalCandidato .mb-field-label,
+            html[data-theme="light"] #modalVerVacante .mb-field-label,
+            html[data-theme="light"] [id*="modal"] .bg-dark-surface .mb-field-label,
+            html[data-theme="light"] .bg-dark-surface .mb-field-label {
+                color: #F8FAFC !important;
+            }
+            .mb-field-caption {
+                font-family: 'Montserrat', sans-serif;
+                font-size: 11px;
+                font-weight: 800;
+                letter-spacing: 0.07em;
+                text-transform: uppercase;
+                opacity: 1 !important;
+            }
+            html[data-theme="dark"] .mb-field-caption {
+                color: #E2E8F0 !important;
+            }
+            html[data-theme="light"] .mb-field-caption {
+                color: #334155 !important;
+            }
+            html[data-theme="light"] #modalVerVacante .mb-field-caption,
+            html[data-theme="light"] .bg-dark-surface .mb-field-caption {
+                color: #E2E8F0 !important;
+            }
+            html[data-theme="dark"] label.mb-field-label,
+            html[data-theme="dark"] form label[class*="uppercase"]:not(.sr-only):not([class*="cursor-pointer"]) {
+                color: #F8FAFC !important;
+                opacity: 1 !important;
+                font-size: 12px !important;
+                font-weight: 800 !important;
+            }
+            html[data-theme="light"] form label.mb-field-label {
+                color: #0F172A !important;
+            }
+        `;
+        document.head.appendChild(style);
+    }
+
+    function loadGlobalNavigation() {
+        if (window.MB_NAV) {
+            window.MB_NAV.inject();
+            return;
+        }
+        if (document.querySelector('script[data-mb-nav="1"]')) return;
+        const s = document.createElement('script');
+        s.src = 'js/navigation.js';
+        s.dataset.mbNav = '1';
+        s.onload = function () {
+            if (window.MB_NAV) {
+                window.MB_NAV.inject();
+                window.MB_NAV.syncBrandLogo();
+            }
+        };
+        document.body.appendChild(s);
+    }
 
     /**
      * Aplica el tema en el elemento <html> y guarda la preferencia.

@@ -92,14 +92,37 @@ async function getGoogleAccessToken(): Promise<string> {
 async function sendWithGmail(payload: { to: string[]; subject: string; text?: string; html?: string; }): Promise<SendResult> {
   const accessToken = await getGoogleAccessToken();
   const toHeader = payload.to.join(", ");
+  const textBody = String(payload.text || "").trim();
+  const htmlBody = String(payload.html || "").trim();
+  const boundary = `mb_${crypto.randomUUID().replace(/-/g, "")}`;
+
+  let contentBlock: string;
+  if (htmlBody && textBody) {
+    contentBlock = [
+      `Content-Type: multipart/alternative; boundary="${boundary}"`,
+      "",
+      `--${boundary}`,
+      "Content-Type: text/plain; charset=UTF-8",
+      "",
+      textBody,
+      `--${boundary}`,
+      "Content-Type: text/html; charset=UTF-8",
+      "",
+      htmlBody,
+      `--${boundary}--`,
+    ].join("\r\n");
+  } else if (htmlBody) {
+    contentBlock = ["Content-Type: text/html; charset=UTF-8", "", htmlBody].join("\r\n");
+  } else {
+    contentBlock = ["Content-Type: text/plain; charset=UTF-8", "", textBody || ""].join("\r\n");
+  }
+
   const mimeLines = [
     `From: ${MAIL_FROM || GMAIL_SENDER_EMAIL}`,
     `To: ${toHeader}`,
     `Subject: ${payload.subject.slice(0, 140)}`,
     "MIME-Version: 1.0",
-    "Content-Type: text/plain; charset=UTF-8",
-    "",
-    payload.text || payload.html || "",
+    contentBlock,
   ];
   const raw = utf8ToBase64Url(mimeLines.join("\r\n"));
 

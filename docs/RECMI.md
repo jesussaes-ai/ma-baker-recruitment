@@ -15,6 +15,11 @@
 - Se creó Edge Function `send-postulacion-emails` para Supabase.
 - Se documentó despliegue y pruebas en `docs/deploy-email-webhook.md`.
 
+### Backend psicométricos (Fase 3)
+- Edge Function `setup-psicometric-access` desplegada.
+- Migración RLS + `candidato_documentos` en Supabase.
+- Guía: `docs/fase-3-psicometricos.md`.
+
 ### Documentación
 - README actualizado con configuración runtime y flujo de correos.
 - Obsidian actualizado en `docs/obsidian/seguimiento-postulacion-y-correos.md`.
