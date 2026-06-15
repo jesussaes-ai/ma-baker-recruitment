@@ -1,10 +1,11 @@
 ---
 name: documentacion-cierre-ma-baker
 description: >-
-  Cierra tareas técnicas documentando en Obsidian, README, OneNote y GitHub.
-  Usar al terminar cualquier cambio de arquitectura, flujo, configuración,
-  corrección operativa o sesión de trabajo. También cuando el usuario pida
-  guardar, documentar, actualizar notas, Obsidian, README, OneNote o GitHub.
+  Cierra tareas técnicas del proyecto Ma Baker documentando en Obsidian, README,
+  OneNote (espejo) y GitHub. Usar al terminar cambios de arquitectura, flujo,
+  configuración, corrección operativa o sesión de trabajo; cuando el usuario pida
+  guardar, documentar, actualizar notas, Obsidian, README, OneNote, GitHub o
+  cerrar sesión con impacto operativo en ma-baker-recruitment.
 ---
 
 # Documentación de cierre — Ma Baker Recruitment
@@ -19,6 +20,8 @@ Ninguna tarea técnica se considera terminada hasta documentar en **los cuatro d
 - Tras resolver incidentes (correo, RLS, OAuth, Edge Functions, etc.).
 - Cuando el usuario diga: "guarda", "documenta", "actualiza notas", "cierra la sesión".
 - Antes de responder "listo", "hecho" o "perfecto" en cambios con impacto operativo.
+
+No duplicar runbooks completos en Obsidian si ya viven en `docs/` — enlazar con ruta relativa.
 
 ## Checklist obligatorio (ejecutar en orden)
 
@@ -41,7 +44,7 @@ Ninguna tarea técnica se considera terminada hasta documentar en **los cuatro d
 | **OneNote** | `docs/onenote/` | Misma información en formato breve para el cuaderno corporativo |
 | **GitHub** | remoto | Commit/push cuando el usuario lo solicite explícitamente |
 
-> OneNote no tiene API en este proyecto. El agente **siempre** escribe o actualiza el espejo en `docs/onenote/` para que el usuario lo sincronice con su cuaderno "Ma Baker - Reclutamiento" (o el nombre que use el equipo).
+OneNote no tiene API en este proyecto. El agente **siempre** escribe o actualiza el espejo en `docs/onenote/` para que el usuario lo sincronice con su cuaderno "Ma Baker - Reclutamiento" (o el nombre que use el equipo).
 
 ## Qué actualizar en cada destino
 
@@ -95,6 +98,8 @@ Archivos frecuentes:
 - `docs/RECMI.md`
 - `docs/CONTEXTO.md`
 
+Para secretos Edge Function vs Vault SQL, seguir skill personal `~/.cursor/skills/supabase-edge-secrets-not-vault/` — no reescribir el runbook entero en Obsidian.
+
 ### GitHub
 
 - **No** hacer commit ni push salvo petición explícita del usuario.
@@ -116,8 +121,9 @@ Incluir siempre este bloque al final:
 - Nunca volcar API keys, refresh tokens, contraseñas ni PAT en Obsidian, README, OneNote ni commits.
 - Referir secretos solo por nombre (`GOOGLE_REFRESH_TOKEN`, `RESEND_API_KEY`, etc.).
 
-## Relación con otras reglas del proyecto
+## Relación con otras reglas y skills
 
 - Complementa `.cursor/rules/documentacion-operativa-obligatoria.mdc` (alwaysApply).
 - Esta skill detalla **cómo** y **dónde** documentar, incluyendo OneNote.
 - La regla `.mdc` obliga a no omitir el cierre; esta skill define el procedimiento completo.
+- Patrones transversales nuevos → evaluar skill personal vía `~/.cursor/skills/auto-skill-from-learning/`.

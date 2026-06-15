@@ -34,7 +34,7 @@
     resources: [],
     datasets: {},
     filteredCandidates: null,
-    vacanteFilter: "activas",
+    vacanteFilter: "todas",
     currentVacanteId: null,
     viewingVacanteId: null,
     currentCandidatoId: null,
@@ -213,15 +213,236 @@
         activarPanel(item.dataset.panel, item);
       });
     });
+
+    bindNotificationsUI();
+  }
+
+  function bindNotificationsUI() {
+    const bell = byId("notifBellBtn");
+    const refresh = byId("notifRefreshBtn");
+    const wrap = byId("notifWrap");
+    if (!bell) return;
+
+    bell.addEventListener("click", (e) => {
+      e.stopPropagation();
+      toggleNotifDropdown();
+    });
+
+    if (refresh) {
+      refresh.addEventListener("click", async (e) => {
+        e.stopPropagation();
+        await reloadCurrentRoleData();
+        renderNotificationsDropdown();
+        updateNotificationBadge();
+      });
+    }
+
+    document.addEventListener("click", (e) => {
+      if (!wrap || wrap.contains(e.target)) return;
+      closeNotifDropdown();
+    });
+  }
+
+  function buildNotifications() {
+    const items = [];
+    const pending = pendingVacantes();
+    if (pending.length) {
+      items.push({
+        id: "publicar",
+        panel: "publicar",
+        title: `${pending.length} descripción(es) sin publicar`,
+        desc: "Publique en el portal para que los candidatos las vean",
+        tone: "amber",
+      });
+    }
+
+    const c = state.datasets.candidatos || [];
+    const weekAgo = Date.now() - 7 * 86400000;
+    const nuevos = c.filter((x) => x.created_at && new Date(x.created_at).getTime() >= weekAgo);
+    if (nuevos.length) {
+      items.push({
+        id: "nuevos",
+        panel: "candidatos",
+        title: `${nuevos.length} candidato(s) nuevos`,
+        desc: "Postulaciones recibidas en los últimos 7 días",
+        tone: "blue",
+      });
+    }
+
+    const psico = c.filter((x) => (x.fase_actual || "").toLowerCase().includes("psico"));
+    if (psico.length) {
+      items.push({
+        id: "psico",
+        panel: "candidatos",
+        title: `${psico.length} en evaluación psicométrica`,
+        desc: "Seguimiento de pruebas y resultados",
+        tone: "purple",
+      });
+    }
+
+    const medic = c.filter((x) => (x.fase_actual || "").toLowerCase().includes("medic"));
+    if (medic.length) {
+      items.push({
+        id: "medic",
+        panel: "candidatos",
+        title: `${medic.length} pendientes de revisión médica`,
+        desc: "Candidatos en fase médica del proceso",
+        tone: "emerald",
+      });
+    }
+
+    return items;
+  }
+
+  function notifToneClass(tone) {
+    const map = {
+      amber: "bg-amber-500/15 text-amber-300 border-amber-500/20",
+      blue: "bg-mabaker-blue/15 text-mabaker-blue border-mabaker-blue/20",
+      purple: "bg-purple-500/15 text-purple-300 border-purple-500/20",
+      emerald: "bg-emerald-500/15 text-emerald-300 border-emerald-500/20",
+    };
+    return map[tone] || "bg-white/10 text-slate-300 border-white/10";
+  }
+
+  function renderNotificationsDropdown() {
+    const list = byId("notifDropdownList");
+    if (!list) return;
+    const items = buildNotifications();
+    if (!items.length) {
+      list.innerHTML = `<p class="p-6 text-center text-slate-400 text-sm font-medium">Sin alertas pendientes</p>`;
+      return;
+    }
+    list.innerHTML = items
+      .map(
+        (n) => `
+        <button type="button" data-notif-panel="${esc(n.panel)}"
+          class="w-full text-left p-4 rounded-xl hover:bg-white/5 transition-all border border-transparent hover:border-white/10 mb-1 group">
+          <div class="flex items-start gap-3">
+            <span class="shrink-0 mt-0.5 px-2 py-1 rounded-lg text-[9px] font-black uppercase tracking-wider border ${notifToneClass(n.tone)}">${esc(n.id)}</span>
+            <div class="min-w-0">
+              <p class="text-sm font-bold text-white group-hover:text-mabaker-red transition-colors">${esc(n.title)}</p>
+              <p class="text-xs text-slate-400 mt-1">${esc(n.desc)}</p>
+            </div>
+          </div>
+        </button>`
+      )
+      .join("");
+
+    list.querySelectorAll("[data-notif-panel]").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        navigateFromNotif(btn.dataset.notifPanel);
+      });
+    });
+  }
+
+  function updateNotificationBadge() {
+    const dot = byId("notifDot");
+    if (!dot) return;
+    const hasAlerts = buildNotifications().length > 0;
+    const dropdownOpen = byId("notifDropdown") && !byId("notifDropdown").classList.contains("hidden");
+    dot.classList.toggle("hidden", !hasAlerts || dropdownOpen);
+  }
+
+  function toggleNotifDropdown() {
+    const dd = byId("notifDropdown");
+    const bell = byId("notifBellBtn");
+    if (!dd) return;
+    const willOpen = dd.classList.contains("hidden");
+    dd.classList.toggle("hidden");
+    if (bell) bell.setAttribute("aria-expanded", willOpen ? "true" : "false");
+    if (willOpen) {
+      renderNotificationsDropdown();
+    }
+    updateNotificationBadge();
+  }
+
+  function closeNotifDropdown() {
+    const dd = byId("notifDropdown");
+    const bell = byId("notifBellBtn");
+    if (!dd || dd.classList.contains("hidden")) return;
+    dd.classList.add("hidden");
+    if (bell) bell.setAttribute("aria-expanded", "false");
+    updateNotificationBadge();
+  }
+
+  function navigateFromNotif(panel) {
+    closeNotifDropdown();
+    const nav = document.querySelector(`.nav-item[data-panel="${panel}"]`);
+    activarPanel(panel, nav);
+  }
+
+  function renderAjustesPanel() {
+    const el = byId("ajustesContent");
+    if (!el) return;
+    const s = sessionFromStorage();
+    const theme = window.MB_THEME?.getCurrent?.() || "dark";
+    const themeLabel = theme === "dark" ? "Modo oscuro" : "Modo claro";
+    const company = window.MB_BRAND?.COMPANY_NAME || window.MB_CONFIG?.COMPANY_NAME || "Ma Baker and Chef";
+    const portalUrl = "index.html";
+
+    el.innerHTML = `
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div class="rounded-2xl border border-white/10 bg-white/[0.03] p-6 space-y-4">
+          <p class="text-[10px] font-black uppercase tracking-widest text-slate-500">Sesión activa</p>
+          <div class="space-y-2">
+            <p class="text-lg font-black text-white">${esc(s.nombre || "Usuario")}</p>
+            <p class="text-sm text-slate-400">${esc(formatRoleLabel(s.rol))}${s.departamento ? ` · ${esc(s.departamento)}` : ""}</p>
+          </div>
+          <button type="button" onclick="logout()" class="px-4 py-2 rounded-xl bg-mabaker-red/20 text-mabaker-red border border-mabaker-red/30 text-[10px] font-black uppercase tracking-widest hover:bg-mabaker-red hover:text-white transition-all">Cerrar sesión</button>
+        </div>
+
+        <div class="rounded-2xl border border-white/10 bg-white/[0.03] p-6 space-y-4">
+          <p class="text-[10px] font-black uppercase tracking-widest text-slate-500">Apariencia</p>
+          <p class="text-sm text-slate-300">Tema actual: <span id="ajustesThemeLabel" class="font-bold text-white">${esc(themeLabel)}</span></p>
+          <button type="button" id="ajustesThemeToggle" class="px-5 py-3 rounded-xl bg-white/10 text-white text-xs font-black uppercase tracking-widest hover:bg-white/20 transition-all">
+            Cambiar a ${theme === "dark" ? "modo claro" : "modo oscuro"}
+          </button>
+        </div>
+
+        <div class="rounded-2xl border border-white/10 bg-white/[0.03] p-6 space-y-4">
+          <p class="text-[10px] font-black uppercase tracking-widest text-slate-500">Portal de candidatos</p>
+          <p class="text-sm text-slate-400">Vista pública de vacantes publicadas en ${esc(company)}.</p>
+          <a href="${esc(portalUrl)}" target="_blank" rel="noopener" class="inline-flex px-5 py-3 rounded-xl bg-mabaker-blue/20 text-mabaker-blue border border-mabaker-blue/30 text-xs font-black uppercase tracking-widest hover:scale-105 transition-all">Abrir portal</a>
+        </div>
+
+        <div class="rounded-2xl border border-white/10 bg-white/[0.03] p-6 space-y-4">
+          <p class="text-[10px] font-black uppercase tracking-widest text-slate-500">Accesos rápidos</p>
+          <div class="flex flex-wrap gap-2">
+            <button type="button" data-quick-panel="descripciones" class="quick-panel-btn px-4 py-2 rounded-xl bg-white/5 text-slate-300 text-[10px] font-black uppercase tracking-widest hover:bg-white/10 transition-all">Descripciones</button>
+            <button type="button" data-quick-panel="publicar" class="quick-panel-btn px-4 py-2 rounded-xl bg-white/5 text-slate-300 text-[10px] font-black uppercase tracking-widest hover:bg-white/10 transition-all">Publicar</button>
+            <button type="button" data-quick-panel="candidatos" class="quick-panel-btn px-4 py-2 rounded-xl bg-white/5 text-slate-300 text-[10px] font-black uppercase tracking-widest hover:bg-white/10 transition-all">Candidatos</button>
+            <a href="cargar-puestos.html" class="px-4 py-2 rounded-xl bg-white/5 text-slate-300 text-[10px] font-black uppercase tracking-widest hover:bg-white/10 transition-all">Gestor de vacantes</a>
+          </div>
+        </div>
+      </div>`;
+
+    const themeBtn = byId("ajustesThemeToggle");
+    if (themeBtn) {
+      themeBtn.addEventListener("click", () => {
+        window.MB_THEME?.toggle?.();
+        renderAjustesPanel();
+      });
+    }
+
+    el.querySelectorAll(".quick-panel-btn").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        const panel = btn.dataset.quickPanel;
+        const nav = document.querySelector(`.nav-item[data-panel="${panel}"]`);
+        activarPanel(panel, nav);
+      });
+    });
   }
 
   function panelTitle(panel) {
     const map = {
       dashboard: "Gestión de Talento",
+      descripciones: "Descripciones de Puesto",
+      publicar: "Publicar Vacantes",
       candidatos: "Candidatos Activos",
       vacantes: "Catálogo de Puestos",
       rechazados: "Historial de Rechazos",
       logs: "Logs del Sistema",
+      ajustes: "Ajustes del Sistema",
       pendientes: "Pendientes",
       evaluados: "Evaluados",
       alertas: "Alertas",
@@ -229,15 +450,65 @@
     return map[panel] || "Dashboard";
   }
 
+  function showUploadSection(show) {
+    const section = byId("vacantesUploadSection");
+    if (!section) return;
+    section.classList.toggle("hidden", !show);
+  }
+
   function activarPanel(panel, source) {
+    closeNotifDropdown();
     document.querySelectorAll(".panel").forEach((p) => p.classList.remove("active"));
-    const target = byId(`panel-${panel}`);
+
+    let targetPanel = panel;
+    if (panel === "descripciones") {
+      targetPanel = "vacantes";
+      state.vacanteFilter = "biblioteca";
+      showUploadSection(true);
+    } else if (panel === "vacantes") {
+      state.vacanteFilter = state.vacanteFilter || "todas";
+      showUploadSection(false);
+    } else if (panel === "publicar") {
+      showUploadSection(false);
+    } else {
+      showUploadSection(false);
+    }
+
+    const target = byId(`panel-${targetPanel}`);
     if (target) target.classList.add("active");
 
     document.querySelectorAll(".nav-item[data-panel]").forEach((n) => n.classList.remove("nav-item-active", "active"));
     if (source) source.classList.add("nav-item-active", "active");
 
     setText("panelTitle", panelTitle(panel));
+
+    if (panel === "descripciones" || panel === "vacantes") {
+      const titleEl = byId("vacantesPanelTitle");
+      const subEl = byId("vacantesPanelSubtitle");
+      if (panel === "descripciones") {
+        if (titleEl) titleEl.textContent = "Descripciones de Puesto";
+        if (subEl) subEl.textContent = "Sube, guarda y edita tus archivos de descripción antes de publicar";
+      } else {
+        if (titleEl) titleEl.textContent = "Catálogo de Puestos";
+        if (subEl) subEl.textContent = "Biblioteca interna y vacantes publicadas en el portal de postulación";
+      }
+      renderRRHHTables();
+    }
+    if (panel === "publicar") {
+      renderPublicarPanel();
+    }
+    if (panel === "ajustes") {
+      renderAjustesPanel();
+    }
+    if (panel === "logs") {
+      reloadCurrentRoleData().then(() => renderRRHHTables());
+    }
+
+    if (panel && panel !== "dashboard") {
+      try {
+        history.replaceState(null, "", `#${panel}`);
+      } catch (_) { /* noop */ }
+    }
   }
 
   async function initDashboard(role, resources) {
@@ -257,18 +528,36 @@
       console.log("🚀 initDashboard: loading RRHH/Admin resources (" + resources.length + ")");
       await loadRRHH(resources || []);
       initVacantesUploadWidget();
+      openPanelFromHash();
       return;
     }
     if (role === "jefe") return loadJefe(s);
     if (role === "medico") return loadMedico();
   }
 
+  const ROLE_LABELS = {
+    admin: "Administrador",
+    rrhh: "Recursos Humanos",
+    medico: "Médico",
+    jefe: "Jefe de Área",
+    sgi: "SGI / Calidad",
+    seguridad: "Seguridad e Higiene",
+  };
+
+  function formatRoleLabel(rol) {
+    const key = String(rol || "").toLowerCase();
+    return ROLE_LABELS[key] || key || "Usuario";
+  }
+
   function hydrateUser(s) {
     const userInfo = byId("userInfo") || byId("sidebarProfile");
     if (!userInfo) return;
     const nombre = esc(s.nombre || "Usuario");
-    const rol = esc((s.rol || "").toUpperCase());
-    userInfo.innerHTML = `<span class="user-name">${nombre}</span><span class="user-rol">${rol}</span>`;
+    const rol = esc(formatRoleLabel(s.rol));
+    userInfo.innerHTML = `
+      <p class="text-xs font-bold text-white truncate">${nombre}</p>
+      <p class="text-[10px] text-slate-400 font-medium uppercase tracking-wider mt-0.5">${rol}</p>
+    `;
   }
 
   async function loadCandidatesForRole() {
@@ -298,6 +587,10 @@
             map[r.id] = await window.MB_CANDIDATES.listRejected().catch(() => []);
             return;
           }
+          if (r.id === "logs" && window.MB_CANDIDATES && localStorage.getItem("mb_token")) {
+            map[r.id] = await window.MB_CANDIDATES.listSystemLogs(50).catch(() => []);
+            return;
+          }
           const data = await supaGet(r.endpoint);
           map[r.id] = data;
         } catch (e) {
@@ -310,6 +603,7 @@
     console.log("📋 loadRRHH: data loaded, rendering stats and tables...");
     renderRRHHStats();
     renderRRHHTables();
+    updateNotificationBadge();
     console.log("📋 loadRRHH: rendering completed!");
   }
 
@@ -336,6 +630,156 @@
   function setVacanteFilter(filter) {
     state.vacanteFilter = filter || "todas";
     renderRRHHTables();
+  }
+
+  function pendingVacantes() {
+    return (state.datasets.vacantes || []).filter((x) => x.activo === false);
+  }
+
+  function renderPublicarPanel() {
+    const el = byId("tablaPublicar");
+    if (!el) return;
+    const pending = pendingVacantes();
+    const countEl = byId("publicarCount");
+    if (countEl) countEl.textContent = `${pending.length} descripción(es) pendientes de publicar`;
+
+    if (!pending.length) {
+      el.innerHTML = `
+        <div class="p-16 text-center space-y-4">
+          <p class="text-slate-400 font-medium">No hay descripciones pendientes de publicar.</p>
+          <button type="button" onclick="activarPanel('descripciones', document.querySelector('[data-panel=descripciones]'))"
+            class="px-6 py-3 rounded-2xl bg-mabaker-blue/20 text-mabaker-blue border border-mabaker-blue/30 text-xs font-black uppercase tracking-widest hover:scale-105 transition-all">
+            Ir a subir descripciones
+          </button>
+        </div>`;
+      return;
+    }
+
+    el.innerHTML = `
+      <table class="w-full text-left border-collapse">
+        <thead>
+          <tr class="border-b border-white/5 bg-white/[0.02]">
+            <th class="px-6 py-4 w-10">
+              <input type="checkbox" id="pubSelectAll" onchange="togglePublicarTodos(this.checked)" title="Seleccionar todas" class="rounded">
+            </th>
+            <th class="px-6 py-4 text-[9px] font-black text-slate-400 uppercase tracking-widest">Puesto</th>
+            <th class="px-6 py-4 text-[9px] font-black text-slate-400 uppercase tracking-widest">Departamento</th>
+            <th class="px-6 py-4 text-[9px] font-black text-slate-400 uppercase tracking-widest">Archivo origen</th>
+            <th class="px-6 py-4 text-right text-[9px] font-black text-slate-400 uppercase tracking-widest">Acciones</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-white/5">
+          ${pending.map((v) => {
+            const id = esc(v.id || "");
+            const idJs = String(v.id || "").replace(/\\/g, "\\\\").replace(/'/g, "\\'");
+            return `
+            <tr class="hover:bg-white/[0.03] transition-colors">
+              <td class="px-6 py-4"><input type="checkbox" class="pub-check rounded" value="${id}" data-id="${id}"></td>
+              <td class="px-6 py-4 text-sm font-bold text-white">${esc(v.nombre_puesto || "—")}</td>
+              <td class="px-6 py-4 text-xs text-slate-400">${esc(v.departamento || "—")}</td>
+              <td class="px-6 py-4 text-xs text-slate-500 truncate max-w-[200px]">${esc(v.nombre_archivo_fuente || "—")}</td>
+              <td class="px-6 py-4 text-right">
+                <div class="flex items-center justify-end gap-2">
+                  <button type="button" onclick="verDescripcionVacante('${idJs}')" class="px-3 py-2 rounded-xl bg-mabaker-blue/20 text-mabaker-blue text-xs font-bold hover:bg-mabaker-blue hover:text-white transition-all">Ver</button>
+                  <button type="button" onclick="editarVacante('${idJs}')" class="px-3 py-2 rounded-xl bg-white/10 text-slate-300 text-xs font-bold hover:bg-white/20 transition-all">Editar</button>
+                  <button type="button" onclick="publicarVacanteDesdePanel('${idJs}')" class="px-3 py-2 rounded-xl bg-emerald-600 text-white text-xs font-black uppercase tracking-widest hover:bg-emerald-500 transition-all">Publicar</button>
+                </div>
+              </td>
+            </tr>`;
+          }).join("")}
+        </tbody>
+      </table>`;
+  }
+
+  function togglePublicarTodos(checked) {
+    document.querySelectorAll(".pub-check").forEach((cb) => { cb.checked = checked; });
+  }
+
+  async function publicarVacanteDesdePanel(id) {
+    if (!window.MB_VACANTES) {
+      alert("Servicio de vacantes no disponible.");
+      return;
+    }
+    try {
+      await window.MB_VACANTES.updateVacante(id, { activo: true });
+      await reloadCurrentRoleData();
+      renderPublicarPanel();
+      renderRRHHStats();
+    } catch (e) {
+      alert("No se pudo publicar: " + (e.message || e));
+    }
+  }
+
+  async function publicarVacantesSeleccionadas() {
+    const ids = [...document.querySelectorAll(".pub-check:checked")].map((cb) => cb.value);
+    if (!ids.length) {
+      alert("Selecciona al menos una descripción para publicar.");
+      return;
+    }
+    if (!window.MB_VACANTES) {
+      alert("Servicio de vacantes no disponible.");
+      return;
+    }
+    let ok = 0;
+    for (const id of ids) {
+      try {
+        await window.MB_VACANTES.updateVacante(id, { activo: true });
+        ok++;
+      } catch (e) {
+        console.error(id, e);
+      }
+    }
+    alert(`Publicadas ${ok} de ${ids.length} vacante(s) en el portal de postulación.`);
+    await reloadCurrentRoleData();
+    renderPublicarPanel();
+    renderRRHHStats();
+  }
+
+  function openPanelFromHash() {
+    const hash = (window.location.hash || "").replace("#", "").trim();
+    if (!hash || hash === "dashboard") return;
+    const nav = document.querySelector(`.nav-item[data-panel="${hash}"]`);
+    if (nav) activarPanel(hash, nav);
+  }
+
+  function logEventBadge(evento) {
+    const key = String(evento || "").toUpperCase();
+    const map = {
+      PROMOTE: "bg-emerald-500/15 text-emerald-300 border-emerald-500/20",
+      ARCHIVE: "bg-rose-500/15 text-rose-300 border-rose-500/20",
+      POSTULACION: "bg-mabaker-blue/15 text-mabaker-blue border-mabaker-blue/20",
+      RECHAZO: "bg-rose-500/15 text-rose-300 border-rose-500/20",
+      VACANTE_PUBLICADA: "bg-emerald-500/15 text-emerald-300 border-emerald-500/20",
+      VACANTE_BIBLIOTECA: "bg-amber-500/15 text-amber-300 border-amber-500/20",
+    };
+    if (map[key]) return map[key];
+    if (key.includes("UPDATE") || key.includes("PHASE")) return "bg-purple-500/15 text-purple-300 border-purple-500/20";
+    return "bg-white/10 text-slate-300 border-white/10";
+  }
+
+  function renderLogRows(logs) {
+    return (logs || [])
+      .map((x) => {
+        const evento = esc(x.evento || x.decision || x.accion || "-");
+        const actor = esc(x.actor || x.nombre_candidato || x.usuario || "Sistema");
+        const detalle = esc(x.detalle || x.reasoning || x.codigo_puesto || "-");
+        const date = fmtDate(x.created_at);
+        const badgeClass = logEventBadge(x.evento || x.decision);
+
+        return `
+            <tr class="border-b border-white/5 hover:bg-white/5 transition-colors text-xs">
+              <td class="px-6 py-4">
+                <div class="flex items-center gap-2">
+                  <span class="px-2 py-1 rounded-lg text-[9px] font-black uppercase tracking-wider border ${badgeClass}">${evento}</span>
+                </div>
+              </td>
+              <td class="px-6 py-4 text-slate-300 font-semibold">${actor}</td>
+              <td class="px-6 py-4 text-slate-400">${detalle}</td>
+              <td class="px-6 py-4 text-slate-500 font-semibold text-right">${date}</td>
+            </tr>
+        `;
+      })
+      .join("");
   }
 
   function renderRRHHTables() {
@@ -458,6 +902,7 @@
     const vacantesFiltradas = v.filter((item) => {
       if (state.vacanteFilter === "activas") return item.activo !== false;
       if (state.vacanteFilter === "pausadas") return item.activo === false;
+      if (state.vacanteFilter === "biblioteca") return item.activo === false;
       return true;
     });
 
@@ -471,10 +916,10 @@
         const dept = esc(x.departamento || "-");
         const salary = `${fmtMoney(x.sueldo_minimo)} - ${fmtMoney(x.sueldo_maximo)}`;
         const isActive = x.activo !== false;
-        const status = isActive ? 'Activa' : 'Pausada';
-        const statusClass = x.activo !== false 
-            ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20' 
-            : 'bg-slate-500/10 text-slate-400 border border-slate-500/20';
+        const status = isActive ? 'Publicada' : 'Solo biblioteca';
+        const statusClass = isActive
+            ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20'
+            : 'bg-amber-500/10 text-amber-400/90 border border-amber-500/20';
         const exp = x.experiencia_minima_anios != null ? `${x.experiencia_minima_anios} años` : '—';
         const school = esc(x.escolaridad_minima || '—');
         const pdfName = esc((x.nombre_archivo_fuente || (x.fuente_pdf ? 'PDF' : 'Manual')).substring(0, 28));
@@ -497,7 +942,7 @@
               <td class="px-6 py-4 text-slate-300 text-xs">${exp} / ${school}</td>
               <td class="px-6 py-4">
                 <div class="flex items-center gap-3">
-                  <label class="inline-flex items-center cursor-pointer" title="Publicar / despublicar vacante">
+                  <label class="inline-flex items-center cursor-pointer" title="Visible en portal de postulación">
                     <input type="checkbox" class="sr-only peer" ${isActive ? "checked" : ""} onchange="toggleVacanteActiva('${idJs}', this.checked)">
                     <div class="relative w-11 h-6 rounded-full bg-slate-600/60 peer-checked:bg-emerald-500/70 transition-colors">
                       <span class="absolute top-[2px] left-[2px] w-5 h-5 rounded-full bg-white transition-transform peer-checked:translate-x-5"></span>
@@ -568,26 +1013,7 @@
       })
       .join("");
 
-    const lRows = l
-      .map((x) => {
-        const action = esc(x.accion || x.evento || "-");
-        const user = esc(x.usuario || x.actor || "-");
-        const date = fmtDate(x.created_at);
-        
-        return `
-            <tr class="border-b border-white/5 hover:bg-white/5 transition-colors text-xs">
-              <td class="px-6 py-4">
-                <div class="flex items-center gap-2 font-mono text-slate-300">
-                  <svg class="w-3.5 h-3.5 text-mabaker-blue inline-block mr-1" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
-                  ${action}
-                </div>
-              </td>
-              <td class="px-6 py-4 text-slate-400 font-semibold">${user}</td>
-              <td class="px-6 py-4 text-slate-500 font-semibold">${date}</td>
-            </tr>
-        `;
-      })
-      .join("");
+    const lRows = renderLogRows(l);
 
     const table = (headers, rows) => `
       <table class="w-full text-left border-collapse">
@@ -609,20 +1035,29 @@
     if (byId("tablaVacantes")) {
       const isTodas = state.vacanteFilter === "todas";
       const isActivas = state.vacanteFilter === "activas";
-      const isPausadas = state.vacanteFilter === "pausadas";
+      const isBiblioteca = state.vacanteFilter === "pausadas" || state.vacanteFilter === "biblioteca";
       const filterControls = `
         <div class="px-6 py-4 border-b border-white/5 bg-white/[0.02] flex flex-wrap items-center gap-2">
           <span class="text-[10px] font-black uppercase tracking-widest text-slate-500 mr-2">Filtrar</span>
           <button type="button" onclick="setVacanteFilter('todas')" class="px-3 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${isTodas ? "bg-mabaker-blue/20 text-mabaker-blue border border-mabaker-blue/30" : "bg-white/5 text-slate-400 border border-white/10 hover:bg-white/10"}">Todas</button>
-          <button type="button" onclick="setVacanteFilter('activas')" class="px-3 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${isActivas ? "bg-emerald-500/20 text-emerald-400 border border-emerald-500/30" : "bg-white/5 text-slate-400 border border-white/10 hover:bg-white/10"}">Activas</button>
-          <button type="button" onclick="setVacanteFilter('pausadas')" class="px-3 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${isPausadas ? "bg-slate-500/20 text-slate-300 border border-slate-500/30" : "bg-white/5 text-slate-400 border border-white/10 hover:bg-white/10"}">Pausadas</button>
+          <button type="button" onclick="setVacanteFilter('activas')" class="px-3 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${isActivas ? "bg-emerald-500/20 text-emerald-400 border border-emerald-500/30" : "bg-white/5 text-slate-400 border border-white/10 hover:bg-white/10"}">Publicadas</button>
+          <button type="button" onclick="setVacanteFilter('biblioteca')" class="px-3 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${isBiblioteca ? "bg-amber-500/20 text-amber-300 border border-amber-500/30" : "bg-white/5 text-slate-400 border border-white/10 hover:bg-white/10"}">Solo biblioteca</button>
           <span class="ml-auto text-[10px] font-bold uppercase tracking-widest text-slate-500">${vacantesFiltradas.length} visibles</span>
         </div>
       `;
       byId("tablaVacantes").innerHTML = filterControls + table(["Puesto / Depto", "PDF origen", "Rango Salarial", "Requisitos", "Estado", "Acciones"], vRows);
     }
     if (byId("tablaRechazados")) byId("tablaRechazados").innerHTML = table(["Candidato", "Vacante Aplicada", "Score", "Motivo de Descarte", "Fecha"], rRows);
-    if (byId("tablaLogs")) byId("tablaLogs").innerHTML = table(["Evento / Operación", "Actor / Usuario", "Fecha de Registro"], lRows);
+    if (byId("tablaLogs")) {
+      const logsHtml = l.length
+        ? table(["Evento / Operación", "Actor / Usuario", "Detalle", "Fecha de Registro"], lRows)
+        : `<div class="p-16 text-center space-y-3">
+            <p class="text-slate-400 font-medium">Sin eventos registrados todavía.</p>
+            <p class="text-sm text-slate-500 max-w-lg mx-auto">Aquí verá decisiones de IA, postulaciones, rechazos y vacantes cargadas en el sistema.</p>
+          </div>`;
+      byId("tablaLogs").innerHTML = logsHtml;
+    }
+    setText("logsCount", `${l.length} evento(s) registrados`);
     
     if (byId("tablaRecentCandidatos")) {
       byId("tablaRecentCandidatos").innerHTML = table(
@@ -658,7 +1093,7 @@
               <td class="px-6 py-4">
                 <div class="flex items-center gap-2 font-mono text-slate-300">
                   <svg class="w-3.5 h-3.5 text-mabaker-blue inline-block mr-1" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
-                  ${esc(x.accion || x.evento || "-")}
+                  ${esc(x.evento || x.decision || x.accion || "-")}
                 </div>
               </td>
               <td class="px-6 py-4 text-slate-500 font-semibold">${fmtDate(x.created_at)}</td>
@@ -894,7 +1329,9 @@
   function toggleSubirVacantesPDFs() {
     const section = byId("vacantesUploadSection");
     if (!section) return;
+    const wasHidden = section.classList.contains("hidden");
     section.classList.toggle("hidden");
+    if (wasHidden) section.scrollIntoView({ behavior: "smooth", block: "nearest" });
   }
 
   function autoGrowTextarea(el) {
@@ -993,6 +1430,7 @@
     if (!window.MB_VACANTES_UPLOAD || !byId("vacantesDropZone")) return;
     window.MB_VACANTES_UPLOAD.init({
       escapeHTML: esc,
+      folderInputId: "vacantesFolderInput",
       onComplete: async () => {
         await reloadCurrentRoleData();
         setVacanteFilter("activas");
@@ -1261,9 +1699,15 @@
     window.location.href = "login.html";
   }
 
+  window.publicarVacanteDesdePanel = publicarVacanteDesdePanel;
+  window.publicarVacantesSeleccionadas = publicarVacantesSeleccionadas;
+  window.togglePublicarTodos = togglePublicarTodos;
+  window.renderPublicarPanel = renderPublicarPanel;
   window.state = state;
   window.cargarEvaluacionesCandidato = cargarEvaluacionesCandidato;
   window.initDashboard = initDashboard;
+  window.reloadCurrentRoleData = reloadCurrentRoleData;
+  window.renderRRHHTables = renderRRHHTables;
   window.activarPanel = activarPanel;
   window.setVacanteFilter = setVacanteFilter;
   window.toggleSidebar = toggleSidebar;

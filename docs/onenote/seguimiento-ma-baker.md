@@ -5,6 +5,35 @@
 
 ---
 
+## 2026-06-14 — Logs del sistema habilitados
+
+- **Cambio:** RPC `fn_sistema_logs_list` (admin/rrhh) unifica auditoría: IA, postulaciones, rechazos, vacantes.
+- **Impacto operativo:** panel *Logs del Sistema* deja de mostrar vacío por RLS; botón *Actualizar logs*.
+- **Validado:** RPC aplicada en Supabase remoto.
+- **Pendiente:** eventos aparecen al subir vacantes o recibir postulaciones.
+- **Docs relacionados:** `database/migracion-sistema-logs-rpc.sql`, `docs/catalogo-vacantes-dashboard.md`
+
+---
+
+## 2026-06-14 — Ajustes y notificaciones en dashboard
+
+- **Ajustes del Sistema:** panel con sesión, tema claro/oscuro, portal y accesos rápidos.
+- **Campana:** alertas de vacantes sin publicar, candidatos nuevos (7 días), psicométricos y fase médica.
+- **Pantallas:** `dashboard-admin.html`, `dashboard-rrhh.html`, lógica en `dashboard.js`.
+
+---
+
+## 2026-06-14 — Carga multi-formato de descripciones de puesto
+
+- **Cambio:** Subida de vacantes acepta PDF, Word (.docx), Excel (.xlsx), PowerPoint (.pptx), OpenDocument y exportados de Google (no enlaces .gdoc).
+- **Módulo:** `app/js/vacante-document-parser.js` (PDF.js, Mammoth, SheetJS, JSZip vía CDN).
+- **Pantallas:** `cargar-puestos.html`, dashboards Admin/RRHH (panel Catálogo Vacantes).
+- **Fix previo:** `cargar-puestos.html` requiere `config.js` + RPC con sesión para escritura.
+- **Validado:** pendiente prueba manual con .docx del usuario.
+- **Docs:** `docs/catalogo-vacantes-dashboard.md`
+
+---
+
 ## 2026-06-10 — Catálogo vacantes integrado en dashboard
 
 - **Cambio:** Panel *Catálogo Vacantes* en admin/RRHH: ver descripción PDF, editar activas, subir PDFs, filtros Activas/Pausadas.

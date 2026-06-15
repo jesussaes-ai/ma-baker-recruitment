@@ -51,9 +51,14 @@
     return rpc("fn_prospectos_rechazados_list", {});
   }
 
+  async function listSystemLogs(limit) {
+    return rpc("fn_sistema_logs_list", { p_limit: limit || 50 });
+  }
+
   window.MB_CANDIDATES = {
     listCandidates,
     listRejected,
+    listSystemLogs,
     patchCandidate,
     sessionToken,
   };

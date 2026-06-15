@@ -133,12 +133,17 @@
 
                 <a href="#" class="flex items-center gap-3 px-4 py-3 rounded-xl nav-item-active transition-all group" onclick="activarPanel('cargar', this)">
                     <svg class="text-white size-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" stroke-linecap="round" stroke-linejoin="round"/></svg>
-                    <span class="text-sm font-semibold">Cargar Vacantes</span>
+                    <span class="text-sm font-semibold">Subir descripciones</span>
+                </a>
+
+                <a href="#" class="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-white/5 transition-all group text-slate-400 hover:text-white" onclick="activarPanel('publicar', this)">
+                    <svg class="group-hover:scale-110 transition-transform size-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M12 19V5m0 0l-4 4m4-4l4 4M5 21h14" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                    <span class="text-sm font-medium">Publicar vacantes</span>
                 </a>
 
                 <a href="#" class="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-white/5 transition-all group text-slate-400 hover:text-white" onclick="activarPanel('catalogo', this)">
                     <svg class="group-hover:scale-110 transition-transform size-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" stroke-linecap="round" stroke-linejoin="round"/></svg>
-                    <span class="text-sm font-medium">Catálogo Actual</span>
+                    <span class="text-sm font-medium">Biblioteca completa</span>
                 </a>
 
                 <a href="#" class="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-white/5 transition-all group text-slate-400 hover:text-white" onclick="activarPanel('historial', this)">
@@ -166,8 +171,8 @@
             <!-- Top Header -->
             <header class="h-20 glass-panel border-b border-slate-200 flex items-center justify-between px-8 z-10 shrink-0">
                 <div>
-                    <h2 class="text-2xl font-extrabold text-slate-800 tracking-tight" id="panelTitle">Cargar Vacantes</h2>
-                    <p class="text-xs text-slate-500 font-medium">Extrae requisitos automáticamente desde PDFs</p>
+                    <h2 class="text-2xl font-extrabold text-slate-800 tracking-tight" id="panelTitle">Subir descripciones</h2>
+                    <p class="text-xs text-slate-500 font-medium" id="panelSubtitle">Importa archivos a la biblioteca interna — no se publican solos en el portal</p>
                 </div>
 
                 <div class="flex items-center gap-4">
@@ -187,20 +192,41 @@
                     <!-- Form Container -->
                     <section class="max-w-4xl mx-auto space-y-8">
                         
+                        <!-- Guía rápida Google / Microsoft -->
+                        <div class="rounded-3xl border border-amber-200 bg-amber-50/90 p-6 text-sm text-amber-950 space-y-2">
+                            <p class="font-black uppercase text-xs tracking-widest">Flujo en dos pasos</p>
+                            <ol class="list-decimal pl-5 space-y-1 text-xs">
+                                <li><strong>Aquí:</strong> sube descripciones de puesto → quedan en biblioteca interna (RRHH las ve, candidatos no).</li>
+                                <li><strong>Publicar vacantes:</strong> elige cuáles quieres abrir al público → solo esas aparecen donde la gente se postula.</li>
+                            </ol>
+                        </div>
+
                         <!-- Dropzone Premium -->
                         <div id="dropZone" class="upload-zone border-2 border-dashed border-slate-300 rounded-[2.5rem] bg-white/40 p-12 text-center group cursor-pointer hover:border-mabaker-red/50 hover:bg-white/60 transition-all flex flex-col items-center gap-6">
                             <div class="size-24 rounded-3xl bg-gradient-to-br from-mabaker-red to-rose-600 flex items-center justify-center text-white shadow-2xl shadow-mabaker-red/30 group-hover:scale-110 transition-transform">
                                 <svg class="text-5xl size-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" stroke-linecap="round" stroke-linejoin="round"/></svg>
                             </div>
                             <div>
-                                <h3 class="text-xl font-extrabold text-slate-800 mb-2">Arrastra tus archivos aquí</h3>
-                                <p class="text-sm text-slate-400 font-medium">Solo archivos PDF (Máx. 20MB por archivo)</p>
+                                <h3 class="text-xl font-extrabold text-slate-800 mb-2">Arrastra archivos o una carpeta entera</h3>
+                                <p class="text-sm text-slate-400 font-medium max-w-lg mx-auto">PDF · Word · Excel · PowerPoint · OpenDocument · CSV · TXT · HTML · exportados de Google (máx. 20 MB c/u)</p>
+                                <div class="flex flex-wrap justify-center gap-2 mt-4">
+                                    <span class="px-2 py-1 rounded-lg bg-white text-[10px] font-black text-slate-500 border">PDF</span>
+                                    <span class="px-2 py-1 rounded-lg bg-white text-[10px] font-black text-slate-500 border">DOCX</span>
+                                    <span class="px-2 py-1 rounded-lg bg-white text-[10px] font-black text-slate-500 border">XLSX</span>
+                                    <span class="px-2 py-1 rounded-lg bg-white text-[10px] font-black text-slate-500 border">PPTX</span>
+                                    <span class="px-2 py-1 rounded-lg bg-white text-[10px] font-black text-slate-500 border">Google → export</span>
+                                </div>
                             </div>
-                            <input type="file" id="fileInput" accept=".pdf" multiple class="hidden">
-                            <button onclick="document.getElementById('fileInput').click()" class="bg-slate-800 text-white px-8 py-3.5 rounded-2xl font-bold hover:bg-mabaker-red transition-all shadow-xl shadow-black/10 flex items-center gap-2">
-                                <svg class="text-sm size-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M5 19a2 2 0 01-2-2V7a2 2 0 012-2h4l2 2h4a2 2 0 012 2v1M5 19h14a2 2 0 002-2v-5a2 2 0 00-2-2H9l-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" stroke-linecap="round" stroke-linejoin="round"/></svg>
-                                Seleccionar Archivos
-                            </button>
+                            <input type="file" id="fileInput" multiple class="hidden">
+                            <input type="file" id="folderInput" webkitdirectory directory multiple class="hidden">
+                            <div class="flex flex-wrap justify-center gap-3">
+                                <button type="button" data-upload-action="files" class="bg-slate-800 text-white px-8 py-3.5 rounded-2xl font-bold hover:bg-mabaker-red transition-all shadow-xl shadow-black/10 flex items-center gap-2">
+                                    Seleccionar archivos
+                                </button>
+                                <button type="button" data-upload-action="folder" class="bg-mabaker-blue text-white px-8 py-3.5 rounded-2xl font-bold hover:opacity-90 transition-all shadow-xl flex items-center gap-2">
+                                    Subir carpeta completa
+                                </button>
+                            </div>
                         </div>
 
                         <!-- Queue Loading -->
@@ -210,12 +236,12 @@
                         <div id="uploadSummary" class="hidden animate-fade-in bg-white rounded-[2rem] p-8 shadow-xl border border-slate-100">
                             <div class="flex items-center justify-between mb-8">
                                 <div>
-                                    <h4 class="font-extrabold text-lg text-slate-800">Resultado de la Carga</h4>
-                                    <p class="text-xs text-slate-400">Resumen del procesamiento automatizado</p>
+                                    <h4 class="font-extrabold text-lg text-slate-800">Resultado de la importación</h4>
+                                    <p class="text-xs text-slate-400">Guardado en biblioteca interna (aún no publicado en portal)</p>
                                 </div>
                                 <div class="flex gap-4">
                                     <div class="text-center">
-                                        <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Enviados</p>
+                                        <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">En biblioteca</p>
                                         <p class="text-2xl font-black text-emerald-500" id="countOk">0</p>
                                     </div>
                                     <div class="text-center">
@@ -226,11 +252,11 @@
                             </div>
                             <div id="resultsList" class="space-y-3 mb-8"></div>
                             <div class="flex gap-4">
-                                <button onclick="activarPanel('catalogo', document.querySelector('[onclick*=\'catalogo\']'))" class="flex-1 bg-mabaker-blue text-white py-4 rounded-2xl font-bold text-sm hover:scale-[1.02] active:scale-[0.98] transition-all flex items-center justify-center gap-2">
-                                    Ver Catálogo Actualizado
+                                <button onclick="activarPanel('publicar', document.querySelector('[onclick*=\'publicar\']'))" class="flex-1 bg-mabaker-blue text-white py-4 rounded-2xl font-bold text-sm hover:scale-[1.02] active:scale-[0.98] transition-all flex items-center justify-center gap-2">
+                                    Ir a publicar vacantes
                                 </button>
                                 <button onclick="resetUploader()" class="px-8 bg-slate-100 text-slate-600 py-4 rounded-2xl font-bold text-sm hover:bg-slate-200 transition-all">
-                                    Subir más PDFs
+                                    Subir más archivos
                                 </button>
                             </div>
                         </div>
@@ -262,7 +288,7 @@
                                 <svg class="size-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" stroke-linecap="round" stroke-linejoin="round"/></svg>
                             </div>
                             <div>
-                                <h3 class="text-sm font-bold text-emerald-500 uppercase tracking-wider">Activas</h3>
+                                <h3 class="text-sm font-bold text-emerald-500 uppercase tracking-wider">Publicadas</h3>
                                 <p class="text-3xl font-black text-emerald-700" id="stat-activas">0</p>
                             </div>
                         </div>
@@ -277,7 +303,7 @@
                                 <svg class="size-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M10 9v6m4-6v6m7-3a9 9 0 11-18 0 9 9 0 0118 0z" stroke-linecap="round" stroke-linejoin="round"/></svg>
                             </div>
                             <div>
-                                <h3 class="text-sm font-bold text-rose-500 uppercase tracking-wider">En Pausa</h3>
+                                <h3 class="text-sm font-bold text-rose-500 uppercase tracking-wider">Solo biblioteca</h3>
                                 <p class="text-3xl font-black text-rose-700" id="stat-pausa">0</p>
                             </div>
                         </div>
@@ -296,6 +322,24 @@
                     </div>
                     <div class="p-8" id="statsDeptos">
                         <!-- Bars dynamically -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Panel: Publicar vacantes en portal -->
+            <div class="panel" id="panel-publicar">
+                <div class="glass-panel rounded-3xl border border-slate-200 overflow-hidden shadow-sm max-w-5xl mx-auto">
+                    <div class="px-8 py-6 border-b border-slate-100 bg-emerald-50/50">
+                        <h3 class="font-extrabold text-slate-800 text-lg">Publicar vacantes en el portal</h3>
+                        <p class="text-xs text-slate-600 mt-1">Solo las vacantes que publiques aquí las verán los candidatos al postularse (<code class="text-[10px]">index.html</code>).</p>
+                    </div>
+                    <div class="p-6 flex flex-wrap gap-3 border-b border-slate-100">
+                        <button type="button" onclick="publicarVacantesSeleccionadas()" class="px-6 py-3 rounded-2xl bg-emerald-600 text-white text-xs font-black uppercase tracking-widest hover:bg-emerald-700">Publicar seleccionadas</button>
+                        <button type="button" onclick="loadPublicarCatalog()" class="px-6 py-3 rounded-2xl bg-slate-100 text-slate-700 text-xs font-black uppercase tracking-widest hover:bg-slate-200">Actualizar lista</button>
+                        <span class="text-xs text-slate-500 self-center" id="publicarCount"></span>
+                    </div>
+                    <div id="tablaPublicar" class="overflow-x-auto min-h-[300px] p-4">
+                        <p class="p-12 text-center text-slate-400">Cargando descripciones pendientes de publicar...</p>
                     </div>
                 </div>
             </div>
@@ -400,16 +444,25 @@
             <div class="pt-8 mt-4 border-t border-white/10 flex justify-between items-center">
                 <div class="flex items-center gap-3">
                     <span id="modStatusChip" class="px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest bg-emerald-500/20 text-emerald-400">ACTIVA</span>
-                    <p class="text-[10px] text-slate-500 italic">Subido desde PDF: <span id="modArchivo" class="text-slate-300">file.pdf</span></p>
+                    <p class="text-[10px] text-slate-500 italic">Archivo origen: <span id="modArchivo" class="text-slate-300">documento</span></p>
                 </div>
                 <button id="btnToggleStatus" class="px-6 py-2 bg-white/10 hover:bg-white/20 rounded-xl text-xs font-black uppercase tracking-widest transition-all">
                     Pausar Vacante
+                </button>
+                <button id="btnEditarPuesto" type="button" onclick="activarEdicionPuesto()" class="px-6 py-2 bg-mabaker-blue/20 hover:bg-mabaker-blue/30 text-mabaker-blue rounded-xl text-xs font-black uppercase tracking-widest transition-all">
+                    Editar
+                </button>
+                <button id="btnGuardarPuesto" type="button" onclick="guardarEdicionPuesto()" class="hidden px-6 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-black uppercase tracking-widest transition-all">
+                    Guardar cambios
                 </button>
             </div>
         </div>
     </div>
 
     <!-- Scripts -->
+    <script src="js/vacante-document-parser.js"></script>
+    <script src="js/vacantes-api.js"></script>
+    <script src="js/vacantes-pdf-upload.js"></script>
     <script src="js/auth.js"></script>
     <script type="module">
         import * as pdfjsLib from 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.2.67/pdf.min.mjs';
@@ -422,6 +475,12 @@
         const SUPA_KEY = window.MB_CONFIG.SUPABASE_ANON_KEY;
         const HEADERS = { 'apikey': SUPA_KEY, 'Authorization': `Bearer ${SUPA_KEY}`, 'Content-Type': 'application/json' };
         const esc = window.MB_CONFIG.escapeHTML;
+
+        function listaCampo(val) {
+            if (Array.isArray(val)) return val.map(s => String(s).trim()).filter(Boolean);
+            if (val == null || val === '') return [];
+            return String(val).split(/[,;\n]+/).map(s => s.trim()).filter(Boolean);
+        }
 
         let uploadStats = { ok: 0, err: 0 };
 
@@ -443,20 +502,45 @@
                     </div>`;
             }
 
-            const dropZone = document.getElementById('dropZone');
+            const accept = window.MB_VACANTE_DOCS?.ACCEPT_ATTR || '';
             const fileInput = document.getElementById('fileInput');
-            
-            dropZone.addEventListener('dragover', e => { e.preventDefault(); dropZone.classList.add('drag-over'); });
-            dropZone.addEventListener('dragleave', () => dropZone.classList.remove('drag-over'));
-            dropZone.addEventListener('drop', e => {
-                e.preventDefault();
-                dropZone.classList.remove('drag-over');
-                handleFiles(e.dataTransfer.files);
+            if (accept && fileInput) fileInput.setAttribute('accept', accept);
+
+            window.MB_VACANTES_UPLOAD.init({
+                dropZoneId: 'dropZone',
+                fileInputId: 'fileInput',
+                folderInputId: 'folderInput',
+                queueId: 'uploadQueue',
+                summaryId: 'uploadSummary',
+                theme: 'light',
+                escapeHTML: esc,
+                onComplete: (stats) => {
+                    const summary = document.getElementById('uploadSummary');
+                    const resultsList = document.getElementById('resultsList');
+                    if (!summary || !resultsList) return;
+                    document.getElementById('countOk').textContent = stats.ok;
+                    document.getElementById('countErr').textContent = stats.err;
+                    resultsList.innerHTML = stats.results.map(r => r.ok
+                        ? `<div class="flex items-center justify-between p-3 bg-emerald-50/50 border border-emerald-100 rounded-xl">
+                            <span class="text-xs font-bold text-slate-700">${esc(r.file)}</span>
+                            <span class="text-[10px] font-black text-emerald-600 uppercase">${esc(r.puesto)}</span></div>`
+                        : `<div class="flex items-center justify-between p-3 bg-rose-50/50 border border-rose-100 rounded-xl">
+                            <span class="text-xs font-bold text-slate-700">${esc(r.file)}</span>
+                            <span class="text-[10px] font-black text-rose-500 truncate max-w-[200px]">${esc(r.error)}</span></div>`
+                    ).join('');
+                    summary.classList.remove('hidden');
+                    loadLocalDashboard();
+                    loadCatalog();
+                }
             });
-            fileInput.addEventListener('change', e => {
-                handleFiles(e.target.files);
-                e.target.value = '';
-            });
+
+            const params = new URLSearchParams(window.location.search);
+            const hashPanel = (window.location.hash || '').replace('#', '').trim();
+            const startPanel = params.get('panel') || hashPanel || 'cargar';
+            const panelLink = document.querySelector(`nav a[onclick*="'${startPanel}'"]`)
+                || document.querySelector(`nav a[onclick*='"${startPanel}"']`)
+                || document.querySelector("nav a[onclick*='cargar']");
+            if (panelLink) activarPanel(startPanel, panelLink);
         });
 
         function activarPanel(panel, link) {
@@ -467,153 +551,139 @@
             link.classList.add('nav-item-active');
             
             const titles = { 
-                'cargar': 'Cargar Vacantes', 
-                'catalogo': 'Catálogo Actual', 
-                'historial': 'Historial de Cargas',
-                'dashboard': 'Métricas de Reclutamiento'
+                'cargar': 'Subir descripciones', 
+                'publicar': 'Publicar vacantes',
+                'catalogo': 'Biblioteca completa', 
+                'historial': 'Historial de cargas',
+                'dashboard': 'Métricas de reclutamiento'
+            };
+            const subtitles = {
+                'cargar': 'Importa archivos a la biblioteca interna — no se publican solos en el portal',
+                'publicar': 'Elige qué puestos verán los candidatos al postularse',
+                'catalogo': 'Todas las descripciones: publicadas y solo biblioteca',
+                'historial': 'Archivos procesados recientemente',
+                'dashboard': 'Resumen del catálogo'
             };
             document.getElementById('panelTitle').textContent = titles[panel] || 'Panel';
+            const sub = document.getElementById('panelSubtitle');
+            if (sub) sub.textContent = subtitles[panel] || '';
 
             if (panel === 'catalogo') loadCatalog();
+            if (panel === 'publicar') loadPublicarCatalog();
             if (panel === 'dashboard') loadLocalDashboard();
             if (panel === 'historial') loadHistory();
         }
 
-        async function handleFiles(files) {
-            if (!files.length) return;
-            const queue = document.getElementById('uploadQueue');
-            queue.innerHTML = '';
-            uploadStats = { ok: 0, err: 0 };
-            
-            const summary = document.getElementById('uploadSummary');
-            summary.classList.add('hidden');
-            const resultsList = document.getElementById('resultsList');
-            resultsList.innerHTML = '';
-            
-            document.getElementById('countOk').textContent = '0';
-            document.getElementById('countErr').textContent = '0';
-
-            for (let i = 0; i < files.length; i++) {
-                const file = files[i];
-                const id = 'up-' + i + '-' + Date.now();
-                addToQueue(file.name, 'Analizando PDF...', 20, id, 'loading');
-                
-                try {
-                    // 1. Extraer texto del PDF
-                    const text = await readFileAsText(file);
-                    updateQueue(id, 'Extrayendo perfil con IA...', 50, 'loading');
-                    
-                    // 2. Esperar 1 segundo para un efecto visual suave de procesamiento
-                    await new Promise(r => setTimeout(r, 1000));
-                    
-                    const data = extractPuestoData(text, file.name);
-                    updateQueue(id, 'Guardando en base de datos...', 80, 'loading');
-                    
-                    // 3. Guardar en Supabase
-                    const resp = await fetch(`${SUPA_URL}/rest/v1/catalogo_puestos`, {
-                        method: 'POST',
-                        headers: { ...HEADERS, 'Content-Type': 'application/json', 'Prefer': 'return=minimal' },
-                        body: JSON.stringify(data)
-                    });
-                    
-                    if (resp.ok) {
-                        updateQueue(id, 'Completado con éxito', 100, 'success');
-                        saveToHistory(file.name);
-                        uploadStats.ok++;
-                        
-                        // Añadir fila de éxito en la lista de resultados
-                        resultsList.innerHTML += `
-                            <div class="flex items-center justify-between p-3 bg-emerald-50/50 border border-emerald-100 rounded-xl">
-                                <div class="flex items-center gap-3">
-                                    <svg class="text-emerald-500 size-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" stroke-linecap="round" stroke-linejoin="round"/></svg>
-                                    <span class="text-xs font-bold text-slate-700">${esc(file.name)}</span>
-                                </div>
-                                <span class="text-[10px] font-black text-emerald-600 uppercase">Cargado: ${esc(data.nombre_puesto)}</span>
-                            </div>`;
-                    } else {
-                        const errText = await resp.text();
-                        throw new Error(errText || 'Error al guardar en Supabase');
-                    }
-                } catch (e) {
-                    console.error('Error procesando archivo:', file.name, e);
-                    updateQueue(id, 'Error: ' + e.message, 100, 'error');
-                    uploadStats.err++;
-                    
-                    // Añadir fila de error en la lista de resultados
-                    resultsList.innerHTML += `
-                        <div class="flex items-center justify-between p-3 bg-rose-50/50 border border-rose-100 rounded-xl">
-                            <div class="flex items-center gap-3">
-                                <svg class="text-rose-500 size-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" stroke-linecap="round" stroke-linejoin="round"/></svg>
-                                <span class="text-xs font-bold text-slate-700">${esc(file.name)}</span>
-                            </div>
-                            <span class="text-[10px] font-black text-rose-500 uppercase truncate max-w-[200px]">${esc(e.message)}</span>
-                        </div>`;
+        async function loadPublicarCatalog() {
+            const el = document.getElementById('tablaPublicar');
+            const countEl = document.getElementById('publicarCount');
+            try {
+                const resp = await fetch(`${SUPA_URL}/rest/v1/catalogo_puestos?select=*&activo=eq.false&order=nombre_puesto.asc`, { headers: HEADERS });
+                const data = await resp.json();
+                if (!resp.ok) throw new Error(data.message || 'Error al cargar');
+                if (countEl) countEl.textContent = `${data.length} pendientes de publicar`;
+                if (!data.length) {
+                    el.innerHTML = '<p class="p-12 text-center text-slate-500 font-medium">No hay descripciones pendientes. Sube archivos en «Subir descripciones».</p>';
+                    return;
                 }
-                
-                // Actualizar contadores del resumen
-                document.getElementById('countOk').textContent = uploadStats.ok;
-                document.getElementById('countErr').textContent = uploadStats.err;
+                el.innerHTML = `
+                    <table class="w-full text-left border-collapse">
+                        <thead><tr class="bg-slate-50">
+                            <th class="px-4 py-3 w-10"><input type="checkbox" id="pubSelectAll" onchange="togglePublicarTodos(this.checked)" title="Seleccionar todas"></th>
+                            <th class="px-4 py-3 text-[9px] font-black text-slate-400 uppercase">Puesto</th>
+                            <th class="px-4 py-3 text-[9px] font-black text-slate-400 uppercase">Departamento</th>
+                            <th class="px-4 py-3 text-[9px] font-black text-slate-400 uppercase">Archivo</th>
+                            <th class="px-4 py-3 text-right text-[9px] font-black text-slate-400 uppercase">Acción</th>
+                        </tr></thead>
+                        <tbody class="divide-y divide-slate-100">
+                            ${data.map(v => `
+                            <tr class="hover:bg-slate-50">
+                                <td class="px-4 py-3"><input type="checkbox" class="pub-check" value="${esc(v.id)}" data-id="${esc(v.id)}"></td>
+                                <td class="px-4 py-3 text-sm font-bold text-slate-800">${esc(v.nombre_puesto)}</td>
+                                <td class="px-4 py-3 text-xs text-slate-500">${esc(v.departamento)}</td>
+                                <td class="px-4 py-3 text-xs text-slate-400 truncate max-w-[180px]">${esc(v.nombre_archivo_fuente || '—')}</td>
+                                <td class="px-4 py-3 text-right">
+                                    <button type="button" onclick="publicarVacante('${esc(v.id)}')" class="px-4 py-2 rounded-xl bg-emerald-600 text-white text-[10px] font-black uppercase tracking-widest hover:bg-emerald-700">Publicar</button>
+                                </td>
+                            </tr>`).join('')}
+                        </tbody>
+                    </table>`;
+            } catch (e) {
+                el.innerHTML = `<p class="p-12 text-center text-rose-500">${esc(e.message)}</p>`;
             }
-            
-            // Mostrar resumen final
-            summary.classList.remove('hidden');
+        }
+
+        function togglePublicarTodos(checked) {
+            document.querySelectorAll('.pub-check').forEach(cb => { cb.checked = checked; });
+        }
+
+        async function publicarVacante(id) {
+            try {
+                await window.MB_VACANTES.updateVacante(id, { activo: true });
+                await loadPublicarCatalog();
+                loadLocalDashboard();
+            } catch (e) {
+                alert('No se pudo publicar: ' + (e.message || e));
+            }
+        }
+
+        async function publicarVacantesSeleccionadas() {
+            const ids = [...document.querySelectorAll('.pub-check:checked')].map(cb => cb.value);
+            if (!ids.length) { alert('Selecciona al menos una descripción para publicar.'); return; }
+            let ok = 0;
+            for (const id of ids) {
+                try {
+                    await window.MB_VACANTES.updateVacante(id, { activo: true });
+                    ok++;
+                } catch (e) { console.error(id, e); }
+            }
+            alert(`Publicadas ${ok} de ${ids.length} vacante(s) en el portal.`);
+            await loadPublicarCatalog();
             loadLocalDashboard();
         }
 
-
-        function extractPuestoData(text, fileName) {
-            const clean = text.replace(/\s+/g, ' ');
-            
-            const nMatch = text.match(/(?:puesto|cargo|posición|nombre del puesto)[:\s]+([^\n\r.]+)/i);
-            const nombre = nMatch ? nMatch[1].trim() : fileName.replace('.pdf','').replace(/_/g,' ');
-            
-            const dMatch = text.match(/(?:departamento|área|sección|unidad)[:\s]+([^\n\r.]+)/i);
-            const depto = dMatch ? dMatch[1].trim() : 'General';
-
-            const eMatch = text.match(/(?:escolaridad|estudios|nivel)[:\s]+(preparatoria|bachillerato|licenciatura|ingeniería|maestría|doctorado|técnico|profesional|carrera|estudiante|pasante)/i);
-            const escolaridad = eMatch ? eMatch[1].trim() : 'Perfil Abierto';
-
-            const expMatch = text.match(/(?:experiencia|antigüedad)[:\s]*(\d+)\s*(?:años|año|años de exp)/i);
-            const experiencia = expMatch ? parseInt(expMatch[1]) : 0;
-
-            const sueldoMatch = text.match(/(?:\$|bruto|neto|mensual|sueldo|remuneración|oferta|pago)[:\s]*([\d,]{4,7})/gi);
-            let sueldos = (sueldoMatch || []).map(s => parseInt(s.replace(/[^0-9]/g, ''))).filter(s => s > 0);
-            const sMin = sueldos.length ? Math.min(...sueldos) : 0;
-            const sMax = sueldos.length > 1 ? Math.max(...sueldos) : (sueldos[0] || 0);
-
-            const edadMatch = text.match(/(?:edad|rango[:\s]*)(\d+)\s*(?:a|y|al|a los)?\s*(\d+)?\s*(?:años)/i);
-            const edadMin = edadMatch ? parseInt(edadMatch[1]) : 18;
-            const edadMax = edadMatch?.[2] ? parseInt(edadMatch[2]) : 55;
-
-            const software = ["Excel", "SAP", "Office", "Canvas", "CRM", "Adobe", "Photoshop", "SQL", "Python"];
-            const conocimientos = software.filter(s => new RegExp(s, 'i').test(text));
-            
-            const softSkills = ["Liderazgo", "Comunicación", "Trabajo en equipo", "Proactivo", "Resolución", "Creativo", "Responsable"];
-            const competencias = softSkills.filter(s => new RegExp(s, 'i').test(text));
-            
-            return {
-                codigo_puesto: (text.match(/(?:código|clave)[:\s]+([A-Z0-9-]+)/i)?.[1] || 'GEN-' + Date.now().toString().slice(-4)).toUpperCase(),
-                nombre_puesto: nombre.substring(0,100),
-                departamento: depto.substring(0,80),
-                escolaridad_minima: escolaridad,
-                edad_minima: edadMin,
-                edad_maxima: edadMax,
-                experiencia_minima_anios: experiencia,
-                sueldo_minimo: sMin,
-                sueldo_maximo: sMax,
-                descripcion_completa: text.trim(),
-                activo: true,
-                fuente_pdf: true,
-                nombre_archivo_fuente: fileName,
-                conocimientos_tecnicos: conocimientos.join(', '),
-                competencias_clave: competencias.join(', ')
-            };
-        }
-
         let currentlyViewing = null;
+        let editMode = false;
 
         function cerrarModal() {
+            editMode = false;
             document.getElementById('modalDetalle').style.display = 'none';
+            document.getElementById('btnGuardarPuesto')?.classList.add('hidden');
+            document.getElementById('btnEditarPuesto')?.classList.remove('hidden');
+        }
+
+        async function editarPuesto(id) {
+            await verDetallePuesto(id);
+            activarEdicionPuesto();
+        }
+
+        function activarEdicionPuesto() {
+            if (!currentlyViewing) return;
+            editMode = true;
+            const v = currentlyViewing;
+            document.getElementById('modTitulo').innerHTML = `<input id="editNombre" class="w-full bg-white/10 border border-white/20 rounded-xl px-4 py-2 text-2xl font-black" value="${esc(v.nombre_puesto || '')}">`;
+            document.getElementById('modDepto').innerHTML = `<input id="editDepto" class="w-full bg-white/10 border border-white/20 rounded-xl px-3 py-2 text-sm font-bold uppercase" value="${esc(v.departamento || '')}">`;
+            document.getElementById('modDesc').innerHTML = `<textarea id="editDesc" rows="8" class="w-full bg-white/10 border border-white/20 rounded-xl px-4 py-3 text-sm">${esc(v.descripcion_completa || v.descripcion_puesto || '')}</textarea>`;
+            document.getElementById('btnEditarPuesto')?.classList.add('hidden');
+            document.getElementById('btnGuardarPuesto')?.classList.remove('hidden');
+        }
+
+        async function guardarEdicionPuesto() {
+            if (!currentlyViewing || !window.MB_VACANTES) return;
+            const payload = {
+                nombre_puesto: document.getElementById('editNombre')?.value?.trim(),
+                departamento: document.getElementById('editDepto')?.value?.trim(),
+                descripcion_completa: document.getElementById('editDesc')?.value?.trim(),
+            };
+            try {
+                await window.MB_VACANTES.updateVacante(currentlyViewing.id, payload);
+                alert('Descripción actualizada correctamente.');
+                cerrarModal();
+                loadCatalog();
+                loadLocalDashboard();
+            } catch (e) {
+                alert('No se pudo guardar: ' + (e.message || e));
+            }
         }
 
         async function verDetallePuesto(id) {
@@ -639,20 +709,20 @@
 
                 const conBox = document.getElementById('modConocimientos');
                 const compBox = document.getElementById('modCompetencias');
-                conBox.innerHTML = (v.conocimientos_tecnicos || '').split(',').map(c => c.trim()).filter(c => c).map(c => `<span class="px-2 py-1 bg-emerald-500/10 text-emerald-400 rounded text-[10px] font-bold">${esc(c)}</span>`).join('') || '<span class="text-slate-500 text-xs italic">No especificados</span>';
-                compBox.innerHTML = (v.competencias_clave || '').split(',').map(c => c.trim()).filter(c => c).map(c => `<span class="px-2 py-1 bg-amber-500/10 text-amber-400 rounded text-[10px] font-bold">${esc(c)}</span>`).join('') || '<span class="text-slate-500 text-xs italic">No especificadas</span>';
+                conBox.innerHTML = listaCampo(v.conocimientos_tecnicos).map(c => `<span class="px-2 py-1 bg-emerald-500/10 text-emerald-400 rounded text-[10px] font-bold">${esc(c)}</span>`).join('') || '<span class="text-slate-500 text-xs italic">No especificados</span>';
+                compBox.innerHTML = listaCampo(v.competencias_clave).map(c => `<span class="px-2 py-1 bg-amber-500/10 text-amber-400 rounded text-[10px] font-bold">${esc(c)}</span>`).join('') || '<span class="text-slate-500 text-xs italic">No especificadas</span>';
 
                 const chip = document.getElementById('modStatusChip');
                 const btn = document.getElementById('btnToggleStatus');
                 if (v.activo) {
                     chip.className = 'px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest bg-emerald-500/20 text-emerald-400';
-                    chip.textContent = 'ACTIVA';
-                    btn.textContent = 'Pausar Vacante';
+                    chip.textContent = 'PUBLICADA EN PORTAL';
+                    btn.textContent = 'Quitar del portal';
                     btn.className = 'px-6 py-2 bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 rounded-xl text-xs font-black uppercase tracking-widest transition-all';
                 } else {
-                    chip.className = 'px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest bg-slate-500/20 text-slate-400';
-                    chip.textContent = 'PAUSADA';
-                    btn.textContent = 'Activar Vacante';
+                    chip.className = 'px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest bg-amber-500/20 text-amber-400';
+                    chip.textContent = 'SOLO BIBLIOTECA';
+                    btn.textContent = 'Publicar en portal';
                     btn.className = 'px-6 py-2 bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 rounded-xl text-xs font-black uppercase tracking-widest transition-all';
                 }
 
@@ -666,15 +736,11 @@
 
         async function togglePuestoStatus(id, newStatus) {
             try {
-                await fetch(`${SUPA_URL}/rest/v1/catalogo_puestos?id=eq.${id}`, {
-                    method: 'PATCH',
-                    headers: { ...HEADERS, 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ activo: newStatus })
-                });
+                await window.MB_VACANTES.updateVacante(id, { activo: newStatus });
                 cerrarModal();
                 loadCatalog();
                 loadLocalDashboard();
-            } catch (e) { console.error(e); }
+            } catch (e) { console.error(e); alert(e.message || 'No se pudo actualizar el estado'); }
         }
 
         async function loadCatalog() {
@@ -682,6 +748,8 @@
             try {
                 const resp = await fetch(`${SUPA_URL}/rest/v1/catalogo_puestos?select=*&order=creado_en.desc`, { headers: HEADERS });
                 const data = await resp.json();
+                if (!resp.ok) throw new Error(data.message || data.error || `HTTP ${resp.status}`);
+                if (!Array.isArray(data)) throw new Error('Respuesta inválida del servidor');
                 if (!data.length) { el.innerHTML = '<p class="p-12 text-center text-slate-400 font-bold">Sin vacantes</p>'; return; }
                 
                 el.innerHTML = `
@@ -693,6 +761,7 @@
                                 <th class="px-6 py-4 text-[9px] font-black text-slate-400 uppercase tracking-widest">Perfil Mínimo</th>
                                 <th class="px-6 py-4 text-[9px] font-black text-slate-400 uppercase tracking-widest">Sueldo / Rango</th>
                                 <th class="px-6 py-4 text-[9px] font-black text-slate-400 uppercase tracking-widest text-right">Estado</th>
+                                <th class="px-6 py-4 text-[9px] font-black text-slate-400 uppercase tracking-widest text-right">Acciones</th>
                             </tr>
                         </thead>
                         <tbody class="divide-y divide-slate-100/50">
@@ -718,15 +787,22 @@
                                         <p class="text-xs font-black text-slate-600">$${(v.sueldo_minimo||0).toLocaleString()} - $${(v.sueldo_maximo||0).toLocaleString()}</p>
                                     </td>
                                     <td class="px-6 py-4 text-right">
-                                        <span class="px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-widest ${v.activo ? 'bg-emerald-100 text-emerald-700' : 'bg-slate-100 text-slate-500'}">
-                                            ${v.activo ? 'Activa' : 'Pausa'}
+                                        <span class="px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-widest ${v.activo ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-800'}">
+                                            ${v.activo ? 'Publicada' : 'Biblioteca'}
                                         </span>
+                                    </td>
+                                    <td class="px-6 py-4 text-right">
+                                        <div class="flex items-center justify-end gap-2">
+                                            <button type="button" onclick="event.stopPropagation(); verDetallePuesto('${esc(v.id)}')" class="px-3 py-1.5 rounded-lg bg-mabaker-blue/10 text-mabaker-blue text-[10px] font-black uppercase tracking-widest hover:bg-mabaker-blue hover:text-white transition-all">Ver</button>
+                                            <button type="button" onclick="event.stopPropagation(); editarPuesto('${esc(v.id)}')" class="px-3 py-1.5 rounded-lg bg-slate-100 text-slate-700 text-[10px] font-black uppercase tracking-widest hover:bg-slate-200 transition-all">Editar</button>
+                                        </div>
                                     </td>
                                 </tr>`).join('')}
                         </tbody>
                     </table>`;
             } catch (e) {
-                el.innerHTML = '<p class="p-12 text-center text-rose-500 font-bold">Error conectando con base de datos</p>';
+                console.error('loadCatalog:', e);
+                el.innerHTML = `<p class="p-12 text-center text-rose-500 font-bold">Error al cargar vacantes: ${esc(e.message || 'conexión con base de datos')}</p>`;
             }
         }
 
@@ -734,7 +810,7 @@
             try {
                 const resp = await fetch(`${SUPA_URL}/rest/v1/catalogo_puestos?select=id,activo,departamento`, { headers: HEADERS });
                 const data = await resp.json();
-                
+                if (!resp.ok || !Array.isArray(data)) return;
                 const total = data.length;
                 const activas = data.filter(d => d.activo).length;
                 const pausas = total - activas;
@@ -836,26 +912,6 @@
                 el.querySelector('.fill-bar').classList.add('bg-emerald-500');
                 el.querySelector('.status-msg').classList.add('text-emerald-500');
             }
-        }
-
-        async function readFileAsText(file) {
-            return new Promise((resolve, reject) => {
-                const reader = new FileReader();
-                reader.onload = async function() {
-                    try {
-                        const typedarray = new Uint8Array(this.result);
-                        const pdf = await pdfjsLib.getDocument({ data: typedarray }).promise;
-                        let fullText = '';
-                        for (let i = 1; i <= pdf.numPages; i++) {
-                            const page = await pdf.getPage(i);
-                            const textContent = await page.getTextContent();
-                            fullText += textContent.items.map(item => item.str).join(' ') + '\n';
-                        }
-                        resolve(fullText);
-                    } catch (e) { reject(e); }
-                };
-                reader.readAsArrayBuffer(file);
-            });
         }
 
         function resetUploader() {

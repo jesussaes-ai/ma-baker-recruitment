@@ -43,6 +43,9 @@ El envío real debe resolverse en backend/servicio seguro (Edge Function, API in
 - **Fase 4 activa:** cierre psicométricos → RRHH envía a médico → jefe de área (`docs/fase-4-medico-jefe.md`).
 - Dashboards internos usan RPC `fn_candidatos_list` / `fn_candidato_update` con `mb_token` de sesión.
 - **Catálogo vacantes en dashboard:** ver descripción PDF, editar activas (todos los campos, nombre con autoaltura) y subir PDFs en panel *Catálogo Vacantes* (`docs/catalogo-vacantes-dashboard.md`). Etiquetas de campos con clase `.mb-field-label` (alto contraste en modales).
+- **`cargar-puestos.html`:** requiere `config.js` + `vacantes-api.js` + `vacante-document-parser.js`; acepta PDF, Office, OpenDocument y exportados de Google.
+- **Dashboard Admin/RRHH:** «Ajustes del Sistema» abre panel de sesión/tema; campana muestra alertas (publicar, candidatos nuevos, psicométricos).
+- **Logs del sistema:** lectura vía `fn_sistema_logs_list` (no REST anon sobre `log_agente`).
 - **Catálogo vacantes:** guardado vía RPC corrige `text[]` en conocimientos/competencias (`vacantes_array_fields_coalesce_fix`).
 - **Marca:** nombre oficial siempre **Ma Baker and Chef** (regla + skill en `.cursor/rules/` y `.cursor/skills/ma-baker-brand-name/`).
 - Portal candidato: `evaluacion-candidato.html?token=...`
@@ -83,3 +86,14 @@ El envío real debe resolverse en backend/servicio seguro (Edge Function, API in
 
 - Deploy y configuracion: `docs/deploy-email-webhook.md`
 - Runbook operativo completo: `docs/RUNBOOK-CORREO-MULTIPROVEEDOR.md`
+- Catálogo vacantes, formatos y logs: `docs/catalogo-vacantes-dashboard.md`
+
+## Sesión 2026-06-14 — Dashboard operativo
+
+- **Carga multi-formato:** `vacante-document-parser.js` — PDF, Word, Excel, PowerPoint, OpenDocument, export Google.
+- **`cargar-puestos.html`:** fix `config.js` + RPC sesión; ya no falla catálogo por RLS.
+- **Ajustes del Sistema:** panel sesión, tema, portal, accesos rápidos.
+- **Notificaciones:** campana con alertas accionables (publicar, candidatos, psicométricos, médico).
+- **Logs del sistema:** RPC `fn_sistema_logs_list` aplicada en Supabase; migración `database/migracion-sistema-logs-rpc.sql`.
+- **Lección:** `log_agente` no es legible con anon REST; usar RPC con `mb_token` (roles admin/rrhh).
+- **Pendiente:** push GitHub si se solicita; validar .docx en entorno del usuario.

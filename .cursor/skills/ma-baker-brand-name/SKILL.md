@@ -1,9 +1,10 @@
 ---
 name: ma-baker-brand-name
 description: >-
-  Aplica el nombre oficial de la empresa Ma Baker and Chef en UI, docs, correos,
-  SQL seed y copy del agente. Usar cuando escribas títulos, banners, emails,
-  README, modales, dashboards o cualquier texto de marca.
+  Aplica el nombre oficial Ma Baker and Chef en UI, docs, correos, SQL seed y copy
+  del agente. Usar al escribir títulos HTML, banners, emails, README, modales,
+  dashboards, asuntos de correo, seeds SQL o cualquier texto de marca del proyecto
+  Ma Baker. También si aparece "Ma Baker" sin "and Chef" o "&" en lugar de "and".
 ---
 
 # Marca — Ma Baker and Chef
@@ -29,6 +30,15 @@ En runtime de correos/postulación:
 CFG.COMPANY_NAME  // app/js/config.js — default "Ma Baker and Chef"
 ```
 
+No hardcodear el nombre en HTML si ya existe constante en `brand.js` o `config.js`.
+
+## Logo (UI)
+
+- Ruta preferida: `~/.cursor/brand-assets/ma-baker-and-chef/logo-oficial.png`
+- Si no existe, usar asset del repo o pedir al usuario la ruta correcta.
+- Pantallas: login, portal candidato, dashboard principal.
+- `alt="Ma Baker and Chef"`, `object-fit: contain` en móvil.
+
 ## Checklist rápido
 
 - [ ] `<title>` de HTML incluye "Ma Baker and Chef"
@@ -45,6 +55,7 @@ CFG.COMPANY_NAME  // app/js/config.js — default "Ma Baker and Chef"
 | Ma Baker & Chef | Ma Baker and Chef |
 | Administración — Ma Baker | Administración — Ma Baker and Chef |
 
-## Regla Cursor
+## Reglas relacionadas
 
-`.cursor/rules/nombre-oficial-ma-baker-and-chef.mdc` (alwaysApply)
+- `.cursor/rules/nombre-oficial-ma-baker-and-chef.mdc` (alwaysApply)
+- Skill global de UX reclutamiento: `~/.cursor/skills/global-recruitment-ux-guardrails/` (contraste, tarjetas, branding)

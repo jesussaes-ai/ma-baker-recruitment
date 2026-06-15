@@ -115,9 +115,16 @@
                     <span class="text-sm font-bold tracking-wide">Inicio RRHH</span>
                 </a>
 
-                <a href="cargar-puestos.html" class="flex items-center gap-4 px-5 py-3.5 rounded-2xl hover:bg-white/5 transition-all group text-slate-400 hover:text-white">
+                <a href="#" class="nav-item flex items-center gap-4 px-5 py-3.5 rounded-2xl hover:bg-white/5 transition-all group text-slate-400 hover:text-white" onclick="window.activarPanel('descripciones', this)" data-panel="descripciones">
+                    <svg class="w-5 h-5 group-hover:scale-110 transition-transform" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                    </svg>
+                    <span class="text-sm font-semibold">Descripciones de Puesto</span>
+                </a>
+
+                <a href="#" class="nav-item flex items-center gap-4 px-5 py-3.5 rounded-2xl hover:bg-white/5 transition-all group text-slate-400 hover:text-white" onclick="window.activarPanel('publicar', this)" data-panel="publicar">
                     <svg class="w-5 h-5 group-hover:scale-110 group-hover:rotate-6 transition-transform" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M9 13h6m-3-3v6m5 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 19V5m0 0l-4 4m4-4l4 4M5 21h14"></path>
                     </svg>
                     <span class="text-sm font-semibold">Publicar Vacantes</span>
                 </a>
@@ -152,7 +159,7 @@
 
                 <div class="px-5 py-6 text-[10px] font-black text-slate-500 uppercase tracking-[0.3em] opacity-60">Configuración</div>
                 
-                <a href="#" class="flex items-center gap-4 px-5 py-3.5 rounded-2xl hover:bg-white/5 transition-all group text-slate-400 hover:text-white">
+                <a href="#" class="nav-item flex items-center gap-4 px-5 py-3.5 rounded-2xl hover:bg-white/5 transition-all group text-slate-400 hover:text-white" data-panel="ajustes">
                     <svg class="w-5 h-5 group-hover:scale-110 transition-transform" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
                     </svg>
@@ -194,12 +201,21 @@
                         <input type="text" id="searchInput" placeholder="Buscar por nombre o puesto..." class="pl-12 pr-6 py-3.5 bg-white/5 border border-white/10 rounded-2xl text-sm focus:ring-4 focus:ring-mabaker-red/20 focus:border-mabaker-red/50 w-96 transition-all text-white placeholder-slate-500 outline-none">
                     </div>
                     
-                    <button class="relative size-12 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center hover:bg-white/10 hover:border-white/20 transition-all group">
-                        <svg class="w-5 h-5 text-slate-400 group-hover:text-white group-hover:scale-110 transition-all" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"></path>
-                        </svg>
-                        <span class="absolute top-3 right-3 size-2.5 bg-mabaker-red rounded-full ring-4 ring-[#020617]"></span>
-                    </button>
+                    <div class="relative" id="notifWrap">
+                        <button type="button" id="notifBellBtn" aria-label="Notificaciones" aria-expanded="false" class="relative size-12 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center hover:bg-white/10 hover:border-white/20 transition-all group">
+                            <svg class="w-5 h-5 text-slate-400 group-hover:text-white group-hover:scale-110 transition-all" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"></path>
+                            </svg>
+                            <span id="notifDot" class="hidden absolute top-3 right-3 size-2.5 bg-mabaker-red rounded-full ring-4 ring-[#020617]"></span>
+                        </button>
+                        <div id="notifDropdown" class="hidden absolute right-0 top-full mt-3 w-[22rem] max-h-[28rem] overflow-y-auto scroll-custom glass-panel rounded-2xl border border-white/10 shadow-2xl z-50">
+                            <div class="p-4 border-b border-white/10 flex items-center justify-between">
+                                <p class="text-xs font-black uppercase tracking-widest text-white">Notificaciones</p>
+                                <button type="button" id="notifRefreshBtn" class="text-[10px] font-bold uppercase tracking-wider text-mabaker-blue hover:text-white transition-colors">Actualizar</button>
+                            </div>
+                            <div id="notifDropdownList" class="p-2"></div>
+                        </div>
+                    </div>
                 </div>
             </header>
 
@@ -225,7 +241,7 @@
                                     <h3 class="text-4xl font-black mb-2 tracking-tight">Administración General — Ma Baker and Chef</h3>
                                     <p class="text-white/70 text-lg max-w-2xl font-medium leading-relaxed">Bienvenido al centro de mando. Gestiona vacantes y analiza candidatos con <span class="text-white font-black underline decoration-mabaker-blue decoration-4 underline-offset-4">IA Avanzada</span>.</p>
                                 </div>
-                                <a href="cargar-puestos.html" class="bg-white text-mabaker-red px-10 py-5 rounded-[2rem] font-black text-lg hover:scale-105 active:scale-95 transition-all shadow-2xl shadow-black/20 flex items-center gap-3">
+                                <a href="#" onclick="window.activarPanel('descripciones', document.querySelector('[data-panel=descripciones]')); return false;" class="bg-white text-mabaker-red px-10 py-5 rounded-[2rem] font-black text-lg hover:scale-105 active:scale-95 transition-all shadow-2xl shadow-black/20 flex items-center gap-3">
                                     Gestionar Vacantes
                                     <svg class="w-5 h-5 text-mabaker-red" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                                         <path stroke-linecap="round" stroke-linejoin="round" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path>
@@ -327,8 +343,10 @@
                         <div class="p-10 border-b border-white/5 flex flex-col sm:flex-row items-center justify-between bg-white/[0.02] gap-6">
                             <div>
                                 <h3 class="font-black text-white text-2xl tracking-tight">Log de Eventos del Sistema</h3>
-                                <p class="text-xs text-slate-400 font-semibold uppercase tracking-widest mt-1">Auditoría de IA y movimientos de base de datos</p>
+                                <p class="text-xs text-slate-400 font-semibold uppercase tracking-widest mt-1">Auditoría de IA, postulaciones, rechazos y vacantes</p>
+                                <p class="text-sm text-slate-500 mt-2" id="logsCount"></p>
                             </div>
+                            <button type="button" onclick="reloadCurrentRoleData().then(() => renderRRHHTables())" class="px-6 py-3.5 rounded-2xl bg-white/10 text-slate-300 text-xs font-black uppercase tracking-widest hover:bg-white/20 transition-all">Actualizar logs</button>
                         </div>
                         <div class="overflow-x-auto min-h-[400px] scroll-custom" id="tablaLogs">
                             <div class="p-20 text-center text-slate-500">Cargando auditoría...</div>
@@ -341,25 +359,33 @@
                     <section class="glass-panel rounded-[3rem] shadow-2xl border border-white/5 overflow-hidden">
                         <div class="p-10 border-b border-white/5 flex flex-col sm:flex-row items-center justify-between bg-white/[0.02] gap-6">
                             <div>
-                                <h3 class="font-black text-white text-2xl tracking-tight">Catálogo de Puestos</h3>
-                                <p class="text-xs text-slate-400 font-semibold uppercase tracking-widest mt-1">Revisa descripciones PDF, edita vacantes activas y publica nuevas</p>
+                                <h3 class="font-black text-white text-2xl tracking-tight" id="vacantesPanelTitle">Catálogo de Puestos</h3>
+                                <p class="text-xs text-slate-400 font-semibold uppercase tracking-widest mt-1" id="vacantesPanelSubtitle">Biblioteca interna y vacantes publicadas en el portal de postulación</p>
                             </div>
                             <div class="flex flex-wrap gap-3">
                                 <button type="button" onclick="toggleSubirVacantesPDFs()" class="flex items-center gap-3 px-6 py-3.5 bg-mabaker-blue/20 text-mabaker-blue border border-mabaker-blue/30 rounded-2xl text-[11px] font-black uppercase tracking-widest transition-all hover:scale-105">
-                                    Subir descripciones PDF
+                                    Subir descripciones
+                                </button>
+                                <button type="button" onclick="activarPanel('publicar', document.querySelector('[data-panel=publicar]'))" class="flex items-center gap-3 px-6 py-3.5 bg-amber-500/20 text-amber-300 border border-amber-500/30 rounded-2xl text-[11px] font-black uppercase tracking-widest transition-all hover:scale-105">
+                                    Publicar vacantes
                                 </button>
                                 <button type="button" onclick="setVacanteFilter('activas')" class="flex items-center gap-3 px-6 py-3.5 bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 rounded-2xl text-[11px] font-black uppercase tracking-widest transition-all hover:scale-105">
-                                    Ver solo activas
+                                    Ver publicadas
                                 </button>
                             </div>
                         </div>
 
                         <div id="vacantesUploadSection" class="hidden border-b border-white/5 bg-white/[0.02] p-8 space-y-4">
-                            <div id="vacantesDropZone" class="border-2 border-dashed border-white/15 rounded-[2rem] p-10 text-center hover:border-mabaker-red/40 transition-all cursor-pointer" onclick="document.getElementById('vacantesFileInput').click()">
-                                <p class="text-white font-black text-lg mb-2">Arrastra PDFs de descripción de puesto aquí</p>
-                                <p class="text-slate-400 text-sm mb-4">O haz clic para seleccionar uno o varios archivos</p>
-                                <input type="file" id="vacantesFileInput" accept=".pdf" multiple class="hidden">
-                                <span class="inline-flex px-5 py-2.5 rounded-xl bg-mabaker-red text-white text-xs font-black uppercase tracking-widest">Seleccionar PDFs</span>
+                            <p class="text-xs text-amber-300/90 font-medium">Las descripciones subidas van a la <strong>biblioteca interna</strong>. No aparecen en el portal hasta que las publiques.</p>
+                            <div id="vacantesDropZone" class="border-2 border-dashed border-white/15 rounded-[2rem] p-10 text-center hover:border-mabaker-red/40 transition-all cursor-pointer">
+                                <p class="text-white font-black text-lg mb-2">Arrastra descripciones aquí</p>
+                                <p class="text-slate-400 text-sm mb-4">PDF · Word · Excel · PowerPoint · OpenDocument · TXT · exportados de Google</p>
+                                <input type="file" id="vacantesFileInput" multiple class="hidden">
+                                <input type="file" id="vacantesFolderInput" webkitdirectory directory multiple class="hidden">
+                                <div class="flex flex-wrap justify-center gap-3">
+                                    <button type="button" data-upload-action="files" class="inline-flex px-5 py-2.5 rounded-xl bg-mabaker-red text-white text-xs font-black uppercase tracking-widest">Seleccionar archivos</button>
+                                    <button type="button" data-upload-action="folder" class="inline-flex px-5 py-2.5 rounded-xl bg-mabaker-blue text-white text-xs font-black uppercase tracking-widest">Subir carpeta</button>
+                                </div>
                             </div>
                             <div id="vacantesUploadQueue" class="space-y-3"></div>
                             <div id="vacantesUploadSummary" class="hidden p-4 rounded-2xl bg-white/5 border border-white/10"></div>
@@ -367,6 +393,40 @@
 
                         <div class="overflow-x-auto min-h-[400px] scroll-custom" id="tablaVacantes">
                             <div class="p-20 text-center text-slate-500">Sincronizando catálogo...</div>
+                        </div>
+                    </section>
+                </div>
+
+                <!-- PANEL: PUBLICAR VACANTES -->
+                <div id="panel-publicar" class="panel space-y-10">
+                    <section class="glass-panel rounded-[3rem] shadow-2xl border border-white/5 overflow-hidden">
+                        <div class="p-10 border-b border-white/5 flex flex-col lg:flex-row items-start lg:items-center justify-between bg-white/[0.02] gap-6">
+                            <div>
+                                <h3 class="font-black text-white text-2xl tracking-tight">Publicar vacantes en el portal</h3>
+                                <p class="text-xs text-slate-400 font-semibold uppercase tracking-widest mt-1">Solo las que publiques aquí las verán los candidatos al postularse</p>
+                                <p class="text-sm text-amber-300/90 mt-3 font-medium">Paso 2 del flujo: primero guarda tus descripciones en «Descripciones de Puesto», luego elige cuáles abrir al público.</p>
+                            </div>
+                            <div class="flex flex-wrap gap-3">
+                                <button type="button" onclick="publicarVacantesSeleccionadas()" class="px-6 py-3.5 rounded-2xl bg-emerald-600 text-white text-xs font-black uppercase tracking-widest hover:bg-emerald-500 transition-all">Publicar seleccionadas</button>
+                                <button type="button" onclick="renderPublicarPanel(); reloadCurrentRoleData().then(() => renderPublicarPanel())" class="px-6 py-3.5 rounded-2xl bg-white/10 text-slate-300 text-xs font-black uppercase tracking-widest hover:bg-white/20 transition-all">Actualizar lista</button>
+                                <span class="text-xs text-slate-500 self-center" id="publicarCount"></span>
+                            </div>
+                        </div>
+                        <div class="overflow-x-auto min-h-[400px] scroll-custom" id="tablaPublicar">
+                            <div class="p-20 text-center text-slate-500">Cargando descripciones pendientes...</div>
+                        </div>
+                    </section>
+                </div>
+
+                <!-- PANEL: AJUSTES DEL SISTEMA -->
+                <div id="panel-ajustes" class="panel space-y-10">
+                    <section class="glass-panel rounded-[3rem] shadow-2xl border border-white/5 overflow-hidden">
+                        <div class="p-10 border-b border-white/5 bg-white/[0.02]">
+                            <h3 class="font-black text-white text-2xl tracking-tight">Ajustes del Sistema</h3>
+                            <p class="text-xs text-slate-400 font-semibold uppercase tracking-widest mt-1">Preferencias de interfaz y datos de sesión</p>
+                        </div>
+                        <div id="ajustesContent" class="p-10 space-y-8">
+                            <p class="text-slate-500 text-sm">Cargando ajustes...</p>
                         </div>
                     </section>
                 </div>
@@ -770,6 +830,7 @@
         pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.2.67/pdf.worker.min.mjs';
         window.pdfjsLib = pdfjsLib;
     </script>
+    <script src="js/vacante-document-parser.js"></script>
     <script src="js/vacantes-pdf-upload.js"></script>
     <script src="js/dashboard.js"></script>
     <script src="js/psicometricos.js"></script>

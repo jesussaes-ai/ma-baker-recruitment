@@ -1,5 +1,12 @@
 # Catálogo de vacantes en dashboard (Admin / RRHH)
 
+## Flujo en dos pasos
+
+1. **Subir descripciones** (`cargar-puestos.html` o botón en dashboard) → guarda en biblioteca con `activo = false`. Los candidatos **no** las ven.
+2. **Publicar vacantes** (`cargar-puestos.html` → menú *Publicar vacantes*) → marca `activo = true`. Solo esas aparecen en `index.html` (portal de postulación).
+
+El campo `activo` en `catalogo_puestos` significa **visible en portal**, no solo “pausada”.
+
 ## Ubicación
 
 `dashboard-admin.html` o `dashboard-rrhh.html` → menú lateral **Catálogo Vacantes**.
@@ -7,13 +14,10 @@
 ## Funciones en la misma pantalla
 
 1. **Ver descripciones PDF** — botón *Ver descripción* por vacante (texto completo extraído del PDF, requisitos, sueldo, archivo origen).
-2. **Editar vacantes activas** — botón *Editar* o *Editar vacante* desde el modal de lectura. Todos los campos son editables:
-   - **Nombre del puesto** — textarea con autoaltura (sin truncar títulos largos).
-   - **Código de vacante** y **archivo PDF origen**.
-   - Departamento, sueldos, edad, escolaridad (texto libre con sugerencias), descriptivo completo, conocimientos, competencias, activo/pausada.
-3. **Subir nuevos PDFs** — botón *Subir descripciones PDF* (drag & drop o selección múltiple).
-4. **Filtros** — Activas / Pausadas / Todas (por defecto: Activas).
-5. **Toggle rápido** — interruptor en tabla para publicar o pausar sin abrir el modal.
+2. **Editar vacantes** — botón *Editar*. Incluye toggle **Publicada en portal** (`activo`).
+3. **Subir descripciones** — importa a biblioteca (no publica automáticamente).
+4. **Filtros** — Publicadas / Solo biblioteca / Todas.
+5. **Toggle rápido** — interruptor en tabla = visible en portal de postulación.
 
 ## Backend
 
@@ -26,10 +30,37 @@
 
 ## Scripts frontend
 
+- `app/js/vacante-document-parser.js` — extracción de texto (PDF, Word, Excel, PowerPoint, OpenDocument, HTML/RTF/CSV)
 - `app/js/vacantes-api.js`
 - `app/js/vacantes-pdf-upload.js`
 - `app/js/dashboard.js` (tabla, modales, filtros)
 
+### Formatos aceptados al subir descripciones
+
+| Origen | Extensiones |
+|--------|-------------|
+| PDF | `.pdf` |
+| Microsoft | `.docx`, `.xlsx`, `.pptx` (`.doc`/`.ppt` antiguos: guardar como formato moderno) |
+| Google | Exportar desde Docs/Sheets como `.docx`, `.xlsx` o `.pdf` (no enlaces `.gdoc`) |
+| OpenDocument | `.odt`, `.ods`, `.odp` |
+| Texto | `.txt`, `.csv`, `.rtf`, `.html` |
+
+Límite: 20 MB por archivo. Librerías CDN: PDF.js, Mammoth, SheetJS, JSZip.
+
+## Dashboard Admin / RRHH (extras)
+
+- **Ajustes del Sistema:** sesión, tema claro/oscuro, enlace al portal, accesos rápidos.
+- **Notificaciones (campana):** vacantes sin publicar, candidatos nuevos (7 días), psicométricos, fase médica.
+- **Logs del Sistema:** RPC `fn_sistema_logs_list` con token `mb_token` (roles admin/rrhh). No usar REST anon sobre `log_agente`.
+- Migración SQL: `database/migracion-sistema-logs-rpc.sql` (remota: `sistema_logs_list_rpc`).
+
 ## Nota
 
 La pantalla `cargar-puestos.html` sigue disponible como módulo dedicado; el dashboard integra las mismas capacidades para operación diaria sin cambiar de pantalla.
+
+### Requisitos de `cargar-puestos.html`
+
+- Debe cargar `js/config.js` en el `<head>` antes de scripts que usen `window.MB_CONFIG`.
+- Escritura (subir PDF, pausar/activar): `js/vacantes-api.js` → RPC `fn_catalogo_puesto_insert` / `fn_catalogo_puesto_update` con token de sesión (`mb_token`).
+- **Logs del sistema:** RPC `fn_sistema_logs_list` (admin/rrhh) — unifica `log_agente`, postulaciones, rechazos y vacantes.
+- Lectura del catálogo: REST anon sobre `catalogo_puestos` (RLS: solo vacantes `activo = true`).
