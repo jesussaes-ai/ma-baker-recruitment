@@ -11,7 +11,15 @@
 - **Impacto operativo:** panel *Logs del Sistema* deja de mostrar vacío por RLS; botón *Actualizar logs*.
 - **Validado:** RPC aplicada en Supabase remoto.
 - **Pendiente:** eventos aparecen al subir vacantes o recibir postulaciones.
-- **Docs relacionados:** `database/migracion-sistema-logs-rpc.sql`, `docs/catalogo-vacantes-dashboard.md`
+- **Docs relacionados:** `database/migracion-sistema-logs-rpc.sql`, `docs/catalogo-vacantes-dashboard.md`, `app/ayuda.html`
+
+---
+
+## 2026-06-14 — Ayuda contextual RRHH/Admin
+
+- **Cambio:** `app/ayuda.html` documenta multi-formato, publicar, campana, ajustes y logs.
+- **Tooltips:** `data-help` en Ajustes, Logs y campana (dashboards Admin/RRHH).
+- **Impacto operativo:** botón Ayuda flotante enlaza guías actualizadas por rol.
 
 ---
 

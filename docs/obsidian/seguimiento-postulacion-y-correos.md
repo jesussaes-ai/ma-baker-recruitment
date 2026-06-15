@@ -96,4 +96,4 @@ El envío real debe resolverse en backend/servicio seguro (Edge Function, API in
 - **Notificaciones:** campana con alertas accionables (publicar, candidatos, psicométricos, médico).
 - **Logs del sistema:** RPC `fn_sistema_logs_list` aplicada en Supabase; migración `database/migracion-sistema-logs-rpc.sql`.
 - **Lección:** `log_agente` no es legible con anon REST; usar RPC con `mb_token` (roles admin/rrhh).
-- **Pendiente:** push GitHub si se solicita; validar .docx en entorno del usuario.
+- Centro de ayuda por rol: `app/ayuda.html` (RRHH/Admin: multi-formato, publicar, notificaciones, ajustes, logs).

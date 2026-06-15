@@ -49,6 +49,7 @@ Este proyecto implementa un sistema agéntico avanzado para automatizar el proce
 - Fase 4 médico + jefe (transición de fases y RPC dashboards): `docs/fase-4-medico-jefe.md`.
 - Catálogo de vacantes en dashboard (ver descripción, editar, subir PDF/Word/Excel): `docs/catalogo-vacantes-dashboard.md`.
 - Dashboard Admin/RRHH: ajustes del sistema, notificaciones y logs unificados (`fn_sistema_logs_list`); migración `database/migracion-sistema-logs-rpc.sql`.
+- Ayuda contextual actualizada: `app/ayuda.html` + tooltips `data-help` en dashboards.
 - Espejo OneNote (seguimiento operativo): `docs/onenote/seguimiento-ma-baker.md`.
 - Skill de cierre documental (Obsidian + README + OneNote + GitHub): `.cursor/skills/documentacion-cierre-ma-baker/SKILL.md`.
 - Skills personales globales (auto-aprendizaje): `~/.cursor/skills/auto-skill-from-learning/`.
