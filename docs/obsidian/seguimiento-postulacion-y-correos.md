@@ -97,3 +97,4 @@ El envío real debe resolverse en backend/servicio seguro (Edge Function, API in
 - **Logs del sistema:** RPC `fn_sistema_logs_list` aplicada en Supabase; migración `database/migracion-sistema-logs-rpc.sql`.
 - **Lección:** `log_agente` no es legible con anon REST; usar RPC con `mb_token` (roles admin/rrhh).
 - Centro de ayuda por rol: `app/ayuda.html` (RRHH/Admin: multi-formato, publicar, notificaciones, ajustes, logs).
+- **Handy (STT offline):** fork `jesussaes-ai/Handy.Computer`, clon `C:\Users\jesus\.gemini\antigravity\scratch\Handy.Computer` — ver README § Herramientas externas.

@@ -15,6 +15,15 @@
 
 ---
 
+## 2026-06-14 — Fork Handy.Computer (STT offline)
+
+- **GitHub:** https://github.com/jesussaes-ai/Handy.Computer (fork de RicoSaupeB/Handy.Computer)
+- **Clon local:** `C:\Users\jesus\.gemini\antigravity\scratch\Handy.Computer`
+- **Uso:** speech-to-text offline cuando se requiera; no integrado al portal Ma Baker.
+- **Docs:** README Ma Baker § Herramientas externas
+
+---
+
 ## 2026-06-14 — Ayuda contextual RRHH/Admin
 
 - **Cambio:** `app/ayuda.html` documenta multi-formato, publicar, campana, ajustes y logs.

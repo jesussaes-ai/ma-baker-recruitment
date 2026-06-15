@@ -17,6 +17,19 @@ Este proyecto implementa un sistema agéntico avanzado para automatizar el proce
 - `docs/`: Documentación técnica y flujos.
 - `prompts/`: Definiciones de prompts maestros y auxiliares.
 
+### Herramientas externas (referencia local)
+
+**Handy** — speech-to-text offline (open source, Tauri + Whisper). Fork en GitHub y clon local para uso puntual (dictado, accesibilidad, pruebas de voz sin nube):
+
+| Recurso | Ruta / URL |
+|---------|------------|
+| Fork GitHub | https://github.com/jesussaes-ai/Handy.Computer |
+| Upstream | https://github.com/RicoSaupeB/Handy.Computer |
+| Clon local | `C:\Users\jesus\.gemini\antigravity\scratch\Handy.Computer` |
+| Sitio | https://handy.computer |
+
+Abrir en Cursor: **File → Open Folder** → ruta del clon local. Actualizar: `git pull origin main` desde esa carpeta.
+
 ### Ayuda contextual en la app
 - Se agregó `app/ayuda.html` como centro de ayuda por departamento.
 - Se agregó `app/js/help-overlay.js` para mostrar ayuda flotante en iconos y acciones.
