@@ -36,5 +36,14 @@
     return rpc("fn_catalogo_puesto_insert", { p_payload: payload });
   }
 
-  window.MB_VACANTES = { updateVacante, insertVacante };
+  async function deleteVacante(id) {
+    return rpc("fn_catalogo_puesto_delete", { p_id: id });
+  }
+
+  async function listVacantes() {
+    const data = await rpc("fn_catalogo_puestos_list", {});
+    return Array.isArray(data) ? data : [];
+  }
+
+  window.MB_VACANTES = { updateVacante, insertVacante, deleteVacante, listVacantes };
 })();

@@ -1,40 +1,58 @@
 # Catálogo de vacantes en dashboard (Admin / RRHH)
 
-## Flujo en dos pasos
+## Modelo en dos capas (independientes)
 
-1. **Subir descripciones** (`cargar-puestos.html` o botón en dashboard) → guarda en biblioteca con `activo = false`. Los candidatos **no** las ven.
-2. **Publicar vacantes** (`cargar-puestos.html` → menú *Publicar vacantes*) → marca `activo = true`. Solo esas aparecen en `index.html` (portal de postulación).
+| Capa | Menú | Qué es | Persistencia |
+|------|------|--------|--------------|
+| **Descripción de puesto** | Descripciones de Puesto | Descriptivo completo (PDF/Word). Biblioteca RRHH. | **Siempre visible** para ver/editar. Publicar vacante **no la borra ni la oculta**. |
+| **Vacante en portal** | Publicar vacantes + Catálogo Vacantes | Vista pública para candidatos con **campos opcionales** (`portal_campos_visibles`). | `activo = true` solo controla visibilidad en `index.html`. Pausar quita del portal; el descriptivo sigue en RRHH. |
 
-El campo `activo` en `catalogo_puestos` significa **visible en portal**, no solo “pausada”.
+## Flujo operativo
 
-## Ubicación
+1. **Subir / editar descripciones** → `Descripciones de Puesto`. Todas las descripciones aparecen siempre en la tabla.
+2. **Crear vacante** → `Publicar vacantes` → botón **Crear vacante** / **Editar vacante** → modal con checkboxes de campos opcionales → **Publicar en portal**.
+3. **Gestionar vacantes activas** → menú **Catálogo Vacantes** (vacantes en portal): editar campos visibles, pausar, ver descriptivo origen.
+4. **Eliminar** → solo con botón Eliminar en Descripciones (acción irreversible). Para ocultar del portal usar **Pausar** o **Quitar del portal**.
 
-`dashboard-admin.html` o `dashboard-rrhh.html` → menú lateral **Catálogo Vacantes**.
+## Campos opcionales en portal (`portal_campos_visibles`)
 
-## Funciones en la misma pantalla
+Siempre visibles: **nombre**, **departamento**.
 
-1. **Ver descripciones PDF** — botón *Ver descripción* por vacante (texto completo extraído del PDF, requisitos, sueldo, archivo origen).
-2. **Editar vacantes** — botón *Editar*. Incluye toggle **Publicada en portal** (`activo`).
-3. **Subir descripciones** — importa a biblioteca (no publica automáticamente).
-4. **Filtros** — Publicadas / Solo biblioteca / Todas.
-5. **Toggle rápido** — interruptor en tabla = visible en portal de postulación.
+Opcionales (checkbox en modal):
+
+- Descripción / resumen
+- Escolaridad mínima
+- Experiencia requerida
+- Rango de edad
+- Rango salarial
+- Conocimientos técnicos
+- Competencias clave
+
+Migración SQL: `database/migracion-vacantes-portal-campos.sql` (remota: `vacantes_portal_campos`).
+
+## Ubicación en dashboard
+
+- `dashboard-admin.html` / `dashboard-rrhh.html`
+- **Descripciones de Puesto** — biblioteca permanente
+- **Publicar vacantes** — configurar vacante pública por descripción
+- **Catálogo Vacantes** — solo vacantes activas en portal
 
 ## Backend
 
-- Lectura: `catalogo_puestos` (RLS anon SELECT).
-- Escritura: RPC con sesión
-  - `fn_catalogo_puesto_update` (incluye `codigo_puesto`, `nombre_archivo_fuente`)
-  - `fn_catalogo_puesto_insert`
-- Migración: `database/migracion-vacantes-rpc.sql` (+ `database/migracion-vacantes-array-fields.sql` / remota `vacantes_array_fields_coalesce_fix`)
-- `conocimientos_tecnicos` y `competencias_clave` son `text[]` en BD; la RPC convierte texto CSV con `fn_texto_a_text_array`.
+- Lectura admin/RRHH: RPC `fn_catalogo_puestos_list` (todas las descripciones).
+- Lectura portal: REST `catalogo_puestos?activo=eq.true` (RLS).
+- Escritura: `fn_catalogo_puesto_insert` / `fn_catalogo_puesto_update` (incluye `portal_campos_visibles`).
+- Subida nueva: `activo = false` por defecto (sin vacante en portal hasta publicar).
+- **Código interno (`codigo_puesto`):** se genera único por archivo (nombre + sufijo aleatorio). Las plantillas Word compartían el mismo «Código/Clave» y provocaban error rojo en lote; corregido en `vacantes-pdf-upload.js` + RPC insert (`migracion-vacantes-codigo-unico-insert.sql`).
 
 ## Scripts frontend
 
-- `app/js/vacante-document-parser.js` — extracción de texto (PDF, Word, Excel, PowerPoint, OpenDocument, HTML/RTF/CSV)
+- `app/js/job-description-format.js` — convierte texto PDF/Word en HTML legible (`MB_JOB_DESC.formatHtml`): secciones, subtítulos, viñetas, `Etiqueta: valor`; skill `.cursor/skills/descriptivo-puesto-legible/SKILL.md`
+- `app/js/portal-vacante-config.js` — defaults y checkboxes
 - `app/js/vacantes-api.js`
 - `app/js/vacantes-pdf-upload.js`
-- `app/js/dashboard.js` (tabla, modales, filtros)
-
+- `app/js/dashboard.js`
+- `app/js/app.js` — tarjetas del portal respetan campos visibles
 ### Formatos aceptados al subir descripciones
 
 | Origen | Extensiones |

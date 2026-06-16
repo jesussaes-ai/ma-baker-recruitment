@@ -369,24 +369,31 @@
                                 <button type="button" onclick="activarPanel('publicar', document.querySelector('[data-panel=publicar]'))" class="flex items-center gap-3 px-6 py-3.5 bg-amber-500/20 text-amber-300 border border-amber-500/30 rounded-2xl text-[11px] font-black uppercase tracking-widest transition-all hover:scale-105">
                                     Publicar vacantes
                                 </button>
-                                <button type="button" onclick="setVacanteFilter('activas')" class="flex items-center gap-3 px-6 py-3.5 bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 rounded-2xl text-[11px] font-black uppercase tracking-widest transition-all hover:scale-105">
-                                    Ver publicadas
+                                <button type="button" onclick="verVacantesPublicadas()" class="flex items-center gap-3 px-6 py-3.5 bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 rounded-2xl text-[11px] font-black uppercase tracking-widest transition-all hover:scale-105">
+                                    Vacantes en portal
                                 </button>
                             </div>
                         </div>
 
                         <div id="vacantesUploadSection" class="hidden border-b border-white/5 bg-white/[0.02] p-8 space-y-4">
-                            <p class="text-xs text-amber-300/90 font-medium">Las descripciones subidas van a la <strong>biblioteca interna</strong>. No aparecen en el portal hasta que las publiques.</p>
+                            <p class="text-xs text-amber-300/90 font-medium">Las descripciones quedan <strong>siempre en esta biblioteca</strong> para editarlas. Publicar una vacante no las borra ni las oculta aquí.</p>
                             <div id="vacantesDropZone" class="border-2 border-dashed border-white/15 rounded-[2rem] p-10 text-center hover:border-mabaker-red/40 transition-all cursor-pointer">
                                 <p class="text-white font-black text-lg mb-2">Arrastra descripciones aquí</p>
                                 <p class="text-slate-400 text-sm mb-4">PDF · Word · Excel · PowerPoint · OpenDocument · TXT · exportados de Google</p>
                                 <input type="file" id="vacantesFileInput" multiple class="hidden">
                                 <input type="file" id="vacantesFolderInput" webkitdirectory directory multiple class="hidden">
-                                <div class="flex flex-wrap justify-center gap-3">
-                                    <button type="button" data-upload-action="files" class="inline-flex px-5 py-2.5 rounded-xl bg-mabaker-red text-white text-xs font-black uppercase tracking-widest">Seleccionar archivos</button>
-                                    <button type="button" data-upload-action="folder" class="inline-flex px-5 py-2.5 rounded-xl bg-mabaker-blue text-white text-xs font-black uppercase tracking-widest">Subir carpeta</button>
+                                <div class="flex flex-wrap justify-center gap-3 items-end">
+                                    <div class="flex flex-col items-center gap-1.5">
+                                        <button type="button" data-upload-action="files" class="inline-flex px-5 py-2.5 rounded-xl bg-mabaker-red text-white text-xs font-black uppercase tracking-widest">Seleccionar archivos</button>
+                                        <p class="text-[9px] font-black text-amber-300/95 uppercase tracking-wider">Máx. 25 archivos por lote</p>
+                                    </div>
+                                    <button type="button" data-upload-action="folder" class="inline-flex flex-col items-center px-5 py-2.5 rounded-xl bg-mabaker-blue text-white text-xs font-black uppercase tracking-widest">
+                                        <span>Subir carpeta</span>
+                                        <span class="text-[8px] font-bold normal-case tracking-normal opacity-90">Lista previa de archivos</span>
+                                    </button>
                                 </div>
                             </div>
+                            <div id="vacantesUploadPreview" class="hidden"></div>
                             <div id="vacantesUploadQueue" class="space-y-3"></div>
                             <div id="vacantesUploadSummary" class="hidden p-4 rounded-2xl bg-white/5 border border-white/10"></div>
                         </div>
@@ -403,12 +410,11 @@
                         <div class="p-10 border-b border-white/5 flex flex-col lg:flex-row items-start lg:items-center justify-between bg-white/[0.02] gap-6">
                             <div>
                                 <h3 class="font-black text-white text-2xl tracking-tight">Publicar vacantes en el portal</h3>
-                                <p class="text-xs text-slate-400 font-semibold uppercase tracking-widest mt-1">Solo las que publiques aquí las verán los candidatos al postularse</p>
-                                <p class="text-sm text-amber-300/90 mt-3 font-medium">Paso 2 del flujo: primero guarda tus descripciones en «Descripciones de Puesto», luego elige cuáles abrir al público.</p>
+                                <p class="text-xs text-slate-400 font-semibold uppercase tracking-widest mt-1">Elige qué campos de cada descripción verán los candidatos (todos opcionales salvo nombre y departamento)</p>
+                                <p class="text-sm text-amber-300/90 mt-3 font-medium">Paso 2: en «Descripciones de Puesto» guardas el descriptivo completo; aquí creas la vacante pública con los campos que decidas.</p>
                             </div>
                             <div class="flex flex-wrap gap-3">
-                                <button type="button" onclick="publicarVacantesSeleccionadas()" class="px-6 py-3.5 rounded-2xl bg-emerald-600 text-white text-xs font-black uppercase tracking-widest hover:bg-emerald-500 transition-all">Publicar seleccionadas</button>
-                                <button type="button" onclick="renderPublicarPanel(); reloadCurrentRoleData().then(() => renderPublicarPanel())" class="px-6 py-3.5 rounded-2xl bg-white/10 text-slate-300 text-xs font-black uppercase tracking-widest hover:bg-white/20 transition-all">Actualizar lista</button>
+                                <button type="button" onclick="reloadCurrentRoleData().then(() => renderPublicarPanel())" class="px-6 py-3.5 rounded-2xl bg-white/10 text-slate-300 text-xs font-black uppercase tracking-widest hover:bg-white/20 transition-all">Actualizar lista</button>
                                 <span class="text-xs text-slate-500 self-center" id="publicarCount"></span>
                             </div>
                         </div>
@@ -434,10 +440,35 @@
         </main>
     </div>
 
+    <!-- MODAL CONFIGURAR VACANTE (campos opcionales en portal) -->
+    <div id="modalConfigurarVacante" class="fixed inset-0 z-50 hidden flex items-center justify-center p-4">
+        <div class="absolute inset-0 mb-modal-overlay" onclick="cerrarModalConfigurarVacante()"></div>
+        <div class="relative w-full max-w-2xl mb-modal-detail border rounded-[2rem] shadow-3xl overflow-hidden flex flex-col max-h-[90vh]">
+            <div class="mb-modal-header p-8 border-b shrink-0">
+                <h3 class="mb-cfg-title text-xl font-black">Configurar vacante en portal</h3>
+                <p class="text-sm mt-2"><span id="cfgV_nombre" class="font-bold"></span></p>
+                <p class="text-[11px] mt-1 mb-cfg-meta">Archivo: <span id="cfgV_archivo"></span></p>
+                <p class="text-xs mt-3 mb-cfg-note">El descriptivo completo permanece en Descripciones de Puesto. Solo eliges qué muestran los candidatos.</p>
+            </div>
+            <div class="mb-modal-body p-8 overflow-y-auto scroll-custom flex-1">
+                <p class="mb-cfg-section-label text-[10px] font-black uppercase tracking-widest mb-3">Campos visibles (opcionales)</p>
+                <div id="cfgV_campos" class="grid grid-cols-1 sm:grid-cols-2 gap-3"></div>
+            </div>
+            <div class="mb-modal-footer p-6 border-t shrink-0">
+                <div class="flex flex-wrap items-center justify-end gap-3">
+                    <button type="button" id="cfgV_btnPausar" onclick="pausarVacantePortalDesdeModal()" class="mb-modal-btn mb-modal-btn--warning hidden">Quitar del portal</button>
+                    <button type="button" onclick="cerrarModalConfigurarVacante()" class="mb-modal-btn mb-modal-btn--secondary">Cancelar</button>
+                    <button type="button" onclick="guardarConfiguracionVacantePortal(false)" class="mb-modal-btn mb-modal-btn--neutral">Guardar configuración</button>
+                    <button type="button" onclick="guardarConfiguracionVacantePortal(true)" class="mb-modal-btn mb-modal-btn--primary">Publicar en portal</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- MODAL EDITAR VACANTE (PREMIUM) -->
     <div id="modalVacante" class="fixed inset-0 z-50 hidden flex items-center justify-center p-4">
-        <div class="absolute inset-0 bg-dark-depth/90 backdrop-blur-xl" onclick="cerrarModalVacante()"></div>
-        <div class="relative w-full max-w-5xl bg-dark-surface border border-white/10 rounded-[3rem] shadow-3xl overflow-hidden animate-slide-up max-h-[95vh] flex flex-col">
+        <div class="absolute inset-0 mb-modal-overlay" onclick="cerrarModalVacante()"></div>
+        <div class="relative w-full max-w-5xl mb-modal-detail border rounded-[3rem] shadow-3xl overflow-hidden animate-slide-up max-h-[95vh] flex flex-col">
             <div class="p-8 md:p-10 border-b border-white/5 bg-white/[0.02] shrink-0">
                 <div class="flex justify-between items-start gap-4">
                     <div class="flex items-start gap-5 flex-1 min-w-0">
@@ -547,13 +578,13 @@
                             class="vacante-autogrow w-full min-h-[3rem] bg-white/5 border border-white/10 rounded-2xl px-6 py-4 text-white text-sm focus:border-mabaker-red/50 outline-none resize-y scroll-custom"
                             placeholder="Liderazgo, Comunicación, Trabajo en equipo..."></textarea>
                     </div>
-                    <div>
-                        <label class="mb-field-label px-1">Estado de la Vacante</label>
+                    <div id="editV_portalSection">
+                        <label class="mb-field-label px-1">Estado de la vacante en portal</label>
                         <div class="flex items-center gap-4 mt-2 h-14">
                             <label class="relative inline-flex items-center cursor-pointer">
                                 <input type="checkbox" id="editV_activo" class="sr-only peer">
                                 <div class="w-14 h-8 bg-white/10 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[4px] after:left-[4px] after:bg-white after:rounded-full after:h-6 after:w-6 after:transition-all peer-checked:bg-mabaker-red"></div>
-                                <span class="ml-4 text-sm font-bold text-slate-300 uppercase tracking-widest" id="statusLabel">Activa</span>
+                                <span class="ml-4 text-sm font-bold text-slate-300 uppercase tracking-widest" id="statusLabel">Activa en portal</span>
                             </label>
                         </div>
                     </div>
@@ -573,41 +604,50 @@
     </div>
 
     <!-- MODAL VER DESCRIPCIÓN DE PUESTO -->
-    <div id="modalVerVacante" class="fixed inset-0 z-50 hidden flex items-center justify-center p-4">
-        <div class="absolute inset-0 bg-dark-depth/90 backdrop-blur-xl" onclick="cerrarModalVerVacante()"></div>
-        <div class="relative w-full max-w-4xl bg-dark-surface border border-white/10 rounded-[3rem] shadow-3xl overflow-hidden flex flex-col max-h-[90vh]">
-            <div class="p-10 border-b border-white/5 flex justify-between items-start shrink-0">
+    <div id="modalVerVacante" class="fixed inset-0 z-[200] hidden flex items-center justify-center p-4" aria-hidden="true" role="dialog" aria-modal="true" aria-labelledby="verV_titulo">
+        <div class="absolute inset-0 mb-modal-overlay" onclick="cerrarModalVerVacante()"></div>
+        <div class="relative w-full max-w-5xl mb-modal-detail border rounded-[3rem] shadow-3xl overflow-hidden flex flex-col max-h-[90vh]">
+            <div class="mb-modal-header p-10 pl-12 border-b border-white/5 flex justify-between items-start shrink-0">
                 <div>
-                    <span id="verV_codigo" class="px-3 py-1 bg-white/10 rounded text-[10px] font-black uppercase tracking-widest text-slate-300">COD-000</span>
-                    <h2 id="verV_titulo" class="text-2xl md:text-3xl font-black text-white mt-2 leading-snug break-words whitespace-pre-wrap">Puesto</h2>
-                    <p id="verV_depto" class="text-sm font-bold text-mabaker-red uppercase tracking-widest mt-1">Departamento</p>
+                    <h2 id="verV_titulo" class="text-2xl md:text-3xl font-black text-white leading-snug break-words whitespace-pre-wrap">Puesto</h2>
+                    <p id="verV_depto" class="text-sm font-semibold text-slate-400 uppercase tracking-wide mt-1.5">Departamento</p>
                 </div>
-                <button onclick="cerrarModalVerVacante()" class="size-12 rounded-2xl hover:bg-white/5 flex items-center justify-center">
+                <button onclick="cerrarModalVerVacante()" class="size-12 rounded-2xl hover:bg-white/5 flex items-center justify-center" aria-label="Cerrar">
                     <svg class="w-6 h-6 text-slate-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"></path></svg>
                 </button>
             </div>
-            <div class="grid grid-cols-2 md:grid-cols-4 gap-4 p-8 border-b border-white/5 shrink-0">
-                <div class="bg-white/5 p-4 rounded-2xl border border-white/10"><p class="mb-field-caption mb-1">Escolaridad</p><p id="verV_escolaridad" class="text-sm font-bold text-white">—</p></div>
-                <div class="bg-white/5 p-4 rounded-2xl border border-white/10"><p class="mb-field-caption mb-1">Experiencia</p><p id="verV_exp" class="text-sm font-bold text-white">—</p></div>
-                <div class="bg-white/5 p-4 rounded-2xl border border-white/10"><p class="mb-field-caption mb-1">Edad</p><p id="verV_edad" class="text-sm font-bold text-white">—</p></div>
-                <div class="bg-white/5 p-4 rounded-2xl border border-white/10"><p class="mb-field-caption mb-1">Sueldo</p><p id="verV_sueldo" class="text-sm font-bold text-white">—</p></div>
+            <div class="mb-stat-grid grid grid-cols-1 md:grid-cols-2 gap-3 p-8 border-b border-white/5 shrink-0">
+                <p class="mb-job-field mb-stat-inline px-4 py-3 rounded-2xl border border-white/10 bg-white/5"><span class="mb-job-field-label">Escolaridad</span><span class="mb-job-field-sep">:</span> <span id="verV_escolaridad" class="mb-job-field-value">—</span></p>
+                <p class="mb-job-field mb-stat-inline px-4 py-3 rounded-2xl border border-white/10 bg-white/5"><span class="mb-job-field-label">Experiencia</span><span class="mb-job-field-sep">:</span> <span id="verV_exp" class="mb-job-field-value">—</span></p>
+                <p class="mb-job-field mb-stat-inline px-4 py-3 rounded-2xl border border-white/10 bg-white/5"><span class="mb-job-field-label">Edad</span><span class="mb-job-field-sep">:</span> <span id="verV_edad" class="mb-job-field-value">—</span></p>
+                <p class="mb-job-field mb-stat-inline px-4 py-3 rounded-2xl border border-white/10 bg-white/5"><span class="mb-job-field-label">Sueldo</span><span class="mb-job-field-sep">:</span> <span id="verV_sueldo" class="mb-job-field-value">—</span></p>
             </div>
-            <div class="p-8 overflow-y-auto scroll-custom flex-1 space-y-6">
-                <div>
-                    <h4 class="text-xs font-black uppercase tracking-widest text-amber-400 mb-3">Descriptivo del puesto (PDF / texto completo)</h4>
-                    <div id="verV_desc" class="text-sm leading-relaxed text-slate-300 whitespace-pre-wrap"></div>
+            <div class="p-8 overflow-y-auto scroll-custom flex-1 space-y-5">
+                <div class="mb-job-panel">
+                    <div class="mb-job-panel-header">
+                        <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                        <h4 class="mb-section-heading">Descriptivo del puesto</h4>
+                        <span class="mb-job-panel-badge">Texto completo</span>
+                    </div>
+                    <div id="verV_desc" class="mb-job-doc-root scroll-custom"></div>
                 </div>
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div><h4 class="text-xs font-black uppercase tracking-widest text-emerald-400 mb-2">Conocimientos</h4><div id="verV_conocimientos" class="flex flex-wrap gap-2"></div></div>
-                    <div><h4 class="text-xs font-black uppercase tracking-widest text-amber-400 mb-2">Competencias</h4><div id="verV_competencias" class="flex flex-wrap gap-2"></div></div>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div class="mb-skill-card mb-skill-card--green">
+                        <h4 class="mb-section-heading mb-section-heading--green">Conocimientos</h4>
+                        <div id="verV_conocimientos" class="flex flex-wrap gap-2"></div>
+                    </div>
+                    <div class="mb-skill-card mb-skill-card--amber">
+                        <h4 class="mb-section-heading mb-section-heading--amber">Competencias</h4>
+                        <div id="verV_competencias" class="flex flex-wrap gap-2"></div>
+                    </div>
                 </div>
-                <p class="text-[10px] text-slate-500 italic">Archivo origen: <span id="verV_archivo" class="text-slate-300">—</span></p>
+                <p class="text-[10px] mb-modal-muted text-slate-500 italic px-1">Archivo origen: <span id="verV_archivo" class="text-slate-300">—</span></p>
             </div>
-            <div class="p-8 border-t border-white/5 flex justify-between items-center shrink-0">
-                <span id="verV_status" class="px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest bg-emerald-500/20 text-emerald-400">ACTIVA</span>
-                <div class="flex gap-3">
-                    <button onclick="editarVacanteDesdeVer()" class="px-6 py-3 rounded-2xl bg-mabaker-blue/20 text-mabaker-blue text-xs font-black uppercase tracking-widest hover:bg-mabaker-blue hover:text-white transition-all">Editar vacante</button>
-                    <button onclick="cerrarModalVerVacante()" class="px-6 py-3 rounded-2xl border border-white/10 text-slate-400 text-xs font-black uppercase tracking-widest">Cerrar</button>
+            <div class="mb-modal-footer mb-modal-footer--balanced p-8 border-t border-white/5 flex flex-wrap items-center justify-between gap-4 shrink-0">
+                <span id="verV_status" class="mb-modal-status inline-flex items-center whitespace-nowrap px-3 py-1.5 rounded-lg text-[10px] font-bold uppercase tracking-wide leading-none border bg-emerald-500/10 text-emerald-600 border-emerald-500/25">Sin vacante</span>
+                <div class="flex flex-wrap items-center gap-3">
+                    <button type="button" onclick="editarVacanteDesdeVer()" class="mb-modal-btn mb-modal-btn--accent">Editar descripción</button>
+                    <button type="button" onclick="cerrarModalVerVacante()" class="mb-modal-btn mb-modal-btn--secondary">Cerrar</button>
                 </div>
             </div>
         </div>
@@ -831,6 +871,8 @@
         window.pdfjsLib = pdfjsLib;
     </script>
     <script src="js/vacante-document-parser.js"></script>
+    <script src="js/job-description-format.js?v=20260616f"></script>
+    <script src="js/portal-vacante-config.js"></script>
     <script src="js/vacantes-pdf-upload.js"></script>
     <script src="js/dashboard.js"></script>
     <script src="js/psicometricos.js"></script>

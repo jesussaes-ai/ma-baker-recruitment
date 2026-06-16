@@ -208,7 +208,7 @@
                             </div>
                             <div>
                                 <h3 class="text-xl font-extrabold text-slate-800 mb-2">Arrastra archivos o una carpeta entera</h3>
-                                <p class="text-sm text-slate-400 font-medium max-w-lg mx-auto">PDF · Word · Excel · PowerPoint · OpenDocument · CSV · TXT · HTML · exportados de Google (máx. 20 MB c/u)</p>
+                                <p class="text-sm text-slate-400 font-medium max-w-lg mx-auto">PDF · Word (.docx) · Excel · PowerPoint · OpenDocument · CSV · TXT (máx. <strong>20 MB</strong> por archivo · hasta <strong>25 archivos</strong> por lote)</p>
                                 <div class="flex flex-wrap justify-center gap-2 mt-4">
                                     <span class="px-2 py-1 rounded-lg bg-white text-[10px] font-black text-slate-500 border">PDF</span>
                                     <span class="px-2 py-1 rounded-lg bg-white text-[10px] font-black text-slate-500 border">DOCX</span>
@@ -219,15 +219,21 @@
                             </div>
                             <input type="file" id="fileInput" multiple class="hidden">
                             <input type="file" id="folderInput" webkitdirectory directory multiple class="hidden">
-                            <div class="flex flex-wrap justify-center gap-3">
-                                <button type="button" data-upload-action="files" class="bg-slate-800 text-white px-8 py-3.5 rounded-2xl font-bold hover:bg-mabaker-red transition-all shadow-xl shadow-black/10 flex items-center gap-2">
-                                    Seleccionar archivos
-                                </button>
-                                <button type="button" data-upload-action="folder" class="bg-mabaker-blue text-white px-8 py-3.5 rounded-2xl font-bold hover:opacity-90 transition-all shadow-xl flex items-center gap-2">
-                                    Subir carpeta completa
+                            <div class="flex flex-wrap justify-center gap-3 items-end">
+                                <div class="flex flex-col items-center gap-1.5">
+                                    <button type="button" data-upload-action="files" class="bg-slate-800 text-white px-8 py-3.5 rounded-2xl font-bold hover:bg-mabaker-red transition-all shadow-xl shadow-black/10 flex items-center gap-2">
+                                        Seleccionar archivos
+                                    </button>
+                                    <p class="text-[10px] font-black text-amber-700 uppercase tracking-wider text-center">Máximo 25 archivos por lote</p>
+                                </div>
+                                <button type="button" data-upload-action="folder" class="bg-mabaker-blue text-white px-8 py-3.5 rounded-2xl font-bold hover:opacity-90 transition-all shadow-xl flex flex-col items-center gap-1">
+                                    <span>Subir carpeta completa</span>
+                                    <span class="text-[9px] font-bold opacity-90 normal-case tracking-normal">Verás la lista de archivos antes de importar</span>
                                 </button>
                             </div>
                         </div>
+
+                        <div id="uploadPreview" class="hidden space-y-4"></div>
 
                         <!-- Queue Loading -->
                         <div id="uploadQueue" class="space-y-4"></div>
@@ -381,67 +387,60 @@
 
     <!-- Modal Detalle -->
     <div id="modalDetalle" class="modal-overlay" onclick="if(event.target===this) cerrarModal()">
-        <div class="modal-container dark-glass text-white shadow-2xl flex flex-col p-8">
-            <div class="flex justify-between items-start mb-6">
+        <div class="modal-container mb-modal-detail shadow-2xl flex flex-col p-0 overflow-hidden max-h-[90vh]">
+            <div class="mb-modal-header p-8 pl-10 flex justify-between items-start shrink-0">
                 <div>
                     <span id="modCodigo" class="px-3 py-1 bg-white/10 rounded text-[10px] font-black uppercase tracking-widest text-slate-300">COD-000</span>
                     <h2 id="modTitulo" class="text-3xl font-black mt-2 leading-tight">Nombre del Puesto</h2>
                     <p id="modDepto" class="text-sm font-bold text-mabaker-red uppercase tracking-widest">Departamento</p>
                 </div>
-                <button onclick="cerrarModal()" class="size-10 rounded-full hover:bg-white/10 transition-all flex items-center justify-center">
+                <button onclick="cerrarModal()" class="size-10 rounded-full hover:bg-white/10 transition-all flex items-center justify-center" aria-label="Cerrar">
                     <svg class="size-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M6 18L18 6M6 6l12 12" stroke-linecap="round" stroke-linejoin="round"/></svg>
                 </button>
             </div>
 
-            <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
+            <div class="mb-stat-grid grid grid-cols-1 md:grid-cols-4 gap-4 px-8 pb-6 shrink-0">
                 <div class="bg-white/5 p-4 rounded-2xl border border-white/10">
-                    <p class="text-xs font-black text-slate-300 uppercase tracking-wide mb-1">Escolaridad</p>
-                    <p id="modEscolaridad" class="text-sm font-bold">Sin especificar</p>
+                    <p class="mb-field-caption mb-1">Escolaridad</p>
+                    <p id="modEscolaridad" class="mb-stat-value text-sm font-bold">Sin especificar</p>
                 </div>
                 <div class="bg-white/5 p-4 rounded-2xl border border-white/10">
-                    <p class="text-xs font-black text-slate-300 uppercase tracking-wide mb-1">Experiencia</p>
-                    <p id="modExp" class="text-sm font-bold">0 años</p>
+                    <p class="mb-field-caption mb-1">Experiencia</p>
+                    <p id="modExp" class="mb-stat-value text-sm font-bold">0 años</p>
                 </div>
                 <div class="bg-white/5 p-4 rounded-2xl border border-white/10">
-                    <p class="text-xs font-black text-slate-300 uppercase tracking-wide mb-1">Rango Edad</p>
-                    <p id="modEdad" class="text-sm font-bold">18 - 50 años</p>
+                    <p class="mb-field-caption mb-1">Rango Edad</p>
+                    <p id="modEdad" class="mb-stat-value text-sm font-bold">18 - 50 años</p>
                 </div>
                 <div class="bg-white/5 p-4 rounded-2xl border border-white/10">
-                    <p class="text-xs font-black text-slate-300 uppercase tracking-wide mb-1">Sueldo Est.</p>
-                    <p id="modSueldo" class="text-sm font-bold">$0.00</p>
+                    <p class="mb-field-caption mb-1">Sueldo Est.</p>
+                    <p id="modSueldo" class="mb-stat-value text-sm font-bold">$0.00</p>
                 </div>
             </div>
 
-            <div class="flex-1 overflow-y-auto pr-4 scroll-custom space-y-6">
-                <div>
-                    <h4 class="text-xs font-black uppercase tracking-widest text-mabaker-gold mb-3 flex items-center gap-2">
-                        <svg class="text-sm size-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" stroke-linecap="round" stroke-linejoin="round"/></svg>
-                        Descriptivo del Puesto
-                    </h4>
-                    <div id="modDesc" class="text-sm leading-relaxed text-slate-300 space-y-4 whitespace-pre-wrap">
-                        <!-- Contenido -->
+            <div class="flex-1 overflow-y-auto px-8 pb-6 scroll-custom space-y-5">
+                <div class="mb-job-panel">
+                    <div class="mb-job-panel-header">
+                        <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                        <h4 class="mb-section-heading">Descriptivo del puesto</h4>
+                        <span class="mb-job-panel-badge">Texto completo</span>
                     </div>
+                    <div id="modDesc" class="mb-job-doc-root scroll-custom"></div>
                 </div>
 
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
-                    <div>
-                        <h4 class="text-xs font-black uppercase tracking-widest text-emerald-400 mb-3 flex items-center gap-2">
-                            <svg class="text-sm size-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" stroke-linecap="round" stroke-linejoin="round"/></svg>
-                            Conocimientos / Software
-                        </h4>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div class="mb-skill-card mb-skill-card--green">
+                        <h4 class="mb-section-heading mb-section-heading--green">Conocimientos / Software</h4>
                         <div id="modConocimientos" class="flex flex-wrap gap-2"></div>
                     </div>
-                    <div>
-                        <h4 class="text-xs font-black uppercase tracking-widest text-amber-400 mb-3 flex items-center gap-2">
-                            <svg class="text-sm size-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.907c.961 0 1.36 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.907a1 1 0 00.95-.69l1.519-4.674z" stroke-linecap="round" stroke-linejoin="round"/></svg>
-                            Competencias Clave
-                        </h4>
+                    <div class="mb-skill-card mb-skill-card--amber">
+                        <h4 class="mb-section-heading mb-section-heading--amber">Competencias clave</h4>
                         <div id="modCompetencias" class="flex flex-wrap gap-2"></div>
                     </div>
                 </div>
             </div>
 
-            <div class="pt-8 mt-4 border-t border-white/10 flex justify-between items-center">
+            <div class="mb-modal-footer pt-6 px-8 pb-8 mt-2 border-t border-white/10 flex flex-wrap gap-3 justify-between items-center shrink-0">
                 <div class="flex items-center gap-3">
                     <span id="modStatusChip" class="px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest bg-emerald-500/20 text-emerald-400">ACTIVA</span>
                     <p class="text-[10px] text-slate-500 italic">Archivo origen: <span id="modArchivo" class="text-slate-300">documento</span></p>
@@ -461,6 +460,7 @@
 
     <!-- Scripts -->
     <script src="js/vacante-document-parser.js"></script>
+    <script src="js/job-description-format.js?v=20260616f"></script>
     <script src="js/vacantes-api.js"></script>
     <script src="js/vacantes-pdf-upload.js"></script>
     <script src="js/auth.js"></script>
@@ -512,6 +512,7 @@
                 folderInputId: 'folderInput',
                 queueId: 'uploadQueue',
                 summaryId: 'uploadSummary',
+                previewId: 'uploadPreview',
                 theme: 'light',
                 escapeHTML: esc,
                 onComplete: (stats) => {
@@ -520,7 +521,14 @@
                     if (!summary || !resultsList) return;
                     document.getElementById('countOk').textContent = stats.ok;
                     document.getElementById('countErr').textContent = stats.err;
-                    resultsList.innerHTML = stats.results.map(r => r.ok
+                    const skippedBlock = (stats.skipped && stats.skipped.length)
+                        ? `<div class="mb-4 p-4 rounded-xl border border-amber-200 bg-amber-50">
+                            <p class="text-xs font-black text-amber-800 uppercase tracking-wider mb-2">${stats.skipped.length} archivo(s) omitidos</p>
+                            <ul class="text-xs text-amber-900 space-y-1">${stats.skipped.map(s =>
+                                `<li>⊘ ${esc(s.name)} — ${esc(s.reason)}</li>`).join('')}</ul>
+                           </div>`
+                        : '';
+                    resultsList.innerHTML = skippedBlock + stats.results.map(r => r.ok
                         ? `<div class="flex items-center justify-between p-3 bg-emerald-50/50 border border-emerald-100 rounded-xl">
                             <span class="text-xs font-bold text-slate-700">${esc(r.file)}</span>
                             <span class="text-[10px] font-black text-emerald-600 uppercase">${esc(r.puesto)}</span></div>`
@@ -531,6 +539,8 @@
                     summary.classList.remove('hidden');
                     loadLocalDashboard();
                     loadCatalog();
+                    const catalogLink = document.querySelector("nav a[onclick*='catalogo']");
+                    if (catalogLink) activarPanel('catalogo', catalogLink);
                 }
             });
 
@@ -578,9 +588,9 @@
             const el = document.getElementById('tablaPublicar');
             const countEl = document.getElementById('publicarCount');
             try {
-                const resp = await fetch(`${SUPA_URL}/rest/v1/catalogo_puestos?select=*&activo=eq.false&order=nombre_puesto.asc`, { headers: HEADERS });
-                const data = await resp.json();
-                if (!resp.ok) throw new Error(data.message || 'Error al cargar');
+                if (!window.MB_VACANTES?.listVacantes) throw new Error('Inicie sesión como admin o RRHH');
+                const all = await window.MB_VACANTES.listVacantes();
+                const data = all.filter(v => v.activo === false);
                 if (countEl) countEl.textContent = `${data.length} pendientes de publicar`;
                 if (!data.length) {
                     el.innerHTML = '<p class="p-12 text-center text-slate-500 font-medium">No hay descripciones pendientes. Sube archivos en «Subir descripciones».</p>';
@@ -657,6 +667,28 @@
             activarEdicionPuesto();
         }
 
+        async function eliminarPuesto(id) {
+            if (!window.MB_VACANTES?.deleteVacante) {
+                alert('Función eliminar no disponible. Aplique la migración fn_catalogo_puesto_delete en Supabase.');
+                return;
+            }
+            const row = document.querySelector(`button[onclick*="eliminarPuesto('${id}')"]`)?.closest('tr');
+            const nombre = row?.querySelector('p.text-sm')?.textContent?.trim() || 'esta descripción';
+            if (!confirm(`¿Eliminar "${nombre}" de la biblioteca?\n\nEsta acción no se puede deshacer.`)) return;
+            try {
+                await window.MB_VACANTES.deleteVacante(id);
+                alert('Descripción eliminada.');
+                loadCatalog();
+                loadLocalDashboard();
+                loadPublicarCatalog();
+            } catch (e) {
+                const msg = e.message || String(e);
+                alert(/candidatos|postulaciones/i.test(msg)
+                    ? 'No se puede eliminar: hay postulaciones ligadas a esta descripción.'
+                    : 'No se pudo eliminar: ' + msg);
+            }
+        }
+
         function activarEdicionPuesto() {
             if (!currentlyViewing) return;
             editMode = true;
@@ -704,7 +736,8 @@
                 document.getElementById('modExp').textContent = (v.experiencia_minima_anios || 0) + ' años de exp.';
                 document.getElementById('modEdad').textContent = `${v.edad_minima || 18} - ${v.edad_maxima || 55} años`;
                 document.getElementById('modSueldo').textContent = `$${(v.sueldo_minimo||0).toLocaleString()} - $${(v.sueldo_maximo||0).toLocaleString()}`;
-                document.getElementById('modDesc').textContent = v.descripcion_completa || 'Sin descripción disponible';
+                document.getElementById('modDesc').innerHTML = window.MB_JOB_DESC?.formatHtml(v.descripcion_completa || v.descripcion_puesto || 'Sin descripción disponible')
+                    || (v.descripcion_completa || 'Sin descripción disponible');
                 document.getElementById('modArchivo').textContent = v.nombre_archivo_fuente || 'Manual';
 
                 const conBox = document.getElementById('modConocimientos');
@@ -746,10 +779,8 @@
         async function loadCatalog() {
             const el = document.getElementById('tablaCatalogo');
             try {
-                const resp = await fetch(`${SUPA_URL}/rest/v1/catalogo_puestos?select=*&order=creado_en.desc`, { headers: HEADERS });
-                const data = await resp.json();
-                if (!resp.ok) throw new Error(data.message || data.error || `HTTP ${resp.status}`);
-                if (!Array.isArray(data)) throw new Error('Respuesta inválida del servidor');
+                if (!window.MB_VACANTES?.listVacantes) throw new Error('Inicie sesión como admin o RRHH');
+                const data = await window.MB_VACANTES.listVacantes();
                 if (!data.length) { el.innerHTML = '<p class="p-12 text-center text-slate-400 font-bold">Sin vacantes</p>'; return; }
                 
                 el.innerHTML = `
@@ -795,6 +826,7 @@
                                         <div class="flex items-center justify-end gap-2">
                                             <button type="button" onclick="event.stopPropagation(); verDetallePuesto('${esc(v.id)}')" class="px-3 py-1.5 rounded-lg bg-mabaker-blue/10 text-mabaker-blue text-[10px] font-black uppercase tracking-widest hover:bg-mabaker-blue hover:text-white transition-all">Ver</button>
                                             <button type="button" onclick="event.stopPropagation(); editarPuesto('${esc(v.id)}')" class="px-3 py-1.5 rounded-lg bg-slate-100 text-slate-700 text-[10px] font-black uppercase tracking-widest hover:bg-slate-200 transition-all">Editar</button>
+                                            <button type="button" onclick="event.stopPropagation(); eliminarPuesto('${esc(v.id)}')" class="px-3 py-1.5 rounded-lg bg-rose-50 text-rose-600 border border-rose-200 text-[10px] font-black uppercase tracking-widest hover:bg-rose-600 hover:text-white transition-all">Eliminar</button>
                                         </div>
                                     </td>
                                 </tr>`).join('')}
@@ -808,9 +840,8 @@
 
         async function loadLocalDashboard() {
             try {
-                const resp = await fetch(`${SUPA_URL}/rest/v1/catalogo_puestos?select=id,activo,departamento`, { headers: HEADERS });
-                const data = await resp.json();
-                if (!resp.ok || !Array.isArray(data)) return;
+                if (!window.MB_VACANTES?.listVacantes) return;
+                const data = await window.MB_VACANTES.listVacantes();
                 const total = data.length;
                 const activas = data.filter(d => d.activo).length;
                 const pausas = total - activas;

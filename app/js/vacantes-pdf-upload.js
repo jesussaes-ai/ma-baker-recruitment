@@ -2,6 +2,9 @@
  * Carga masiva de descripciones de puesto (PDF, Microsoft, Google export, OpenDocument, texto).
  */
 (function () {
+  /** Máximo recomendado por lote (secuencial; evita saturar el navegador). */
+  const MAX_BATCH_FILES = 25;
+  const MAX_BYTES = 20 * 1024 * 1024;
   function stripParsingNoise(text) {
     return String(text || "")
       .replace(/(?:nombre del puesto|puesto|cargo|posición)\s*:\s*/gi, "")
@@ -28,7 +31,27 @@
     return dMatch ? dMatch[1].trim().substring(0, 80) : "General";
   }
 
-  function extractPuestoData(text, fileName) {
+  function buildUniqueCodigoPuesto(nombre, fileName, batchIndex) {
+    const fromFile = String(fileName || "")
+      .replace(/\.[^.]+$/i, "")
+      .replace(/^descripci[oó]n de puesto\s*[-–—:\s]+/i, "")
+      .trim();
+    const fromNombre = String(nombre || fromFile || "PUESTO").trim();
+    const slug = (fromFile || fromNombre)
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "")
+      .replace(/[^a-zA-Z0-9]+/g, "-")
+      .replace(/^-+|-+$/g, "")
+      .slice(0, 32)
+      .toUpperCase() || "PUESTO";
+    const tail =
+      typeof crypto !== "undefined" && crypto.randomUUID
+        ? crypto.randomUUID().replace(/-/g, "").slice(0, 8).toUpperCase()
+        : `${Date.now().toString(36)}${String(batchIndex).padStart(3, "0")}`.toUpperCase();
+    return `${slug}-${tail}`.slice(0, 48);
+  }
+
+  function extractPuestoData(text, fileName, batchIndex) {
     const raw = String(text || "").trim();
     const baseName = (window.MB_VACANTE_DOCS?.stripFileName || ((n) => n.replace(/\.[^.]+$/i, "").replace(/_/g, " ")))(fileName);
 
@@ -72,10 +95,8 @@
     ];
     const competencias = softSkills.filter((s) => new RegExp(s, "i").test(raw));
 
-    const codigoMatch = raw.match(/(?:código|clave|id)[:\s]+([A-Z0-9-]{2,20})/i);
-
     return {
-      codigo_puesto: (codigoMatch?.[1] || "VAC-" + Date.now().toString().slice(-6)).toUpperCase(),
+      codigo_puesto: buildUniqueCodigoPuesto(nombre, fileName, batchIndex),
       nombre_puesto: nombre.substring(0, 120),
       departamento: depto.substring(0, 80),
       escolaridad_minima: escolaridad,
@@ -103,12 +124,20 @@
 
   function filterSupportedFiles(fileList) {
     const exts = window.MB_VACANTE_DOCS?.ACCEPT_EXTENSIONS || [];
-    return Array.from(fileList || []).filter((f) => {
+    const supported = [];
+    const skipped = [];
+    Array.from(fileList || []).forEach((f) => {
       const name = f.name || "";
       const i = name.lastIndexOf(".");
       const ext = i >= 0 ? name.slice(i + 1).toLowerCase() : "";
-      return exts.includes(ext);
+      if (f.size > MAX_BYTES) {
+        skipped.push({ name, reason: "Supera 20 MB" });
+        return;
+      }
+      if (exts.includes(ext)) supported.push(f);
+      else skipped.push({ name, reason: ext ? `Formato .${ext} no soportado` : "Sin extensión" });
     });
+    return { supported, skipped };
   }
 
   function saveUploadHistory(fileName) {
@@ -119,16 +148,52 @@
     } catch (_) {}
   }
 
+  function friendlyUploadError(err) {
+    const msg = err?.message || String(err || "");
+    if (/duplicate key.*codigo_puesto/i.test(msg)) {
+      return "Código interno duplicado. Reintente subir el archivo.";
+    }
+    return msg;
+  }
+
+  async function insertVacanteUnique(data, file, batchIndex) {
+    let payload = { ...data };
+    for (let attempt = 0; attempt < 3; attempt++) {
+      try {
+        await window.MB_VACANTES.insertVacante(payload);
+        return payload;
+      } catch (e) {
+        if (attempt < 2 && /duplicate key.*codigo_puesto/i.test(e.message || "")) {
+          payload = {
+            ...payload,
+            codigo_puesto: buildUniqueCodigoPuesto(payload.nombre_puesto, file?.name, batchIndex + attempt + 1),
+          };
+          continue;
+        }
+        throw e;
+      }
+    }
+    return payload;
+  }
+
   async function processFiles(files, hooks) {
-    const list = filterSupportedFiles(files);
+    const { supported: list, skipped } = filterSupportedFiles(files);
     if (!list.length) {
-      throw new Error("No hay archivos compatibles. Use PDF, Word, Excel, PowerPoint o exporte desde Google.");
+      const hint = skipped.length
+        ? `Ningún archivo válido. ${skipped.length} omitido(s): use .docx, .pdf, .xlsx, etc. (máx. 20 MB c/u).`
+        : "No hay archivos compatibles. Use PDF, Word (.docx), Excel, PowerPoint o exporte desde Google.";
+      throw new Error(hint);
+    }
+    if (list.length > MAX_BATCH_FILES) {
+      throw new Error(
+        `Seleccionó ${list.length} archivos. Suba hasta ${MAX_BATCH_FILES} por lote; repita para el resto.`
+      );
     }
     if (!window.MB_VACANTES?.insertVacante) {
       throw new Error("Inicie sesión como admin o RRHH para cargar vacantes.");
     }
 
-    const stats = { ok: 0, err: 0, results: [] };
+    const stats = { ok: 0, err: 0, results: [], skipped: skipped.slice() };
 
     for (let i = 0; i < list.length; i++) {
       const file = list[i];
@@ -141,18 +206,18 @@
         const text = await readFileAsText(file);
 
         hooks?.onProgress?.({ file, id, msg: "Extrayendo perfil del puesto...", pct: 55 });
-        const data = extractPuestoData(text, file.name);
+        const data = extractPuestoData(text, file.name, i);
 
         hooks?.onProgress?.({ file, id, msg: "Guardando en biblioteca...", pct: 85 });
-        await window.MB_VACANTES.insertVacante(data);
+        const saved = await insertVacanteUnique(data, file, i);
 
         hooks?.onProgress?.({ file, id, msg: "Listo", pct: 100, status: "success" });
-        hooks?.onSuccess?.({ file, id, data });
+        hooks?.onSuccess?.({ file, id, data: saved });
         saveUploadHistory(file.name);
         stats.ok++;
-        stats.results.push({ file: file.name, ok: true, puesto: data.nombre_puesto });
+        stats.results.push({ file: file.name, ok: true, puesto: saved.nombre_puesto });
       } catch (e) {
-        const msg = e.message || String(e);
+        const msg = friendlyUploadError(e);
         hooks?.onProgress?.({ file, id, msg, pct: 100, status: "error" });
         hooks?.onError?.({ file, id, error: e });
         stats.err++;
@@ -228,13 +293,39 @@
     dropZone.addEventListener("drop", (e) => {
       e.preventDefault();
       dropZone.classList.remove("drag-over", "border-mabaker-red/50", "bg-mabaker-red/5");
-      onFiles(e.dataTransfer.files);
+      onFiles(e.dataTransfer.files, "arrastre");
     });
     dropZone.addEventListener("click", (e) => {
       if (e.target.closest("button[data-upload-action]")) return;
+      if (e.target.closest("[data-upload-preview]")) return;
       const fileInput = dropZone.querySelector('input[type="file"]:not([webkitdirectory])');
       if (fileInput) fileInput.click();
     });
+  }
+
+  function folderLabelFromFiles(files) {
+    const first = files?.[0];
+    if (first?.webkitRelativePath) {
+      return first.webkitRelativePath.split("/")[0] || "Carpeta";
+    }
+    return "Archivos sueltos";
+  }
+
+  function formatFileSize(bytes) {
+    if (!bytes && bytes !== 0) return "—";
+    if (bytes < 1024) return bytes + " B";
+    if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + " KB";
+    return (bytes / (1024 * 1024)).toFixed(1) + " MB";
+  }
+
+  function isSupportedFile(file) {
+    const { supported } = filterSupportedFiles([file]);
+    return supported.length === 1;
+  }
+
+  function fileSkipReason(file) {
+    const { skipped } = filterSupportedFiles([file]);
+    return skipped[0]?.reason || "No compatible";
   }
 
   function init(options) {
@@ -250,53 +341,189 @@
     if (accept) fileInput.setAttribute("accept", accept);
 
     const theme = options.theme || "dark";
+    const previewEl = document.getElementById(options.previewId || "vacantesUploadPreview");
+    let pendingFiles = null;
 
-    async function handleFiles(files) {
+    async function runUpload(files) {
       if (!files?.length) return;
+      if (previewEl) previewEl.classList.add("hidden");
       queueEl.innerHTML = "";
       if (summaryEl) {
         summaryEl.classList.add("hidden");
         summaryEl.innerHTML = "";
       }
 
-      await processFiles(files, {
-        idPrefix: "vac-up",
-        onStart: ({ file, id }) => renderQueueItem(queueEl, file.name, "Iniciando...", 5, id, esc, file, theme),
-        onProgress: ({ id, msg, pct, status }) => updateQueueItem(id, msg, pct, status, theme),
-        onComplete: (stats) => {
-          if (typeof options.onComplete === "function") {
-            options.onComplete(stats);
-            return;
+      try {
+        await processFiles(files, {
+          idPrefix: "vac-up",
+          onStart: ({ file, id }) => renderQueueItem(queueEl, file.name, "Iniciando...", 5, id, esc, file, theme),
+          onProgress: ({ id, msg, pct, status }) => updateQueueItem(id, msg, pct, status, theme),
+          onComplete: (stats) => {
+            if (typeof options.onComplete === "function") {
+              options.onComplete(stats);
+              return;
+            }
+            if (!summaryEl) return;
+            summaryEl.classList.remove("hidden");
+            const skippedHtml =
+              stats.skipped?.length > 0
+                ? `<p class="text-xs text-amber-600 mb-2">${stats.skipped.length} archivo(s) omitido(s) (formato o tamaño).</p>
+                   <ul class="text-xs text-amber-700/90 space-y-1 max-h-24 overflow-y-auto mb-2">
+                     ${stats.skipped
+                       .map((s) => `<li>⊘ ${esc(s.name)} — ${esc(s.reason)}</li>`)
+                       .join("")}
+                   </ul>`
+                : "";
+            summaryEl.innerHTML = `
+              ${skippedHtml}
+              <p class="text-sm font-bold ${theme === "light" ? "text-slate-800" : "text-white"} mb-2">
+                Carga finalizada:
+                <span class="text-emerald-500">${stats.ok} exitosos</span>,
+                <span class="text-rose-500">${stats.err} errores</span>
+              </p>
+              <ul class="text-xs text-slate-400 space-y-1 max-h-40 overflow-y-auto">
+                ${stats.results
+                  .map((r) =>
+                    r.ok
+                      ? `<li class="text-emerald-500/90">✓ ${esc(r.file)} → ${esc(r.puesto)}</li>`
+                      : `<li class="text-rose-500/90">✗ ${esc(r.file)}: ${esc(r.error)}</li>`
+                  )
+                  .join("")}
+              </ul>`;
+          },
+        });
+      } catch (e) {
+        const msg = e.message || String(e);
+        queueEl.innerHTML = `<div class="p-4 rounded-2xl border border-rose-200 bg-rose-50 text-rose-700 text-sm font-medium">${esc(msg)}</div>`;
+      }
+    }
+
+    function showPreview(files, sourceKind) {
+      if (!files?.length) return;
+      pendingFiles = Array.from(files);
+      if (!previewEl) {
+        runUpload(files);
+        return;
+      }
+
+      const isFolder = sourceKind === "carpeta" || pendingFiles.some((f) => f.webkitRelativePath);
+      const folderName = isFolder ? folderLabelFromFiles(pendingFiles) : null;
+      const valid = pendingFiles.filter((f) => isSupportedFile(f));
+      const invalid = pendingFiles.filter((f) => !isSupportedFile(f));
+
+      const light = theme === "light";
+      const panelClass = light
+        ? "rounded-2xl border border-slate-200 bg-white p-5 shadow-sm"
+        : "rounded-2xl border border-white/10 bg-white/[0.04] p-5";
+      const headClass = light ? "text-slate-800" : "text-white";
+      const subClass = light ? "text-slate-500" : "text-slate-400";
+
+      const validIndices = pendingFiles
+        .map((f, idx) => (isSupportedFile(f) ? idx : -1))
+        .filter((i) => i >= 0);
+      const defaultChecked = new Set(validIndices.slice(0, MAX_BATCH_FILES));
+      const overLimit = valid.length > MAX_BATCH_FILES;
+
+      previewEl.classList.remove("hidden");
+      previewEl.setAttribute("data-upload-preview", "1");
+      previewEl.innerHTML = `
+        <div class="${panelClass}">
+          <div class="flex flex-wrap items-start justify-between gap-3 mb-4">
+            <div>
+              <p class="text-[10px] font-black uppercase tracking-widest ${subClass} mb-1">
+                ${isFolder ? "Vista previa de carpeta" : "Vista previa de archivos"}
+              </p>
+              <h4 class="text-sm font-extrabold ${headClass}">
+                ${isFolder ? esc(folderName) : esc(valid.length + invalid.length + " archivo(s) seleccionados")}
+              </h4>
+              <p class="text-xs ${subClass} mt-1">
+                ${valid.length} compatible(s) · ${invalid.length} omitido(s) · importe máximo ${MAX_BATCH_FILES} por lote
+              </p>
+              ${overLimit ? `<p class="text-xs font-bold text-amber-600 mt-2">Hay ${valid.length} archivos válidos. Marque hasta ${MAX_BATCH_FILES}; repita el lote para el resto.</p>` : ""}
+            </div>
+            <button type="button" data-preview-cancel class="px-3 py-2 rounded-xl text-xs font-bold ${light ? "bg-slate-100 text-slate-600" : "bg-white/10 text-slate-300"}">Cancelar</button>
+          </div>
+          <div class="max-h-56 overflow-y-auto rounded-xl border ${light ? "border-slate-100" : "border-white/10"} divide-y ${light ? "divide-slate-100" : "divide-white/5"}">
+            ${pendingFiles
+              .map((file, idx) => {
+                const ok = isSupportedFile(file);
+                const label = window.MB_VACANTE_DOCS?.formatLabel?.(file) || "DOC";
+                const path = file.webkitRelativePath || file.name;
+                const checked = ok && defaultChecked.has(idx) ? "checked" : "";
+                return `
+                  <label class="flex items-center gap-3 px-3 py-2.5 ${ok ? "" : "opacity-60"} cursor-${ok ? "pointer" : "not-allowed"}">
+                    <input type="checkbox" data-preview-idx="${idx}" ${checked} ${ok ? "" : "disabled"} class="rounded shrink-0 preview-file-cb">
+                    <span class="text-[9px] font-black uppercase px-2 py-0.5 rounded ${light ? "bg-slate-100 text-slate-600" : "bg-white/10 text-slate-300"}">${esc(label)}</span>
+                    <span class="flex-1 min-w-0 text-xs font-medium truncate ${headClass}" title="${esc(path)}">${esc(path)}</span>
+                    <span class="text-[10px] ${subClass} shrink-0">${formatFileSize(file.size)}</span>
+                    ${ok ? "" : `<span class="text-[10px] text-rose-500 shrink-0">${esc(fileSkipReason(file))}</span>`}
+                  </label>`;
+              })
+              .join("")}
+          </div>
+          <div class="flex flex-wrap gap-3 mt-4">
+            <button type="button" data-preview-confirm
+              class="px-5 py-2.5 rounded-xl text-xs font-black uppercase tracking-widest ${valid.length ? "bg-mabaker-red text-white" : "bg-slate-400 text-white cursor-not-allowed"}"
+              ${valid.length ? "" : "disabled"}>
+              Importar seleccionados (<span data-preview-count>${Math.min(valid.length, MAX_BATCH_FILES)}</span>)
+            </button>
+            ${isFolder ? `<p class="text-[10px] ${subClass} self-center">Solo se importan los archivos marcados (.docx, .pdf, etc.)</p>` : ""}
+          </div>
+        </div>`;
+
+      const updateCount = () => {
+        const checked = [...previewEl.querySelectorAll("[data-preview-idx]:checked")];
+        const countEl = previewEl.querySelector("[data-preview-count]");
+        if (countEl) countEl.textContent = String(checked.length);
+        const btn = previewEl.querySelector("[data-preview-confirm]");
+        if (btn) {
+          btn.disabled = checked.length === 0 || checked.length > MAX_BATCH_FILES;
+        }
+      };
+
+      previewEl.querySelectorAll(".preview-file-cb").forEach((cb) => {
+        cb.addEventListener("change", () => {
+          const checked = [...previewEl.querySelectorAll("[data-preview-idx]:checked")];
+          if (checked.length > MAX_BATCH_FILES) {
+            cb.checked = false;
+            alert(`Solo puede importar ${MAX_BATCH_FILES} archivos por lote. Desmarque uno o importe en partes.`);
           }
-          if (!summaryEl) return;
-          summaryEl.classList.remove("hidden");
-          summaryEl.innerHTML = `
-            <p class="text-sm font-bold ${theme === "light" ? "text-slate-800" : "text-white"} mb-2">
-              Carga finalizada:
-              <span class="text-emerald-500">${stats.ok} exitosos</span>,
-              <span class="text-rose-500">${stats.err} errores</span>
-            </p>
-            <ul class="text-xs text-slate-400 space-y-1 max-h-40 overflow-y-auto">
-              ${stats.results
-                .map((r) =>
-                  r.ok
-                    ? `<li class="text-emerald-500/90">✓ ${esc(r.file)} → ${esc(r.puesto)}</li>`
-                    : `<li class="text-rose-500/90">✗ ${esc(r.file)}: ${esc(r.error)}</li>`
-                )
-                .join("")}
-            </ul>`;
-        },
+          updateCount();
+        });
+      });
+
+      updateCount();
+
+      previewEl.querySelector("[data-preview-cancel]")?.addEventListener("click", () => {
+        pendingFiles = null;
+        previewEl.classList.add("hidden");
+        previewEl.innerHTML = "";
+      });
+
+      previewEl.querySelector("[data-preview-confirm]")?.addEventListener("click", () => {
+        const selected = [...previewEl.querySelectorAll("[data-preview-idx]:checked")]
+          .map((cb) => pendingFiles[Number(cb.getAttribute("data-preview-idx"))])
+          .filter(Boolean);
+        if (!selected.length) return;
+        if (selected.length > MAX_BATCH_FILES) {
+          alert(`Seleccionó ${selected.length} archivos. Importe hasta ${MAX_BATCH_FILES} por lote.`);
+          return;
+        }
+        const dt = new DataTransfer();
+        selected.forEach((f) => dt.items.add(f));
+        runUpload(dt.files);
+        pendingFiles = null;
       });
     }
 
-    bindDropZone(dropZone, handleFiles);
+    bindDropZone(dropZone, showPreview);
     fileInput.addEventListener("change", (e) => {
-      handleFiles(e.target.files);
+      showPreview(e.target.files, "archivos");
       e.target.value = "";
     });
     if (folderInput) {
       folderInput.addEventListener("change", (e) => {
-        handleFiles(e.target.files);
+        showPreview(e.target.files, "carpeta");
         e.target.value = "";
       });
     }
@@ -316,5 +543,7 @@
     processFiles,
     extractPuestoData,
     filterSupportedFiles,
+    MAX_BATCH_FILES,
+    MAX_BYTES,
   };
 })();

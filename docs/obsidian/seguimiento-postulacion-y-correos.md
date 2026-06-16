@@ -41,8 +41,9 @@ El envío real debe resolverse en backend/servicio seguro (Edge Function, API in
 - Edge Function activa: `send-postulacion-emails`.
 - **Fase 3 activa:** `setup-psicometric-access` genera token y envía link psicométrico al candidato promovido (≥80%).
 - **Fase 4 activa:** cierre psicométricos → RRHH envía a médico → jefe de área (`docs/fase-4-medico-jefe.md`).
+- **Fase 5 activa:** inducción SGI (7 puntos calidad) → Seguridad e Higiene (7 puntos SH) → `listo_para_contrato` (`docs/fase-5-sgi-seguridad.md`).
 - Dashboards internos usan RPC `fn_candidatos_list` / `fn_candidato_update` con `mb_token` de sesión.
-- **Catálogo vacantes en dashboard:** ver descripción PDF, editar activas (todos los campos, nombre con autoaltura) y subir PDFs en panel *Catálogo Vacantes* (`docs/catalogo-vacantes-dashboard.md`). Etiquetas de campos con clase `.mb-field-label` (alto contraste en modales).
+- **Catálogo vacantes en dashboard:** modal **Ver descripción** — `job-description-format.js` (`MB_JOB_DESC.formatHtml`) estructura bloques PDF densos en secciones, subtítulos y viñetas legibles; skill `.cursor/skills/descriptivo-puesto-legible/SKILL.md`. Botón **Ver descriptivo** usa `data-vacante-action` + apertura inmediata del modal.
 - **`cargar-puestos.html`:** requiere `config.js` + `vacantes-api.js` + `vacante-document-parser.js`; acepta PDF, Office, OpenDocument y exportados de Google.
 - **Dashboard Admin/RRHH:** «Ajustes del Sistema» abre panel de sesión/tema; campana muestra alertas (publicar, candidatos nuevos, psicométricos).
 - **Logs del sistema:** lectura vía `fn_sistema_logs_list` (no REST anon sobre `log_agente`).
@@ -99,8 +100,45 @@ El envío real debe resolverse en backend/servicio seguro (Edge Function, API in
 - Centro de ayuda por rol: `app/ayuda.html` (RRHH/Admin: multi-formato, publicar, notificaciones, ajustes, logs).
 - **Handy (STT offline):** fork `jesussaes-ai/Handy.Computer`, clon `C:\Users\jesus\.gemini\antigravity\scratch\Handy.Computer` — ver README § Herramientas externas.
 
+## Sesión 2026-06-16 — Auditoría NotebookLM (12 fuentes)
+
+- **Limpieza:** de 35 → 12 fuentes; sin GoHighLevel; duplicados v2.0 eliminados.
+- **Falta:** pegar fuente maestra `docs/notebooklm-estado-proyecto-jun-2026.md` en cuaderno.
+- **Renombrar:** 2× «Texto pegado» → RBAC/Supabase y System Prompt/psicométricos.
+- **Conservar PDFs legales** incl. procedimiento RRHH (complementa Fase 6, no contradice).
+- **Política:** al cerrar sesión, actualizar este doc + Obsidian + OneNote + README; pegar en NotebookLM si cambió arquitectura/flujo.
+
+## Sesión 2026-06-16 — NotebookLM (registro biblioteca MCP)
+
+- **Cuaderno:** [Reclutamiento Ma Baker and Chef](https://notebooklm.google.com/notebook/611114f3-ebc0-4db5-bc74-bda2a78b2fbd)
+- **Fuente maestra en repo:** `docs/notebooklm-estado-proyecto-jun-2026.md`
+- **MCP:** biblioteca `ma-baker-and-chef-reclutamient`; `add_source` no disponible vía MCP (pegar manual).
+
 ## Sesión 2026-06-16 — Agent skills (Cursor)
 
 - **Instaladas en local** (`.agents/skills/`, no en Git): `supabase/agent-skills`, `antigravity-awesome-skills`, `vercel-labs/agent-skills`, `obra/superpowers`.
 - **Reinstalar:** `docs/agent-skills-setup.md`
 - **Proyecto:** skills propias en `.cursor/skills/` (marca, webhook, documentación cierre).
+
+## Sesión 2026-06-16 — Descripciones y vacantes independientes
+
+- **Modelo:** descripción de puesto (biblioteca RRHH, siempre visible) ≠ vacante en portal (campos opcionales `portal_campos_visibles`).
+- **UI:** Descripciones muestra todas; Publicar vacantes → modal «Crear vacante»; Catálogo Vacantes → solo activas en portal.
+- **SQL:** `database/migracion-vacantes-portal-campos.sql` aplicada en Supabase (`vacantes_portal_campos`).
+- **Docs:** `docs/catalogo-vacantes-dashboard.md`
+
+## Sesión 2026-06-16 — Descripciones «desaparecidas» (filtros)
+
+- **Causa:** al entrar a Descripciones de Puesto se forzaba filtro «Solo biblioteca»; tras publicar (`activo=true`) la tabla quedaba vacía aunque el contador decía «3 en total».
+- **Corrección:** filtro predeterminado **Todas**; contadores en botones; mensaje vacío con enlace a Publicadas/Todas; auto-cambio a Todas si biblioteca vacía y hay publicadas; recarga RPC al cambiar de pantalla; «Ver publicadas» abre panel correcto; guardar candidato ya no vacía vacantes vía REST anon.
+- **Corrección:** códigos únicos al subir lote Word; error rojo `duplicate key codigo_puesto` por plantillas con mismo «Código/Clave».
+- **Re-subir:** archivos en rojo no se guardaron; Ctrl+F5 y volver a subirlos.
+- **Docs:** `docs/catalogo-vacantes-dashboard.md`
+
+## Sesión 2026-06-14 — Modal Ver descriptivo y formato legible
+
+- **Ver descriptivo:** botón corregido (`data-vacante-action`), modal abre al instante, z-index 200.
+- **Formato:** `job-description-format.js` — bloques MAYÚSCULAS densos → secciones + subtítulos + viñetas; tema claro/oscuro coherente en modales.
+- **Skill:** `.cursor/skills/descriptivo-puesto-legible/SKILL.md`
+- **UI:** pie modal alineado (`mb-modal-footer--balanced`); experiencia «1 año» / «N años».
+- **Commit:** pendiente push remoto si no se ejecutó `git push`.

@@ -35,6 +35,9 @@
     datasets: {},
     filteredCandidates: null,
     vacanteFilter: "todas",
+    vacantesViewMode: "descripciones",
+    editVacanteMode: "descripcion",
+    configVacanteId: null,
     currentVacanteId: null,
     viewingVacanteId: null,
     currentCandidatoId: null,
@@ -122,6 +125,12 @@
     return Number(v).toLocaleString("es-MX", { style: "currency", currency: "MXN", maximumFractionDigits: 0 });
   }
 
+  function fmtYears(v) {
+    const n = Number(v);
+    if (Number.isNaN(n)) return "—";
+    return n === 1 ? "1 año" : `${n} años`;
+  }
+
   function resolveCandidateName(c) {
     return c.nombre_completo || c.nombre || "Sin nombre";
   }
@@ -188,7 +197,20 @@
     return names.slice(0, 4).join(" | ");
   }
 
+  function bindVacanteTableActions() {
+    if (document.body.dataset.vacanteActionsBound === "1") return;
+    document.body.dataset.vacanteActionsBound = "1";
+    document.addEventListener("click", (e) => {
+      const btn = e.target.closest('[data-vacante-action="ver-descriptivo"]');
+      if (!btn) return;
+      e.preventDefault();
+      const id = btn.getAttribute("data-vacante-id");
+      if (id) verDescripcionVacante(id);
+    });
+  }
+
   function bindGlobalUI() {
+    bindVacanteTableActions();
     const searchInput = byId("searchInput");
     if (searchInput) {
       searchInput.addEventListener("input", () => {
@@ -463,10 +485,10 @@
     let targetPanel = panel;
     if (panel === "descripciones") {
       targetPanel = "vacantes";
-      state.vacanteFilter = "biblioteca";
+      state.vacantesViewMode = "descripciones";
       showUploadSection(true);
     } else if (panel === "vacantes") {
-      state.vacanteFilter = state.vacanteFilter || "todas";
+      state.vacantesViewMode = "catalogo";
       showUploadSection(false);
     } else if (panel === "publicar") {
       showUploadSection(false);
@@ -487,21 +509,25 @@
       const subEl = byId("vacantesPanelSubtitle");
       if (panel === "descripciones") {
         if (titleEl) titleEl.textContent = "Descripciones de Puesto";
-        if (subEl) subEl.textContent = "Sube, guarda y edita tus archivos de descripción antes de publicar";
+        if (subEl) subEl.textContent = "Biblioteca permanente — sube, consulta y edita descriptivos sin perderlos al publicar vacantes";
       } else {
-        if (titleEl) titleEl.textContent = "Catálogo de Puestos";
-        if (subEl) subEl.textContent = "Biblioteca interna y vacantes publicadas en el portal de postulación";
+        if (titleEl) titleEl.textContent = "Vacantes en el portal";
+        if (subEl) subEl.textContent = "Solo vacantes activas visibles para candidatos (campos opcionales configurados al publicar)";
       }
-      renderRRHHTables();
-    }
-    if (panel === "publicar") {
-      renderPublicarPanel();
     }
     if (panel === "ajustes") {
       renderAjustesPanel();
     }
-    if (panel === "logs") {
-      reloadCurrentRoleData().then(() => renderRRHHTables());
+    if (panel === "descripciones" || panel === "vacantes" || panel === "publicar" || panel === "logs") {
+      reloadCurrentRoleData().then(() => {
+        if (panel === "descripciones" || panel === "vacantes" || panel === "logs") {
+          renderRRHHTables();
+        }
+        if (panel === "publicar") {
+          renderPublicarPanel();
+        }
+        renderRRHHStats();
+      });
     }
 
     if (panel && panel !== "dashboard") {
@@ -591,6 +617,10 @@
             map[r.id] = await window.MB_CANDIDATES.listSystemLogs(50).catch(() => []);
             return;
           }
+          if (r.id === "vacantes" && window.MB_VACANTES && localStorage.getItem("mb_token")) {
+            map[r.id] = await window.MB_VACANTES.listVacantes().catch(() => []);
+            return;
+          }
           const data = await supaGet(r.endpoint);
           map[r.id] = data;
         } catch (e) {
@@ -623,7 +653,7 @@
     const r = state.datasets.rechazados || [];
     setText("statCandidatos", c.length);
     setText("statPsico", c.filter((x) => (x.fase_actual || "").includes("psico")).length);
-    setText("statVacantesActivas", v.filter((x) => x.activo !== false).length);
+    setText("statVacantesActivas", v.filter((x) => x.activo === true).length);
     setText("statRechazados", r.length);
   }
 
@@ -632,24 +662,162 @@
     renderRRHHTables();
   }
 
+  function verVacantesPublicadas() {
+    const nav = document.querySelector('[data-panel="vacantes"]');
+    activarPanel("vacantes", nav);
+  }
+
+  function portalStatusBadge(v) {
+    const base =
+      "inline-flex items-center justify-center whitespace-nowrap px-3 py-1.5 rounded-lg text-[10px] font-bold uppercase tracking-wide leading-none border shrink-0";
+    if (v.activo === true) {
+      return `<span class="${base} bg-emerald-500/10 text-emerald-600 border-emerald-500/25">Vacante activa</span>`;
+    }
+    return `<span class="${base} bg-slate-500/10 text-slate-600 border-slate-400/25" title="Sin vacante publicada en el portal de postulación">Sin vacante</span>`;
+  }
+
+  function abrirModalConfigurarVacante(id) {
+    const v = (state.datasets.vacantes || []).find((x) => String(x.id) === String(id));
+    if (!v) return;
+    state.configVacanteId = v.id;
+    setText("cfgV_nombre", resolveJobName(v));
+    setText("cfgV_archivo", v.nombre_archivo_fuente || "Manual");
+    const box = byId("cfgV_campos");
+    const labels = window.MB_PORTAL_VACANTE?.LABELS || {};
+    if (box) {
+      box.innerHTML = Object.entries(labels)
+        .map(([key, label]) => {
+          const locked = key === "nombre" || key === "departamento";
+          return `
+            <label class="mb-cfg-option ${locked ? "mb-cfg-option--locked" : ""}">
+              <input type="checkbox" id="cfgV_${key}" class="mb-cfg-check shrink-0" ${locked ? "checked disabled" : ""}>
+              <span class="mb-cfg-option-text">
+                <span class="mb-cfg-option-label">${esc(label)}</span>
+                <span class="mb-cfg-option-hint">${locked ? "Siempre visible en portal" : "Opcional para candidatos"}</span>
+              </span>
+            </label>`;
+        })
+        .join("");
+    }
+    window.MB_PORTAL_VACANTE?.applyToDom("cfgV_", v.portal_campos_visibles);
+    const btnPausar = byId("cfgV_btnPausar");
+    if (btnPausar) btnPausar.classList.toggle("hidden", v.activo !== true);
+    const modal = byId("modalConfigurarVacante");
+    if (modal) modal.classList.remove("hidden");
+  }
+
+  function cerrarModalConfigurarVacante() {
+    const modal = byId("modalConfigurarVacante");
+    if (modal) modal.classList.add("hidden");
+    state.configVacanteId = null;
+  }
+
+  async function guardarConfiguracionVacantePortal(publicarEnPortal) {
+    if (!state.configVacanteId || !window.MB_VACANTES) {
+      alert("Servicio de vacantes no disponible.");
+      return;
+    }
+    const cfg = window.MB_PORTAL_VACANTE?.readFromDom("cfgV_") || {};
+    const payload = { portal_campos_visibles: cfg };
+    if (publicarEnPortal) payload.activo = true;
+    try {
+      await window.MB_VACANTES.updateVacante(state.configVacanteId, payload);
+      cerrarModalConfigurarVacante();
+      await reloadCurrentRoleData();
+      renderPublicarPanel();
+      renderRRHHTables();
+      renderRRHHStats();
+      alert(
+        publicarEnPortal
+          ? "Vacante publicada en el portal con los campos seleccionados. El descriptivo interno sigue en Descripciones de Puesto."
+          : "Configuración de vacante guardada."
+      );
+    } catch (e) {
+      alert("No se pudo guardar: " + (e.message || e));
+    }
+  }
+
+  async function pausarVacantePortalDesdeModal() {
+    if (!state.configVacanteId || !window.MB_VACANTES) return;
+    if (!confirm("¿Quitar esta vacante del portal?\n\nLa descripción de puesto NO se borra; solo deja de ser visible para candidatos.")) {
+      return;
+    }
+    try {
+      await window.MB_VACANTES.updateVacante(state.configVacanteId, { activo: false });
+      cerrarModalConfigurarVacante();
+      await reloadCurrentRoleData();
+      renderPublicarPanel();
+      renderRRHHTables();
+      renderRRHHStats();
+    } catch (e) {
+      alert("No se pudo pausar: " + (e.message || e));
+    }
+  }
+
+  async function pausarVacantePortal(id) {
+    if (!window.MB_VACANTES) return;
+    if (!confirm("¿Pausar vacante en el portal? La descripción interna se conserva.")) return;
+    try {
+      await window.MB_VACANTES.updateVacante(id, { activo: false });
+      await reloadCurrentRoleData();
+      renderRRHHTables();
+      renderRRHHStats();
+    } catch (e) {
+      alert("No se pudo pausar: " + (e.message || e));
+    }
+  }
+
+  function vacanteCounts() {
+    const v = state.datasets.vacantes || [];
+    return {
+      total: v.length,
+      publicadas: v.filter((x) => x.activo === true).length,
+      biblioteca: v.filter((x) => x.activo !== true).length,
+    };
+  }
+
+  function buildVacantesEmptyHtml(filter, visibleCount, totalCount) {
+    const counts = vacanteCounts();
+    const filterEmptyMsg = {
+      todas: "No hay descripciones en el catálogo. Sube archivos arriba.",
+      activas: "No hay vacantes publicadas en el portal. Ve a «Publicar vacantes».",
+      biblioteca: "No hay descripciones pendientes en biblioteca interna.",
+      pausadas: "No hay descripciones pendientes de publicar.",
+    };
+    let msg = filterEmptyMsg[filter] || filterEmptyMsg.todas;
+    let hint = "";
+    if (filter === "biblioteca" && counts.publicadas > 0 && counts.biblioteca === 0) {
+      hint = `<p class="text-xs text-amber-300/90 mt-3 max-w-md mx-auto">Las ${counts.publicadas} descripción(es) que subiste ya están <strong>publicadas</strong> en el portal. Usa el filtro <button type="button" onclick="setVacanteFilter('activas')" class="underline font-bold text-emerald-400">Publicadas</button> o <button type="button" onclick="setVacanteFilter('todas')" class="underline font-bold text-mabaker-blue">Todas</button>.</p>`;
+    } else if (filter === "activas" && counts.biblioteca > 0 && counts.publicadas === 0) {
+      hint = `<p class="text-xs text-amber-300/90 mt-3 max-w-md mx-auto">Hay ${counts.biblioteca} en biblioteca interna sin publicar. Usa <button type="button" onclick="setVacanteFilter('biblioteca')" class="underline font-bold text-amber-300">Solo biblioteca</button> o ve a «Publicar vacantes».</p>`;
+    } else if (filter === "todas" && counts.total === 0) {
+      hint = `<p class="text-xs text-slate-500 mt-2">Arrastra PDFs o Word en la zona de arriba (máx. 25 por lote).</p>`;
+    }
+    return `<tr><td class="px-6 py-12 text-center text-slate-500" colspan="6"><p class="font-medium mb-1">${esc(msg)}</p>${hint}<p class="text-xs text-slate-500 mt-3">${visibleCount} visible(s) · ${totalCount} en total · ${counts.publicadas} publicada(s) · ${counts.biblioteca} en biblioteca</p></td></tr>`;
+  }
+
   function pendingVacantes() {
-    return (state.datasets.vacantes || []).filter((x) => x.activo === false);
+    return (state.datasets.vacantes || []).filter((x) => x.activo !== true);
   }
 
   function renderPublicarPanel() {
     const el = byId("tablaPublicar");
     if (!el) return;
-    const pending = pendingVacantes();
+    const all = state.datasets.vacantes || [];
+    const counts = vacanteCounts();
     const countEl = byId("publicarCount");
-    if (countEl) countEl.textContent = `${pending.length} descripción(es) pendientes de publicar`;
+    if (countEl) {
+      countEl.textContent = `${all.length} descripción(es) · ${counts.publicadas} vacante(s) activa(s) en portal`;
+    }
 
-    if (!pending.length) {
+    if (!all.length) {
       el.innerHTML = `
         <div class="p-16 text-center space-y-4">
-          <p class="text-slate-400 font-medium">No hay descripciones pendientes de publicar.</p>
+          <p class="text-slate-400 font-medium">Aún no hay descripciones de puesto.</p>
+          <p class="text-xs text-slate-500 max-w-md mx-auto">Sube PDF o Word en «Descripciones de Puesto». Luego vuelve aquí para elegir qué campos mostrar en el portal.</p>
           <button type="button" onclick="activarPanel('descripciones', document.querySelector('[data-panel=descripciones]'))"
             class="px-6 py-3 rounded-2xl bg-mabaker-blue/20 text-mabaker-blue border border-mabaker-blue/30 text-xs font-black uppercase tracking-widest hover:scale-105 transition-all">
-            Ir a subir descripciones
+            Ir a Descripciones de Puesto
           </button>
         </div>`;
       return;
@@ -659,30 +827,26 @@
       <table class="w-full text-left border-collapse">
         <thead>
           <tr class="border-b border-white/5 bg-white/[0.02]">
-            <th class="px-6 py-4 w-10">
-              <input type="checkbox" id="pubSelectAll" onchange="togglePublicarTodos(this.checked)" title="Seleccionar todas" class="rounded">
-            </th>
-            <th class="px-6 py-4 text-[9px] font-black text-slate-400 uppercase tracking-widest">Puesto</th>
+            <th class="px-6 py-4 text-[9px] font-black text-slate-400 uppercase tracking-widest">Descripción de puesto</th>
             <th class="px-6 py-4 text-[9px] font-black text-slate-400 uppercase tracking-widest">Departamento</th>
             <th class="px-6 py-4 text-[9px] font-black text-slate-400 uppercase tracking-widest">Archivo origen</th>
+            <th class="px-6 py-4 text-[9px] font-black text-slate-400 uppercase tracking-widest">Vacante portal</th>
             <th class="px-6 py-4 text-right text-[9px] font-black text-slate-400 uppercase tracking-widest">Acciones</th>
           </tr>
         </thead>
         <tbody class="divide-y divide-white/5">
-          ${pending.map((v) => {
-            const id = esc(v.id || "");
+          ${all.map((v) => {
             const idJs = String(v.id || "").replace(/\\/g, "\\\\").replace(/'/g, "\\'");
             return `
             <tr class="hover:bg-white/[0.03] transition-colors">
-              <td class="px-6 py-4"><input type="checkbox" class="pub-check rounded" value="${id}" data-id="${id}"></td>
               <td class="px-6 py-4 text-sm font-bold text-white">${esc(v.nombre_puesto || "—")}</td>
               <td class="px-6 py-4 text-xs text-slate-400">${esc(v.departamento || "—")}</td>
               <td class="px-6 py-4 text-xs text-slate-500 truncate max-w-[200px]">${esc(v.nombre_archivo_fuente || "—")}</td>
+              <td class="px-6 py-4">${portalStatusBadge(v)}</td>
               <td class="px-6 py-4 text-right">
-                <div class="flex items-center justify-end gap-2">
-                  <button type="button" onclick="verDescripcionVacante('${idJs}')" class="px-3 py-2 rounded-xl bg-mabaker-blue/20 text-mabaker-blue text-xs font-bold hover:bg-mabaker-blue hover:text-white transition-all">Ver</button>
-                  <button type="button" onclick="editarVacante('${idJs}')" class="px-3 py-2 rounded-xl bg-white/10 text-slate-300 text-xs font-bold hover:bg-white/20 transition-all">Editar</button>
-                  <button type="button" onclick="publicarVacanteDesdePanel('${idJs}')" class="px-3 py-2 rounded-xl bg-emerald-600 text-white text-xs font-black uppercase tracking-widest hover:bg-emerald-500 transition-all">Publicar</button>
+                <div class="flex items-center justify-end gap-2 flex-wrap">
+                  <button type="button" data-vacante-action="ver-descriptivo" data-vacante-id="${id}" class="px-3 py-2 rounded-xl bg-mabaker-blue/20 text-mabaker-blue text-xs font-bold hover:bg-mabaker-blue hover:text-white transition-all">Ver descriptivo</button>
+                  <button type="button" onclick="abrirModalConfigurarVacante('${idJs}')" class="px-3 py-2 rounded-xl bg-emerald-600 text-white text-xs font-black uppercase tracking-widest hover:bg-emerald-500 transition-all">${v.activo === true ? "Editar vacante" : "Crear vacante"}</button>
                 </div>
               </td>
             </tr>`;
@@ -691,49 +855,44 @@
       </table>`;
   }
 
-  function togglePublicarTodos(checked) {
-    document.querySelectorAll(".pub-check").forEach((cb) => { cb.checked = checked; });
+  function togglePublicarTodos() {
+    /* reservado — publicación ahora es por descripción con campos opcionales */
   }
 
   async function publicarVacanteDesdePanel(id) {
-    if (!window.MB_VACANTES) {
-      alert("Servicio de vacantes no disponible.");
-      return;
-    }
-    try {
-      await window.MB_VACANTES.updateVacante(id, { activo: true });
-      await reloadCurrentRoleData();
-      renderPublicarPanel();
-      renderRRHHStats();
-    } catch (e) {
-      alert("No se pudo publicar: " + (e.message || e));
-    }
+    abrirModalConfigurarVacante(id);
   }
 
   async function publicarVacantesSeleccionadas() {
-    const ids = [...document.querySelectorAll(".pub-check:checked")].map((cb) => cb.value);
-    if (!ids.length) {
-      alert("Selecciona al menos una descripción para publicar.");
-      return;
-    }
-    if (!window.MB_VACANTES) {
-      alert("Servicio de vacantes no disponible.");
-      return;
-    }
-    let ok = 0;
-    for (const id of ids) {
-      try {
-        await window.MB_VACANTES.updateVacante(id, { activo: true });
-        ok++;
-      } catch (e) {
-        console.error(id, e);
-      }
-    }
-    alert(`Publicadas ${ok} de ${ids.length} vacante(s) en el portal de postulación.`);
-    await reloadCurrentRoleData();
-    renderPublicarPanel();
-    renderRRHHStats();
+    alert("Selecciona una descripción y usa «Crear vacante» para elegir qué campos mostrar en el portal.");
   }
+
+  async function eliminarVacante(id) {
+    if (!window.MB_VACANTES?.deleteVacante) {
+      alert("Función eliminar no disponible. Aplique la migración fn_catalogo_puesto_delete en Supabase.");
+      return;
+    }
+    const v = (state.datasets.vacantes || []).find((x) => String(x.id) === String(id));
+    const label = v?.nombre_puesto || "esta descripción";
+    if (!confirm(`¿Eliminar permanentemente "${label}"?\n\nSolo use esto si ya no necesita el descriptivo. Si solo quiere ocultarla del portal, pause la vacante.`)) {
+      return;
+    }
+    try {
+      await window.MB_VACANTES.deleteVacante(id);
+      await reloadCurrentRoleData();
+      renderPublicarPanel();
+      renderRRHHTables();
+      renderRRHHStats();
+    } catch (e) {
+      const msg = e.message || String(e);
+      alert(
+        /candidatos|postulaciones/i.test(msg)
+          ? "No se puede eliminar: hay postulaciones ligadas a esta descripción."
+          : "No se pudo eliminar: " + msg
+      );
+    }
+  }
+
 
   function openPanelFromHash() {
     const hash = (window.location.hash || "").replace("#", "").trim();
@@ -899,76 +1058,72 @@
       })
       .join("");
 
-    const vacantesFiltradas = v.filter((item) => {
-      if (state.vacanteFilter === "activas") return item.activo !== false;
-      if (state.vacanteFilter === "pausadas") return item.activo === false;
-      if (state.vacanteFilter === "biblioteca") return item.activo === false;
-      return true;
-    });
+    const vCounts = vacanteCounts();
+    const isDescripciones = state.vacantesViewMode === "descripciones";
+    const listaDescripciones = [...v];
+    const listaCatalogo = v.filter((x) => x.activo === true);
 
-    const vRows = vacantesFiltradas
-      .map((x) => {
-        const rawId = String(x.id || "");
-        const id = esc(rawId);
-        const idJs = rawId.replace(/\\/g, "\\\\").replace(/'/g, "\\'");
-        const code = esc(x.codigo_puesto || "-");
-        const job = esc(resolveJobName(x));
-        const dept = esc(x.departamento || "-");
-        const salary = `${fmtMoney(x.sueldo_minimo)} - ${fmtMoney(x.sueldo_maximo)}`;
-        const isActive = x.activo !== false;
-        const status = isActive ? 'Publicada' : 'Solo biblioteca';
-        const statusClass = isActive
-            ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20'
-            : 'bg-amber-500/10 text-amber-400/90 border border-amber-500/20';
-        const exp = x.experiencia_minima_anios != null ? `${x.experiencia_minima_anios} años` : '—';
-        const school = esc(x.escolaridad_minima || '—');
-        const pdfName = esc((x.nombre_archivo_fuente || (x.fuente_pdf ? 'PDF' : 'Manual')).substring(0, 28));
-        
-        return `
-            <tr class="border-b border-white/5 hover:bg-white/5 transition-colors">
-              <td class="px-6 py-4">
-                <div class="flex items-center gap-3.5">
-                  <div class="size-10 rounded-xl bg-mabaker-red/10 text-mabaker-red border border-mabaker-red/20 flex items-center justify-center font-bold text-xs shrink-0">
-                    ${code}
-                  </div>
-                  <div>
-                    <div class="font-bold text-white text-sm leading-tight">${job}</div>
-                    <div class="text-[11px] text-slate-400 mt-0.5">${dept}</div>
-                  </div>
-                </div>
-              </td>
-              <td class="px-6 py-4 text-slate-400 text-xs font-mono">${pdfName}</td>
-              <td class="px-6 py-4 text-slate-300 font-semibold text-sm">${salary}</td>
-              <td class="px-6 py-4 text-slate-300 text-xs">${exp} / ${school}</td>
-              <td class="px-6 py-4">
-                <div class="flex items-center gap-3">
-                  <label class="inline-flex items-center cursor-pointer" title="Visible en portal de postulación">
-                    <input type="checkbox" class="sr-only peer" ${isActive ? "checked" : ""} onchange="toggleVacanteActiva('${idJs}', this.checked)">
-                    <div class="relative w-11 h-6 rounded-full bg-slate-600/60 peer-checked:bg-emerald-500/70 transition-colors">
-                      <span class="absolute top-[2px] left-[2px] w-5 h-5 rounded-full bg-white transition-transform peer-checked:translate-x-5"></span>
-                    </div>
-                  </label>
-                  <span class="px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest ${statusClass}">
-                    ${status}
-                  </span>
-                </div>
-              </td>
-              <td class="px-6 py-4 text-right">
-                <div class="flex items-center justify-end gap-2">
-                  <button onclick="verDescripcionVacante('${id}')" 
-                     class="px-3 py-2 rounded-xl bg-mabaker-blue/20 text-mabaker-blue hover:bg-mabaker-blue hover:text-white transition-all text-xs font-bold">
-                     Ver descripción
-                  </button>
-                  <button onclick="editarVacante('${id}')" 
-                     class="px-3 py-2 rounded-xl bg-mabaker-red/20 text-mabaker-red hover:bg-mabaker-red hover:text-white transition-all text-xs font-bold">
-                     Editar
-                  </button>
-                </div>
-              </td>
-            </tr>
-        `;
-      })
-      .join("");
+    const buildDescripcionRow = (x) => {
+      const rawId = String(x.id || "");
+      const id = esc(rawId);
+      const idJs = rawId.replace(/\\/g, "\\\\").replace(/'/g, "\\'");
+      const job = esc(resolveJobName(x));
+      const dept = esc(x.departamento || "-");
+      const salary = `${fmtMoney(x.sueldo_minimo)} - ${fmtMoney(x.sueldo_maximo)}`;
+      const exp = x.experiencia_minima_anios != null ? `${x.experiencia_minima_anios} años` : "—";
+      const school = esc(x.escolaridad_minima || "—");
+      const pdfName = esc((x.nombre_archivo_fuente || (x.fuente_pdf ? "PDF" : "Manual")).substring(0, 28));
+      return `
+        <tr class="border-b border-white/5 hover:bg-white/5 transition-colors">
+          <td class="px-6 py-4">
+            <div>
+              <div class="font-bold text-white text-sm leading-tight">${job}</div>
+              <div class="text-[11px] text-slate-400 mt-0.5">${dept}</div>
+            </div>
+          </td>
+          <td class="px-6 py-4 text-slate-400 text-xs font-mono">${pdfName}</td>
+          <td class="px-6 py-4 text-slate-300 font-semibold text-sm">${salary}</td>
+          <td class="px-6 py-4 text-slate-300 text-xs">${exp} / ${school}</td>
+          <td class="px-6 py-4">${portalStatusBadge(x)}</td>
+          <td class="px-6 py-4 text-right">
+            <div class="flex items-center justify-end gap-2 flex-wrap">
+              <button type="button" data-vacante-action="ver-descriptivo" data-vacante-id="${id}" class="px-3 py-2 rounded-xl bg-mabaker-blue/20 text-mabaker-blue hover:bg-mabaker-blue hover:text-white transition-all text-xs font-bold">Ver</button>
+              <button type="button" onclick="editarVacante('${idJs}', 'descripcion')" class="px-3 py-2 rounded-xl bg-mabaker-red/20 text-mabaker-red hover:bg-mabaker-red hover:text-white transition-all text-xs font-bold">Editar</button>
+              <button type="button" onclick="abrirModalConfigurarVacante('${idJs}')" class="px-3 py-2 rounded-xl bg-emerald-600/90 text-white hover:bg-emerald-500 transition-all text-xs font-bold">${x.activo === true ? "Vacante" : "Crear vacante"}</button>
+              <button type="button" onclick="eliminarVacante('${idJs}')" class="px-3 py-2 rounded-xl bg-rose-500/15 text-rose-400 border border-rose-500/30 hover:bg-rose-600 hover:text-white transition-all text-xs font-bold">Eliminar</button>
+            </div>
+          </td>
+        </tr>`;
+    };
+
+    const buildCatalogoRow = (x) => {
+      const rawId = String(x.id || "");
+      const id = esc(rawId);
+      const idJs = rawId.replace(/\\/g, "\\\\").replace(/'/g, "\\'");
+      const job = esc(resolveJobName(x));
+      const dept = esc(x.departamento || "-");
+      const cfg = window.MB_PORTAL_VACANTE?.normalize(x.portal_campos_visibles) || {};
+      const visibles = Object.entries(cfg).filter(([, on]) => on).map(([k]) => k).length;
+      return `
+        <tr class="border-b border-white/5 hover:bg-white/5 transition-colors">
+          <td class="px-6 py-4">
+            <div class="font-bold text-white text-sm">${job}</div>
+            <div class="text-[11px] text-slate-400 mt-0.5">${dept}</div>
+          </td>
+          <td class="px-6 py-4 text-xs text-slate-400">${visibles} campos visibles</td>
+          <td class="px-6 py-4">${portalStatusBadge(x)}</td>
+          <td class="px-6 py-4 text-right">
+            <div class="flex items-center justify-end gap-2 flex-wrap">
+              <button type="button" onclick="abrirModalConfigurarVacante('${idJs}')" class="px-3 py-2 rounded-xl bg-emerald-600 text-white text-xs font-bold hover:bg-emerald-500 transition-all">Editar campos</button>
+              <button type="button" data-vacante-action="ver-descriptivo" data-vacante-id="${id}" class="px-3 py-2 rounded-xl bg-mabaker-blue/20 text-mabaker-blue text-xs font-bold hover:bg-mabaker-blue hover:text-white transition-all">Ver descriptivo</button>
+              <button type="button" onclick="pausarVacantePortal('${idJs}')" class="px-3 py-2 rounded-xl bg-amber-500/15 text-amber-300 border border-amber-500/30 text-xs font-bold hover:bg-amber-500/25 transition-all">Pausar</button>
+            </div>
+          </td>
+        </tr>`;
+    };
+
+    const descripcionRows = listaDescripciones.map(buildDescripcionRow).join("");
+    const catalogoRows = listaCatalogo.map(buildCatalogoRow).join("");
 
     const rRows = r
       .map((x) => {
@@ -1033,19 +1188,29 @@
 
     if (byId("tablaCandidatos")) byId("tablaCandidatos").innerHTML = table(["Candidato", "Puesto Aplicado", "Empresas", "Fase Proceso", "Score IA", "Acciones"], cRows);
     if (byId("tablaVacantes")) {
-      const isTodas = state.vacanteFilter === "todas";
-      const isActivas = state.vacanteFilter === "activas";
-      const isBiblioteca = state.vacanteFilter === "pausadas" || state.vacanteFilter === "biblioteca";
-      const filterControls = `
-        <div class="px-6 py-4 border-b border-white/5 bg-white/[0.02] flex flex-wrap items-center gap-2">
-          <span class="text-[10px] font-black uppercase tracking-widest text-slate-500 mr-2">Filtrar</span>
-          <button type="button" onclick="setVacanteFilter('todas')" class="px-3 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${isTodas ? "bg-mabaker-blue/20 text-mabaker-blue border border-mabaker-blue/30" : "bg-white/5 text-slate-400 border border-white/10 hover:bg-white/10"}">Todas</button>
-          <button type="button" onclick="setVacanteFilter('activas')" class="px-3 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${isActivas ? "bg-emerald-500/20 text-emerald-400 border border-emerald-500/30" : "bg-white/5 text-slate-400 border border-white/10 hover:bg-white/10"}">Publicadas</button>
-          <button type="button" onclick="setVacanteFilter('biblioteca')" class="px-3 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${isBiblioteca ? "bg-amber-500/20 text-amber-300 border border-amber-500/30" : "bg-white/5 text-slate-400 border border-white/10 hover:bg-white/10"}">Solo biblioteca</button>
-          <span class="ml-auto text-[10px] font-bold uppercase tracking-widest text-slate-500">${vacantesFiltradas.length} visibles</span>
-        </div>
-      `;
-      byId("tablaVacantes").innerHTML = filterControls + table(["Puesto / Depto", "PDF origen", "Rango Salarial", "Requisitos", "Estado", "Acciones"], vRows);
+      if (isDescripciones) {
+        const header = `
+          <div class="px-6 py-4 border-b border-white/5 bg-white/[0.02] flex flex-wrap items-center gap-2">
+            <span class="text-[10px] font-black uppercase tracking-widest text-slate-500">Biblioteca de descripciones</span>
+            <span class="ml-auto text-[10px] font-bold uppercase tracking-widest text-slate-500">${listaDescripciones.length} descriptivo(s) · ${vCounts.publicadas} con vacante activa</span>
+          </div>`;
+        const empty = `<tr><td class="px-6 py-12 text-center text-slate-500" colspan="6"><p class="font-medium mb-1">No hay descripciones todavía.</p><p class="text-xs text-slate-500 mt-2">Sube PDF o Word arriba (máx. 25 por lote). Permanecen aquí aunque publiques vacantes.</p></td></tr>`;
+        byId("tablaVacantes").innerHTML = header + table(
+          ["Puesto / Depto", "PDF origen", "Rango Salarial", "Requisitos", "Vacante portal", "Acciones"],
+          descripcionRows || empty
+        );
+      } else {
+        const header = `
+          <div class="px-6 py-4 border-b border-white/5 bg-white/[0.02] flex flex-wrap items-center gap-2">
+            <span class="text-[10px] font-black uppercase tracking-widest text-slate-500">Vacantes visibles para candidatos</span>
+            <span class="ml-auto text-[10px] font-bold uppercase tracking-widest text-slate-500">${listaCatalogo.length} activa(s)</span>
+          </div>`;
+        const empty = `<tr><td class="px-6 py-12 text-center text-slate-500" colspan="4"><p class="font-medium mb-1">No hay vacantes activas en el portal.</p><p class="text-xs text-slate-500 mt-2">Ve a «Publicar vacantes» y usa «Crear vacante» en una descripción.</p></td></tr>`;
+        byId("tablaVacantes").innerHTML = header + table(
+          ["Vacante", "Campos en portal", "Estado", "Acciones"],
+          catalogoRows || empty
+        );
+      }
     }
     if (byId("tablaRechazados")) byId("tablaRechazados").innerHTML = table(["Candidato", "Vacante Aplicada", "Score", "Motivo de Descarte", "Fecha"], rRows);
     if (byId("tablaLogs")) {
@@ -1280,43 +1445,67 @@
       .map((s) => s.trim())
       .filter(Boolean);
     el.innerHTML = items.length
-      ? items.map((c) => `<span class="px-2 py-1 bg-white/10 text-slate-200 rounded text-[10px] font-bold">${esc(c)}</span>`).join("")
+      ? items.map((c) => `<span class="mb-tag-chip px-2 py-1 rounded text-[10px] font-bold">${esc(c)}</span>`).join("")
       : `<span class="text-slate-500 text-xs italic">${emptyLabel}</span>`;
   }
 
   function verDescripcionVacante(id) {
     const v = (state.datasets.vacantes || []).find((x) => String(x.id) === String(id));
-    if (!v) return;
+    if (!v) {
+      console.warn("verDescripcionVacante: descripción no encontrada", id);
+      return;
+    }
+    const modal = byId("modalVerVacante");
+    if (!modal) return;
+
     state.viewingVacanteId = v.id;
-    setText("verV_codigo", v.codigo_puesto || "—");
+    modal.classList.remove("hidden");
+    modal.setAttribute("aria-hidden", "false");
+    document.body.classList.add("mb-modal-open");
+
     setText("verV_titulo", v.nombre_puesto || "Sin nombre");
     setText("verV_depto", v.departamento || "General");
     setText("verV_escolaridad", v.escolaridad_minima || "Sin especificar");
-    setText("verV_exp", `${v.experiencia_minima_anios || 0} años`);
+    setText("verV_exp", fmtYears(v.experiencia_minima_anios || 0));
     setText("verV_edad", `${v.edad_minima || 18} - ${v.edad_maxima || 55} años`);
     setText("verV_sueldo", `${fmtMoney(v.sueldo_minimo)} - ${fmtMoney(v.sueldo_maximo)}`);
     setText("verV_archivo", v.nombre_archivo_fuente || (v.fuente_pdf ? "PDF" : "Manual"));
+
     const descEl = byId("verV_desc");
+    const raw = v.descripcion_completa || v.descripcion_puesto || "";
     if (descEl) {
-      descEl.textContent = v.descripcion_completa || v.descripcion_puesto || "Sin descripción disponible.";
+      try {
+        if (window.MB_JOB_DESC?.formatHtml) {
+          descEl.innerHTML = window.MB_JOB_DESC.formatHtml(raw || "Sin descripción disponible.");
+        } else {
+          descEl.textContent = raw || "Sin descripción disponible.";
+        }
+      } catch (err) {
+        console.error("verDescripcionVacante: error al formatear descriptivo", err);
+        descEl.textContent = raw || "Sin descripción disponible.";
+      }
     }
+
     renderTagList("verV_conocimientos", v.conocimientos_tecnicos, "No especificados");
     renderTagList("verV_competencias", v.competencias_clave, "No especificadas");
+
     const st = byId("verV_status");
     if (st) {
-      const active = v.activo !== false;
-      st.textContent = active ? "ACTIVA" : "PAUSADA";
+      const active = v.activo === true;
+      st.textContent = active ? "Vacante activa" : "Sin vacante";
       st.className = active
-        ? "px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest bg-emerald-500/20 text-emerald-400"
-        : "px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest bg-slate-500/20 text-slate-400";
+        ? "mb-modal-status inline-flex items-center whitespace-nowrap px-3 py-1.5 rounded-lg text-[10px] font-bold uppercase tracking-wide leading-none border shrink-0 bg-emerald-500/10 text-emerald-600 border-emerald-500/25"
+        : "mb-modal-status inline-flex items-center whitespace-nowrap px-3 py-1.5 rounded-lg text-[10px] font-bold uppercase tracking-wide leading-none border shrink-0 bg-slate-500/10 text-slate-600 border-slate-400/25";
     }
-    const modal = byId("modalVerVacante");
-    if (modal) modal.classList.remove("hidden");
   }
 
   function cerrarModalVerVacante() {
     const modal = byId("modalVerVacante");
-    if (modal) modal.classList.add("hidden");
+    if (modal) {
+      modal.classList.add("hidden");
+      modal.setAttribute("aria-hidden", "true");
+    }
+    document.body.classList.remove("mb-modal-open");
     state.viewingVacanteId = null;
   }
 
@@ -1351,10 +1540,11 @@
     });
   }
 
-  function editarVacante(id) {
+  function editarVacante(id, mode) {
     const v = (state.datasets.vacantes || []).find((x) => String(x.id) === String(id));
     if (!v) return;
     state.currentVacanteId = v.id;
+    state.editVacanteMode = mode === "portal" ? "portal" : "descripcion";
     setInput("editV_nombre", v.nombre_puesto);
     setInput("editV_codigo", v.codigo_puesto || "");
     setInput("editV_archivo", v.nombre_archivo_fuente || "");
@@ -1369,7 +1559,13 @@
     setInput("editV_conocimientos", fieldTextFromDb(v.conocimientos_tecnicos));
     setInput("editV_competencias", fieldTextFromDb(v.competencias_clave));
     const chk = byId("editV_activo");
-    if (chk) chk.checked = v.activo !== false;
+    if (chk) chk.checked = v.activo === true;
+    const portalSec = byId("editV_portalSection");
+    if (portalSec) portalSec.classList.toggle("hidden", state.editVacanteMode === "descripcion");
+    const title = byId("editV_modalTitle");
+    if (title) {
+      title.textContent = state.editVacanteMode === "portal" ? "Editar vacante en portal" : "Editar descripción de puesto";
+    }
     const modal = byId("modalVacante");
     if (modal) modal.classList.remove("hidden");
     requestAnimationFrame(refreshVacanteAutoGrow);
@@ -1392,8 +1588,10 @@
       descripcion_puesto: getInput("editV_desc"),
       conocimientos_tecnicos: getInput("editV_conocimientos"),
       competencias_clave: getInput("editV_competencias"),
-      activo: !!(byId("editV_activo") && byId("editV_activo").checked),
     };
+    if (state.editVacanteMode === "portal") {
+      payload.activo = !!(byId("editV_activo") && byId("editV_activo").checked);
+    }
     const normalized = normalizeSavePayload(payload);
     try {
       if (window.MB_VACANTES) {
@@ -1403,7 +1601,7 @@
       }
       cerrarModalVacante();
       await reloadCurrentRoleData();
-      alert("Vacante actualizada correctamente.");
+      alert(state.editVacanteMode === "portal" ? "Vacante actualizada." : "Descripción de puesto guardada. Publicar en portal no cambia este descriptivo.");
     } catch (e) {
       alert("No se pudo guardar la vacante: " + (e.message || e));
     }
@@ -1431,9 +1629,9 @@
     window.MB_VACANTES_UPLOAD.init({
       escapeHTML: esc,
       folderInputId: "vacantesFolderInput",
+      previewId: "vacantesUploadPreview",
       onComplete: async () => {
         await reloadCurrentRoleData();
-        setVacanteFilter("activas");
       },
     });
   }
@@ -1527,12 +1725,7 @@
     };
     await supaPatch(`/rest/v1/candidatos_activos?id=eq.${state.currentCandidatoId}`, normalizeSavePayload(payload)).catch(() => alert("No se pudo guardar el candidato"));
     cerrarModalCandidato();
-    await loadRRHH([
-      { id: "candidatos", endpoint: "/rest/v1/candidatos_activos?select=*&order=created_at.desc" },
-      { id: "rechazados", endpoint: "/rest/v1/prospectos_rechazados?select=*&order=created_at.desc" },
-      { id: "vacantes", endpoint: "/rest/v1/catalogo_puestos?select=*&order=creado_en.desc" },
-      { id: "logs", endpoint: "/rest/v1/log_agente?select=*&order=created_at.desc&limit=50" },
-    ]);
+    await reloadCurrentRoleData();
   }
 
   async function cargarEvaluacionesCandidato(candidateId) {
@@ -1700,6 +1893,7 @@
   }
 
   window.publicarVacanteDesdePanel = publicarVacanteDesdePanel;
+  window.eliminarVacante = eliminarVacante;
   window.publicarVacantesSeleccionadas = publicarVacantesSeleccionadas;
   window.togglePublicarTodos = togglePublicarTodos;
   window.renderPublicarPanel = renderPublicarPanel;
@@ -1710,6 +1904,12 @@
   window.renderRRHHTables = renderRRHHTables;
   window.activarPanel = activarPanel;
   window.setVacanteFilter = setVacanteFilter;
+  window.abrirModalConfigurarVacante = abrirModalConfigurarVacante;
+  window.cerrarModalConfigurarVacante = cerrarModalConfigurarVacante;
+  window.guardarConfiguracionVacantePortal = guardarConfiguracionVacantePortal;
+  window.pausarVacantePortalDesdeModal = pausarVacantePortalDesdeModal;
+  window.pausarVacantePortal = pausarVacantePortal;
+  window.verVacantesPublicadas = verVacantesPublicadas;
   window.toggleSidebar = toggleSidebar;
   window.editarVacante = editarVacante;
   window.verDescripcionVacante = verDescripcionVacante;

@@ -246,32 +246,46 @@ function initVacantesRefresh() {
 function renderVacanteCard(v) {
     const codigo = (v.codigo_puesto || v.codigo || '').toUpperCase();
     const template = VACANTE_TEMPLATES[codigo] || {};
-    const nombre = cleanPuestoNombre(v.nombre_puesto || v.nombre || template.nombre || 'Vacante disponible');
-    const departamento = (v.departamento || template.departamento || 'General').trim();
-    const resumen = summarizeVacante(v, template);
-    const escolaridad = normalizeText(v.escolaridad_minima, template.escolaridad || 'A convenir');
-    const experiencia = formatExperiencia(v.experiencia_minima_anios, template.experiencia || 'A convenir');
-    const edad = formatEdad(v.edad_minima, v.edad_maxima, template.edad || 'A convenir');
-    const icon = template.icono || puestoIcon(codigo, departamento, nombre);
+    const cfg = window.MB_PORTAL_VACANTE?.normalize(v.portal_campos_visibles) || {};
+    const show = (key) => (window.MB_PORTAL_VACANTE ? window.MB_PORTAL_VACANTE.isVisible(v.portal_campos_visibles, key) : true);
+    const nombre = show('nombre') ? cleanPuestoNombre(v.nombre_puesto || v.nombre || template.nombre || 'Vacante disponible') : cleanPuestoNombre(v.nombre_puesto || v.nombre || template.nombre || 'Vacante disponible');
+    const departamento = show('departamento') ? (v.departamento || template.departamento || 'General').trim() : '';
+    const resumen = show('descripcion') ? summarizeVacante(v, template) : (template.resumen || 'Vacante disponible en Ma Baker and Chef.');
+    const escolaridad = show('escolaridad') ? normalizeText(v.escolaridad_minima, template.escolaridad || 'A convenir') : null;
+    const experiencia = show('experiencia') ? formatExperiencia(v.experiencia_minima_anios, template.experiencia || 'A convenir') : null;
+    const edad = show('edad') ? formatEdad(v.edad_minima, v.edad_maxima, template.edad || 'A convenir') : null;
+    const icon = template.icono || puestoIcon(codigo, departamento || v.departamento, nombre);
     const safeId = jsSafe(v.id || `${codigo}-TEMP`);
     const safeCodigo = jsSafe(codigo || 'VAC-000');
     const safeNombre = jsSafe(nombre);
+    const metaChips = [
+      escolaridad ? `<div class="meta-chip"><div class="k">Escolaridad</div><div class="v">${escapeHtml(escolaridad)}</div></div>` : '',
+      experiencia ? `<div class="meta-chip"><div class="k">Experiencia</div><div class="v">${escapeHtml(experiencia)}</div></div>` : '',
+      edad ? `<div class="meta-chip"><div class="k">Edad</div><div class="v">${escapeHtml(edad)}</div></div>` : '',
+      show('sueldo') && (v.sueldo_minimo || v.sueldo_maximo) ? `<div class="meta-chip"><div class="k">Sueldo</div><div class="v">${escapeHtml(formatSueldo(v))}</div></div>` : '',
+    ].filter(Boolean).join('');
     return `
     <div class="vacante-card" onclick="selectVacante('${safeId}', '${safeCodigo}', '${safeNombre}')">
       <div class="vacante-icon">${icon}</div>
       <div class="vacante-info">
         <div class="vacante-nombre">${escapeHtml(nombre)}</div>
-        <div class="vacante-depto">${escapeHtml(departamento)}</div>
+        ${departamento ? `<div class="vacante-depto">${escapeHtml(departamento)}</div>` : ''}
         <p class="vacante-desc">${escapeHtml(resumen)}</p>
-        <div class="vacante-meta">
-          <div class="meta-chip"><div class="k">Escolaridad</div><div class="v">${escapeHtml(escolaridad)}</div></div>
-          <div class="meta-chip"><div class="k">Experiencia</div><div class="v">${escapeHtml(experiencia)}</div></div>
-          <div class="meta-chip"><div class="k">Edad</div><div class="v">${escapeHtml(edad)}</div></div>
-        </div>
+        ${metaChips ? `<div class="vacante-meta">${metaChips}</div>` : ''}
       </div>
       <div class="vacante-arrow">→</div>
     </div>
   `;
+}
+
+function formatSueldo(v) {
+  const min = Number(v.sueldo_minimo);
+  const max = Number(v.sueldo_maximo);
+  if (Number.isFinite(min) && Number.isFinite(max) && max > 0) {
+    return `$${min.toLocaleString('es-MX')} - $${max.toLocaleString('es-MX')}`;
+  }
+  if (Number.isFinite(min) && min > 0) return `Desde $${min.toLocaleString('es-MX')}`;
+  return 'A convenir';
 }
 
 function renderVacanteFallback() {

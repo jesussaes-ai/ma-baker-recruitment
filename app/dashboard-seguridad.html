@@ -427,6 +427,7 @@
 
     <script src="js/config.js"></script>
     <script src="js/auth.js"></script>
+    <script src="js/candidates-api.js"></script>
     <script>
         /* ============================================================
            DASHBOARD SEGURIDAD E HIGIENE
@@ -471,9 +472,16 @@
 
         /* ── Cargar candidatos en fase de Seguridad y listos para contrato ── */
         async function cargar() {
-            const r = await fetch(`${URL}/rest/v1/candidatos_activos?select=*&fase_actual=in.(induccion_seguridad,listo_para_contrato)&order=created_at.desc`, { headers: H });
-            const raw = r.ok ? await r.json() : [];
-            const todos = Array.isArray(raw) ? raw : [];
+            let todos = [];
+            try {
+                todos = window.MB_CANDIDATES
+                    ? await window.MB_CANDIDATES.listCandidates()
+                    : [];
+            } catch (e) {
+                console.error(e);
+            }
+            if (!Array.isArray(todos)) todos = [];
+            todos = todos.filter(c => ['induccion_seguridad', 'listo_para_contrato'].includes(c.fase_actual || ''));
             const pend = todos.filter(c => c.fase_actual === 'induccion_seguridad');
             const comp = todos.filter(c => c.fase_actual === 'listo_para_contrato');
 
@@ -560,21 +568,27 @@
             if (Object.values(S).some(v => v === null)) { alert('⚠️ Por favor verifica todos los puntos S&H.'); return; }
 
             const aprobado = Object.values(S).every(v => v === true);
+            const obs = window.MB_UPPERCASE
+                ? window.MB_UPPERCASE.transformValue(document.getElementById('obsSH').value)
+                : document.getElementById('obsSH').value;
+            const payload = {
+                fase_actual: aprobado ? 'listo_para_contrato' : 'induccion_seguridad',
+                decision_agente: {
+                    sh_puntos: { ...S },
+                    sh_aprobado: aprobado,
+                    sh_obs: obs,
+                    sh_fecha: new Date().toISOString(),
+                    sh_evaluado_por: localStorage.getItem('mb_nombre') || 'Seguridad',
+                },
+            };
 
-            /* Guardar datos de la verificación sin sobreescribir datos de SGI */
-            await fetch(`${URL}/rest/v1/candidatos_activos?id=eq.${id}`, {
-                method: 'PATCH', headers: H,
-                body: JSON.stringify({
-                    fase_actual: aprobado ? 'listo_para_contrato' : 'induccion_seguridad',
-                    decision_agente: {
-                        sh_puntos: { ...S },
-                        sh_aprobado: aprobado,
-                        sh_obs: window.MB_UPPERCASE ? window.MB_UPPERCASE.transformValue(document.getElementById('obsSH').value) : document.getElementById('obsSH').value,
-                        sh_fecha: new Date().toISOString(),
-                        sh_evaluado_por: localStorage.getItem('mb_nombre') || 'Seguridad'
-                    }
-                })
-            });
+            try {
+                if (!window.MB_CANDIDATES) throw new Error('Sesión no disponible');
+                await window.MB_CANDIDATES.patchCandidate(id, payload);
+            } catch (e) {
+                alert('Error al guardar: ' + (e.message || e));
+                return;
+            }
             cerrar();
             alert(aprobado ? '✅ Verificación S&H completa registrada. Candidato listo para contrato.' : '⚠️ Verificación incompleta registrada. Se mantiene en inducción de seguridad.');
             await cargar();

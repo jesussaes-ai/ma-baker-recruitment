@@ -5,6 +5,55 @@
 
 ---
 
+## 2026-06-16 — Descripciones vs vacantes (independientes)
+
+- **Descripciones de Puesto:** biblioteca permanente; editar/ver/eliminar; no desaparecen al publicar.
+- **Publicar vacantes:** modal con campos opcionales para candidatos (sueldo, escolaridad, etc.).
+- **Catálogo Vacantes:** solo vacantes activas en portal; pausar no borra descriptivo. **Ver descriptivo** con formato legible (secciones/viñetas, skill `descriptivo-puesto-legible`).
+- **Migración Supabase:** `vacantes_portal_campos` — columna `portal_campos_visibles`.
+- **Docs:** `docs/catalogo-vacantes-dashboard.md`
+
+---
+
+- **Problema:** descripciones subidas/publicadas parecían borradas al cambiar pantalla (filtro «Solo biblioteca» ocultaba las publicadas).
+- **Corrección:** filtro Todas por defecto; contadores; recarga al entrar al panel; auto-switch si biblioteca vacía; botón Ver publicadas navega bien.
+- **Validado en código:** `app/js/dashboard.js` — pendiente Ctrl+F5 en dashboard RRHH/Admin.
+- **Docs:** `docs/catalogo-vacantes-dashboard.md`
+
+---
+
+- **Problema:** texto plano del PDF sin jerarquía; modal plano e ilegible en modo claro.
+- **Formato sección identificación:** todos los campos del descriptivo (p. ej. Puestos que supervisa, Tipo de jornada, Modalidad) en línea `Etiqueta: valor`; emparejamiento aunque haya líneas vacías entre PDF/Word.
+- **Verificar:** dashboard Admin/RRHH → Vacantes → Ver; alternar tema.
+
+---
+
+- **Cambio:** `fn_candidatos_list` / `fn_candidato_update` con roles `sgi` y `seguridad`; dashboards dejan REST anon.
+- **Flujo:** `induccion_sgi` → `induccion_seguridad` → `listo_para_contrato`.
+- **SQL:** `database/migracion-fase5-sgi-seguridad.sql` (remota: `fase5_sgi_seguridad_rpc`).
+- **Pendiente:** Fase 6 contratación (uniforme, EPP, firmas).
+- **Docs:** `docs/fase-5-sgi-seguridad.md`
+
+---
+
+## 2026-06-16 — Auditoría NotebookLM (12 fuentes)
+
+- **Resultado:** cuaderno limpio (sin GHL); 12 fuentes legales + técnicas.
+- **Pendiente:** pegar `docs/notebooklm-estado-proyecto-jun-2026.md`; renombrar 2 «Texto pegado».
+- **Procedimiento RRHH.pdf:** conservar (documento corporativo; Fase 6 lo digitalizará).
+- **Cierre sesión:** agente actualiza repo + indica si hay que re-pegar en NotebookLM.
+
+---
+
+## 2026-06-16 — NotebookLM cuaderno sincronizado
+
+- **Cuaderno:** https://notebooklm.google.com/notebook/611114f3-ebc0-4db5-bc74-bda2a78b2fbd
+- **Fuente maestra:** `docs/notebooklm-estado-proyecto-jun-2026.md` — estado jun-2026, fases 1–5, sin GoHighLevel.
+- **Acción manual:** pegar fuente maestra en NotebookLM; eliminar ~13 fuentes obsoletas (lista en el doc).
+- **MCP Cursor:** biblioteca actualizada; herramienta `add_source` no disponible hasta reiniciar MCP / liberar perfil Chrome.
+
+---
+
 ## 2026-06-16 — Agent skills Cursor (local)
 
 - **Fuentes:** Supabase, antigravity-awesome-skills, Vercel, obra/superpowers.
@@ -46,6 +95,15 @@
 - **Ajustes del Sistema:** panel con sesión, tema claro/oscuro, portal y accesos rápidos.
 - **Campana:** alertas de vacantes sin publicar, candidatos nuevos (7 días), psicométricos y fase médica.
 - **Pantallas:** `dashboard-admin.html`, `dashboard-rrhh.html`, lógica en `dashboard.js`.
+
+---
+
+## 2026-06-14 — Modal Ver descriptivo y formato legible
+
+- **Ver descriptivo:** clic corregido; modal `#modalVerVacante` con tema claro/oscuro uniforme.
+- **Formato PDF:** `job-description-format.js` (secciones, viñetas, sin bloque MAYÚSCULAS).
+- **Skill:** `.cursor/skills/descriptivo-puesto-legible/SKILL.md`
+- **Commit local:** jun 2026; push remoto según solicitud.
 
 ---
 

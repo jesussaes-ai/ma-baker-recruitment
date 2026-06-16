@@ -406,6 +406,7 @@
 
     <script src="js/config.js"></script>
     <script src="js/auth.js"></script>
+    <script src="js/candidates-api.js"></script>
     <script>
         /* ============================================================
            DASHBOARD SGI — Calidad e Inocuidad
@@ -447,9 +448,16 @@
 
         /* ── Cargar candidatos en fases de SGI / Seguridad / listos para contrato ── */
         async function cargar() {
-            const r = await fetch(`${URL}/rest/v1/candidatos_activos?select=*&fase_actual=in.(induccion_sgi,induccion_seguridad,listo_para_contrato)&order=created_at.desc`, { headers: H });
-            const raw = r.ok ? await r.json() : [];
-            const todos = Array.isArray(raw) ? raw : [];
+            let todos = [];
+            try {
+                todos = window.MB_CANDIDATES
+                    ? await window.MB_CANDIDATES.listCandidates()
+                    : [];
+            } catch (e) {
+                console.error(e);
+            }
+            if (!Array.isArray(todos)) todos = [];
+            todos = todos.filter(c => ['induccion_sgi', 'induccion_seguridad', 'listo_para_contrato'].includes(c.fase_actual || ''));
             const pend = todos.filter(c => c.fase_actual === 'induccion_sgi');
             const comp = todos.filter(c => c.fase_actual === 'induccion_seguridad' || c.fase_actual === 'listo_para_contrato');
 
@@ -530,13 +538,29 @@
             if (Object.values(S).some(v => v === null)) { alert('⚠️ Por favor evalúa todos los puntos.'); return; }
 
             const aprobado = Object.values(S).every(v => v === true);
-            await fetch(`${URL}/rest/v1/candidatos_activos?id=eq.${id}`, {
-                method: 'PATCH', headers: H,
-                body: JSON.stringify({
-                    fase_actual: aprobado ? 'induccion_seguridad' : 'induccion_sgi',
-                    decision_agente: { sgi_puntos: { ...S }, sgi_aprobado: aprobado, sgi_obs: window.MB_UPPERCASE ? window.MB_UPPERCASE.transformValue(document.getElementById('obsSGI').value) : document.getElementById('obsSGI').value, sgi_fecha: new Date().toISOString() }
-                })
-            });
+            const obs = window.MB_UPPERCASE
+                ? window.MB_UPPERCASE.transformValue(document.getElementById('obsSGI').value)
+                : document.getElementById('obsSGI').value;
+            const payload = {
+                fase_actual: aprobado ? 'induccion_seguridad' : 'induccion_sgi',
+                decision_agente: {
+                    sgi_puntos: { ...S },
+                    sgi_aprobado: aprobado,
+                    sgi_obs: obs,
+                    sgi_fecha: new Date().toISOString(),
+                    sgi_evaluado_por: localStorage.getItem('mb_nombre') || 'SGI',
+                },
+                score_induccion: Math.round((Object.values(S).filter(v => v === true).length / Object.keys(S).length) * 100),
+                induccion_completa: aprobado,
+            };
+
+            try {
+                if (!window.MB_CANDIDATES) throw new Error('Sesión no disponible');
+                await window.MB_CANDIDATES.patchCandidate(id, payload);
+            } catch (e) {
+                alert('Error al guardar: ' + (e.message || e));
+                return;
+            }
             document.getElementById('modalSGI').classList.remove('open');
             alert(aprobado ? '✅ Candidato aprobado — Enviado a Seguridad e Higiene.' : '⚠️ Inducción incompleta registrada.');
             await cargar();

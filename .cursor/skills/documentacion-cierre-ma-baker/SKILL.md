@@ -31,8 +31,9 @@ No duplicar runbooks completos en Obsidian si ya viven en `docs/` — enlazar co
 - [ ] 3. README — enlace o nota breve si aplica
 - [ ] 4. OneNote — reflejar en docs/onenote/ (espejo para copiar al cuaderno)
 - [ ] 5. docs/ técnico — runbook, RECMI o CONTEXTO si hay arquitectura/config
-- [ ] 6. GitHub — commit/push solo si el usuario lo pidió; si no, informar pendiente
-- [ ] 7. Confirmar al usuario los cuatro destinos + Git
+- [ ] 6. NotebookLM — actualizar docs/notebooklm-estado-proyecto-jun-2026.md; indicar si hay que pegar/re-pegar en cuaderno
+- [ ] 7. GitHub — commit/push solo si el usuario lo pidió; si no, informar pendiente
+- [ ] 8. Confirmar al usuario los destinos + Git
 ```
 
 ## Destinos y rutas
@@ -42,6 +43,7 @@ No duplicar runbooks completos en Obsidian si ya viven en `docs/` — enlazar co
 | **Obsidian** | `docs/obsidian/` | Seguimiento operativo diario, lecciones aprendidas, estado actual |
 | **README** | `README.md` | Enlaces a docs nuevos, resumen de capacidades visibles al equipo |
 | **OneNote** | `docs/onenote/` | Misma información en formato breve para el cuaderno corporativo |
+| **NotebookLM** | `docs/notebooklm-estado-proyecto-jun-2026.md` | Inventario de fuentes, estado fases, acciones pegar/renombrar en cuaderno Google |
 | **GitHub** | remoto | Commit/push cuando el usuario lo solicite explícitamente |
 
 OneNote no tiene API en este proyecto. El agente **siempre** escribe o actualiza el espejo en `docs/onenote/` para que el usuario lo sincronice con su cuaderno "Ma Baker - Reclutamiento" (o el nombre que use el equipo).
@@ -82,6 +84,13 @@ Plantilla de entrada:
 - Docs relacionados: [ruta en repo]
 ```
 
+### NotebookLM (`docs/notebooklm-estado-proyecto-jun-2026.md`)
+
+- Actualizar inventario de fuentes del cuaderno (título, cantidad, veredicto).
+- Registrar fecha de auditoría y cambios de sesión.
+- Indicar si el usuario debe pegar/re-pegar el documento en https://notebooklm.google.com/notebook/611114f3-ebc0-4db5-bc74-bda2a78b2fbd
+- No duplicar PDFs legales en el markdown; solo referenciarlos en la tabla de inventario.
+
 ### Documentación técnica (`docs/`)
 
 Actualizar cuando haya cambios de:
@@ -112,7 +121,7 @@ Incluir siempre este bloque al final:
 
 ```markdown
 - **Inspeccionado:** [qué se verificó]
-- **Documentado:** Obsidian ✓ | README ✓ | OneNote (`docs/onenote/`) ✓ | docs/ ✓
+- **Documentado:** Obsidian ✓ | README ✓ | OneNote (`docs/onenote/`) ✓ | NotebookLM (`docs/notebooklm-estado-proyecto-jun-2026.md`) ✓ | docs/ ✓
 - **Git/GitHub:** [commit hecho / pendiente / push hecho / remoto pendiente]
 ```
 
