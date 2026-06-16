@@ -98,3 +98,9 @@ El envío real debe resolverse en backend/servicio seguro (Edge Function, API in
 - **Lección:** `log_agente` no es legible con anon REST; usar RPC con `mb_token` (roles admin/rrhh).
 - Centro de ayuda por rol: `app/ayuda.html` (RRHH/Admin: multi-formato, publicar, notificaciones, ajustes, logs).
 - **Handy (STT offline):** fork `jesussaes-ai/Handy.Computer`, clon `C:\Users\jesus\.gemini\antigravity\scratch\Handy.Computer` — ver README § Herramientas externas.
+
+## Sesión 2026-06-16 — Agent skills (Cursor)
+
+- **Instaladas en local** (`.agents/skills/`, no en Git): `supabase/agent-skills`, `antigravity-awesome-skills`, `vercel-labs/agent-skills`, `obra/superpowers`.
+- **Reinstalar:** `docs/agent-skills-setup.md`
+- **Proyecto:** skills propias en `.cursor/skills/` (marca, webhook, documentación cierre).

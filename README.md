@@ -66,6 +66,7 @@ Abrir en Cursor: **File → Open Folder** → ruta del clon local. Actualizar: `
 - Espejo OneNote (seguimiento operativo): `docs/onenote/seguimiento-ma-baker.md`.
 - Skill de cierre documental (Obsidian + README + OneNote + GitHub): `.cursor/skills/documentacion-cierre-ma-baker/SKILL.md`.
 - Skills personales globales (auto-aprendizaje): `~/.cursor/skills/auto-skill-from-learning/`.
+- Agent skills de terceros (Supabase, Vercel, Superpowers, antigravity): instalar en local con `docs/agent-skills-setup.md` (`.agents/` no va a Git).
 
 ### Carga documental opcional para candidatos >= 80%
 - Al finalizar con score >= 80% se habilita módulo para subir documentos uno por uno.

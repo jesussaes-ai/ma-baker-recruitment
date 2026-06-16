@@ -5,6 +5,15 @@
 
 ---
 
+## 2026-06-16 — Agent skills Cursor (local)
+
+- **Fuentes:** Supabase, antigravity-awesome-skills, Vercel, obra/superpowers.
+- **Carpeta local:** `.agents/skills/` (gitignored, ~60 MB).
+- **Runbook:** `docs/agent-skills-setup.md`
+- **Push GitHub:** documentación + 5 commits pendientes de sesiones anteriores.
+
+---
+
 ## 2026-06-14 — Logs del sistema habilitados
 
 - **Cambio:** RPC `fn_sistema_logs_list` (admin/rrhh) unifica auditoría: IA, postulaciones, rechazos, vacantes.

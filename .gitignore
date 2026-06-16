@@ -9,6 +9,13 @@ app/js/runtime-config.js
 node_modules/
 npm-debug.log*
 
+# Agent skills de terceros (reinstalar con docs/agent-skills-setup.md)
+.agents/
+skills-lock.json
+
+# Supabase CLI temporal
+supabase/.temp/
+
 # Sistema
 .DS_Store
 Thumbs.db
