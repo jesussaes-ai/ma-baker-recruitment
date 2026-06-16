@@ -103,7 +103,7 @@
 - **Ver descriptivo:** clic corregido; modal `#modalVerVacante` con tema claro/oscuro uniforme.
 - **Formato PDF:** `job-description-format.js` (secciones, viñetas, sin bloque MAYÚSCULAS).
 - **Skill:** `.cursor/skills/descriptivo-puesto-legible/SKILL.md`
-- **Commit local:** jun 2026; push remoto según solicitud.
+- **Commit local:** `f21e20a` (2026-06-14). Push remoto pendiente.
 
 ---
 
