@@ -142,3 +142,7 @@ El envío real debe resolverse en backend/servicio seguro (Edge Function, API in
 - **Skill:** `.cursor/skills/descriptivo-puesto-legible/SKILL.md`
 - **UI:** pie modal alineado (`mb-modal-footer--balanced`); experiencia «1 año» / «N años».
 - **Commit:** `f21e20a` en `main` (2026-06-14). Push remoto pendiente (credenciales GitHub en este entorno).
+
+## Sesión 2026-06-14 — Portal candidato alineado con campos de vacante
+
+- **Portal (`index.html`):** tarjetas respetan `portal_campos_visibles`; chips conocimientos/competencias; resumen legible con `job-description-format.js`.

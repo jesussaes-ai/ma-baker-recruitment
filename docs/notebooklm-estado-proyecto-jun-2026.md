@@ -335,7 +335,7 @@ Al terminar cada sesión de trabajo con impacto en el proyecto, el agente debe:
 
 - [ ] **NotebookLM:** pegar/actualizar este documento como fuente maestra en el cuaderno
 - [ ] **NotebookLM:** renombrar los 2 «Texto pegado» con títulos descriptivos
-- [ ] **GitHub:** `git push origin main` (7+ commits locales pendientes tras commit 2026-06-14)
+- [x] **GitHub:** push `main` hasta `4b0265a` (2026-06-14)
 - [ ] Producción: `PSYCHOMETRIC_PUBLIC_URL` con dominio real (no localhost)
 - [ ] Prueba manual carga .docx vacantes en entorno usuario
 

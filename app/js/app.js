@@ -243,6 +243,21 @@ function initVacantesRefresh() {
     });
 }
 
+function portalFieldList(val) {
+    if (Array.isArray(val)) return val.filter(Boolean).map((x) => String(x).trim()).filter(Boolean);
+    return String(val || '')
+        .split(/[,;\n]+/)
+        .map((s) => s.trim())
+        .filter(Boolean);
+}
+
+function renderVacanteSkillChips(items, variant) {
+    const list = (items || []).slice(0, 6);
+    if (!list.length) return '';
+    const cls = variant === 'soft' ? 'vacante-skill-chip vacante-skill-chip--soft' : 'vacante-skill-chip';
+    return `<div class="vacante-skill-row">${list.map((t) => `<span class="${cls}">${escapeHtml(t)}</span>`).join('')}</div>`;
+}
+
 function renderVacanteCard(v) {
     const codigo = (v.codigo_puesto || v.codigo || '').toUpperCase();
     const template = VACANTE_TEMPLATES[codigo] || {};
@@ -264,6 +279,12 @@ function renderVacanteCard(v) {
       edad ? `<div class="meta-chip"><div class="k">Edad</div><div class="v">${escapeHtml(edad)}</div></div>` : '',
       show('sueldo') && (v.sueldo_minimo || v.sueldo_maximo) ? `<div class="meta-chip"><div class="k">Sueldo</div><div class="v">${escapeHtml(formatSueldo(v))}</div></div>` : '',
     ].filter(Boolean).join('');
+    const conocimientos = show('conocimientos') ? portalFieldList(v.conocimientos_tecnicos) : [];
+    const competencias = show('competencias') ? portalFieldList(v.competencias_clave) : [];
+    const skillHtml = [
+      conocimientos.length ? renderVacanteSkillChips(conocimientos, 'tech') : '',
+      competencias.length ? renderVacanteSkillChips(competencias, 'soft') : '',
+    ].join('');
     return `
     <div class="vacante-card" onclick="selectVacante('${safeId}', '${safeCodigo}', '${safeNombre}')">
       <div class="vacante-icon">${icon}</div>
@@ -272,6 +293,7 @@ function renderVacanteCard(v) {
         ${departamento ? `<div class="vacante-depto">${escapeHtml(departamento)}</div>` : ''}
         <p class="vacante-desc">${escapeHtml(resumen)}</p>
         ${metaChips ? `<div class="vacante-meta">${metaChips}</div>` : ''}
+        ${skillHtml}
       </div>
       <div class="vacante-arrow">→</div>
     </div>
@@ -922,12 +944,33 @@ function summarizeVacante(v, template) {
     const raw = String(
         v.descripcion_corta ||
         v.descripcion_resumen ||
+        v.descripcion_puesto ||
         v.descripcion ||
         v.descripcion_completa ||
         template.resumen ||
         'Consulta esta vacante y valida si tu perfil se ajusta a los requisitos.'
     ).replace(/\s+/g, ' ').trim();
     if (!raw) return 'Consulta esta vacante y valida si tu perfil se ajusta a los requisitos.';
+
+    if (window.MB_JOB_DESC?.splitIntoSentences && window.MB_JOB_DESC?.toReadableCase) {
+        try {
+            const structured = window.MB_JOB_DESC.preprocessStructuredText
+                ? window.MB_JOB_DESC.preprocessStructuredText(raw)
+                : raw;
+            const lines = structured.split('\n').map((l) => l.trim()).filter(Boolean);
+            const bodyLine = lines.find((line) => /[a-záéíóúñ]/.test(line) && !/^[-•*\d]/.test(line)) || structured;
+            const readable = window.MB_JOB_DESC.toReadableCase(bodyLine, 'body');
+            const sentences = window.MB_JOB_DESC.splitIntoSentences(readable);
+            const pick = sentences[0] || readable;
+            if (pick) {
+                const trimmed = pick.length > 220 ? `${pick.slice(0, 217).trim()}…` : pick;
+                return trimmed.endsWith('.') || trimmed.endsWith('…') ? trimmed : `${trimmed}.`;
+            }
+        } catch (_) {
+            /* fallback abajo */
+        }
+    }
+
     const cleaned = cleanVacanteDescription(raw);
     const sentence = cleaned.split(/[.!?]\s+/)[0].trim();
     const summary = sentence.length >= 70 ? sentence : cleaned.slice(0, 170).trim();

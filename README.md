@@ -72,7 +72,8 @@ Abrir en Cursor: **File → Open Folder** → ruta del clon local. Actualizar: `
 - Fase 4 médico + jefe (transición de fases y RPC dashboards): `docs/fase-4-medico-jefe.md`.
 - Fase 5 SGI + Seguridad (inducción vía RPC): `docs/fase-5-sgi-seguridad.md`.
 - Catálogo de vacantes en dashboard (ver descripción, editar, subir PDF/Word/Excel): `docs/catalogo-vacantes-dashboard.md`.
-- Formato legible de descriptivos (PDF → secciones/viñetas, modal claro/oscuro): `app/js/job-description-format.js` + skill `.cursor/skills/descriptivo-puesto-legible/SKILL.md`.
+- Portal candidato (`index.html`): tarjetas respetan `portal_campos_visibles` (descripción, escolaridad, experiencia, edad, sueldo, conocimientos, competencias); resumen legible vía `job-description-format.js`.
+- Formato legible descriptivos RRHH (modal Ver descripción): skill `.cursor/skills/descriptivo-puesto-legible/SKILL.md`.
 - Dashboard Admin/RRHH: ajustes del sistema, notificaciones y logs unificados (`fn_sistema_logs_list`); migración `database/migracion-sistema-logs-rpc.sql`.
 - Ayuda contextual actualizada: `app/ayuda.html` + tooltips `data-help` en dashboards.
 - Espejo OneNote (seguimiento operativo): `docs/onenote/seguimiento-ma-baker.md`.

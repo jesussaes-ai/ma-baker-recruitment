@@ -158,6 +158,29 @@
             color: #E2E8F0;
             padding: 0 4px;
         }
+        .vacante-skill-row {
+            margin-top: 10px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+        }
+        .vacante-skill-chip {
+            display: inline-flex;
+            align-items: center;
+            padding: 4px 10px;
+            border-radius: 999px;
+            font-size: 10px;
+            font-weight: 700;
+            letter-spacing: 0.02em;
+            background: rgba(0, 113, 188, 0.15);
+            border: 1px solid rgba(0, 113, 188, 0.35);
+            color: #BAE6FD;
+        }
+        .vacante-skill-chip--soft {
+            background: rgba(245, 158, 11, 0.12);
+            border-color: rgba(245, 158, 11, 0.35);
+            color: #FDE68A;
+        }
         .privacy-required-title { color: #A16207; }
         .privacy-required-message { color: #334155; }
         html[data-theme="dark"] .privacy-required-title { color: #FCD34D; }
@@ -786,7 +809,8 @@
     <script src="js/config.js"></script>
     <script src="js/uppercase.js"></script>
     <script src="js/portal-vacante-config.js"></script>
-    <script src="js/app.js?v=20260610-emails"></script>
+    <script src="js/job-description-format.js?v=20260616f"></script>
+    <script src="js/app.js?v=20260614-portal"></script>
     <script>
         // Inyectamos pequeña lógica de UI que antes estaba inline o dispersa
         function toggleCronicaInput() { /* Ya manejado por app.js pero movemos aquí si falta */ }

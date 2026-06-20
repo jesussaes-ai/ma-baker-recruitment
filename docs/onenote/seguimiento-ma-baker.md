@@ -98,6 +98,13 @@
 
 ---
 
+## 2026-06-14 — Portal candidato + push GitHub
+
+- **Portal:** tarjetas con campos opcionales `portal_campos_visibles`; resumen legible; chips conocimientos/competencias.
+- **GitHub:** push `main` hasta commit `4b0265a`.
+
+---
+
 ## 2026-06-14 — Modal Ver descriptivo y formato legible
 
 - **Ver descriptivo:** clic corregido; modal `#modalVerVacante` con tema claro/oscuro uniforme.
