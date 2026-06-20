@@ -141,7 +141,7 @@ El envío real debe resolverse en backend/servicio seguro (Edge Function, API in
 - **Formato:** `job-description-format.js` — bloques MAYÚSCULAS densos → secciones + subtítulos + viñetas; tema claro/oscuro coherente en modales.
 - **Skill:** `.cursor/skills/descriptivo-puesto-legible/SKILL.md`
 - **UI:** pie modal alineado (`mb-modal-footer--balanced`); experiencia «1 año» / «N años».
-- **Commit:** `f21e20a` en `main` (2026-06-14). Push remoto pendiente (credenciales GitHub en este entorno).
+- **Commit:** `f21e20a` en `main` (2026-06-14). **Push remoto:** `main` en GitHub hasta `1d29b05`.
 
 ## Sesión 2026-06-14 — Portal candidato alineado con campos de vacante
 

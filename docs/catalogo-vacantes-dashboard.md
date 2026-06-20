@@ -42,6 +42,7 @@ Migración SQL: `database/migracion-vacantes-portal-campos.sql` (remota: `vacant
 - Lectura admin/RRHH: RPC `fn_catalogo_puestos_list` (todas las descripciones).
 - Lectura portal: REST `catalogo_puestos?activo=eq.true` (RLS).
 - Escritura: `fn_catalogo_puesto_insert` / `fn_catalogo_puesto_update` (incluye `portal_campos_visibles`).
+- Portal candidato (`index.html` + `app.js`): tarjetas respetan los mismos campos visibles; resumen con `job-description-format.js`.
 - Subida nueva: `activo = false` por defecto (sin vacante en portal hasta publicar).
 - **Código interno (`codigo_puesto`):** se genera único por archivo (nombre + sufijo aleatorio). Las plantillas Word compartían el mismo «Código/Clave» y provocaban error rojo en lote; corregido en `vacantes-pdf-upload.js` + RPC insert (`migracion-vacantes-codigo-unico-insert.sql`).
 
