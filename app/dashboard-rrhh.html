@@ -136,6 +136,13 @@
                     <span class="text-sm font-semibold">Candidatos Activos</span>
                 </a>
 
+                <a href="#" class="nav-item flex items-center gap-4 px-5 py-3.5 rounded-2xl hover:bg-white/5 transition-all group text-slate-400 hover:text-white" onclick="window.activarPanel('contratacion', this)" data-panel="contratacion" data-help="Uniforme, EPP, firmas y cierre de contratación.">
+                    <svg class="w-5 h-5 group-hover:scale-110 transition-transform" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path>
+                    </svg>
+                    <span class="text-sm font-semibold">Contratación</span>
+                </a>
+
                 <a href="#" class="nav-item flex items-center gap-4 px-5 py-3.5 rounded-2xl hover:bg-white/5 transition-all group text-slate-400 hover:text-white" onclick="window.activarPanel('vacantes', this)" data-panel="vacantes">
                     <svg class="w-5 h-5 group-hover:scale-110 transition-transform" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path>
@@ -319,6 +326,37 @@
                         <div class="overflow-x-auto min-h-[400px] scroll-custom" id="tablaCandidatos">
                             <div class="p-20 text-center text-slate-500">Sincronizando...</div>
                         </div>
+                    </section>
+                </div>
+
+                <!-- PANEL: CONTRATACIÓN (Fase 6) -->
+                <div id="panel-contratacion" class="panel space-y-10">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div class="glass-panel rounded-[2rem] p-8 border border-fuchsia-500/20">
+                            <p class="text-[10px] font-black uppercase tracking-widest text-fuchsia-300">Pendientes</p>
+                            <p class="text-4xl font-black text-white mt-2" id="statContratacionPend">0</p>
+                            <p class="text-xs text-slate-400 mt-2">Candidatos listos para contrato</p>
+                        </div>
+                        <div class="glass-panel rounded-[2rem] p-8 border border-emerald-500/20">
+                            <p class="text-[10px] font-black uppercase tracking-widest text-emerald-300">Contratados</p>
+                            <p class="text-4xl font-black text-white mt-2" id="statContratacionDone">0</p>
+                            <p class="text-xs text-slate-400 mt-2">Proceso de alta completado</p>
+                        </div>
+                    </div>
+                    <section class="glass-panel rounded-[3rem] shadow-2xl border border-white/5 overflow-hidden">
+                        <div class="p-10 border-b border-white/5 bg-white/[0.02]">
+                            <h3 class="font-black text-white text-2xl tracking-tight">Checklist de contratación</h3>
+                            <p class="text-xs text-slate-400 font-semibold uppercase tracking-widest mt-1">Uniforme, EPP, reglamento interno y confidencialidad — Ma Baker and Chef</p>
+                        </div>
+                        <div class="p-8 grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6" id="contratacionGrid">
+                            <div class="col-span-full p-12 text-center text-slate-500">Cargando candidatos...</div>
+                        </div>
+                    </section>
+                    <section class="glass-panel rounded-[3rem] shadow-2xl border border-white/5 overflow-hidden">
+                        <div class="p-10 border-b border-white/5 bg-white/[0.02]">
+                            <h3 class="font-black text-white text-xl tracking-tight">Historial de contratados</h3>
+                        </div>
+                        <div class="overflow-x-auto min-h-[200px]" id="contratacionCompletados"></div>
                     </section>
                 </div>
 
@@ -837,6 +875,58 @@
         </div>
     </div>
 
+    <!-- MODAL CONTRATACIÓN (Fase 6) -->
+    <div id="modalContratacion" class="fixed inset-0 z-[200] hidden items-center justify-center p-4" role="dialog" aria-modal="true" aria-labelledby="contratacionCandidatoNombre">
+        <div class="absolute inset-0 bg-black/70 backdrop-blur-sm" id="btnCerrarModalContratacion"></div>
+        <div class="relative w-full max-w-lg glass-panel rounded-[2rem] border border-white/10 shadow-2xl overflow-hidden mb-modal-detail">
+            <div class="p-8 border-b border-white/5">
+                <p class="text-[10px] font-black uppercase tracking-widest text-fuchsia-300 mb-2">Contratación — Ma Baker and Chef</p>
+                <h3 class="text-xl font-black text-white" id="contratacionCandidatoNombre">Candidato</h3>
+                <input type="hidden" id="contratacionCandidatoId" value="">
+            </div>
+            <div class="p-8 space-y-5 max-h-[60vh] overflow-y-auto scroll-custom">
+                <label class="block text-xs font-black uppercase tracking-widest text-slate-400">Fecha de contratación</label>
+                <input type="date" id="contratacionFecha" class="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white text-sm">
+
+                <div class="space-y-4 pt-2">
+                    <div class="rounded-xl border border-white/10 p-4" data-contratacion-check="entrega_uniforme">
+                        <p class="text-sm font-bold text-white mb-3">👔 Entrega de uniforme</p>
+                        <div class="flex gap-2">
+                            <button type="button" class="flex-1 py-2 rounded-lg border border-white/10 text-xs font-bold" data-val="1" onclick="MB_CONTRATACION.setCheck('entrega_uniforme', true)">Completado</button>
+                            <button type="button" class="flex-1 py-2 rounded-lg border border-white/10 text-xs font-bold" data-val="0" onclick="MB_CONTRATACION.setCheck('entrega_uniforme', false)">Pendiente</button>
+                        </div>
+                    </div>
+                    <div class="rounded-xl border border-white/10 p-4" data-contratacion-check="entrega_epp">
+                        <p class="text-sm font-bold text-white mb-3">🦺 Entrega de EPP</p>
+                        <div class="flex gap-2">
+                            <button type="button" class="flex-1 py-2 rounded-lg border border-white/10 text-xs font-bold" data-val="1" onclick="MB_CONTRATACION.setCheck('entrega_epp', true)">Completado</button>
+                            <button type="button" class="flex-1 py-2 rounded-lg border border-white/10 text-xs font-bold" data-val="0" onclick="MB_CONTRATACION.setCheck('entrega_epp', false)">Pendiente</button>
+                        </div>
+                    </div>
+                    <div class="rounded-xl border border-white/10 p-4" data-contratacion-check="firma_reglamento">
+                        <p class="text-sm font-bold text-white mb-3">📋 Firma de reglamento interno</p>
+                        <div class="flex gap-2">
+                            <button type="button" class="flex-1 py-2 rounded-lg border border-white/10 text-xs font-bold" data-val="1" onclick="MB_CONTRATACION.setCheck('firma_reglamento', true)">Firmado</button>
+                            <button type="button" class="flex-1 py-2 rounded-lg border border-white/10 text-xs font-bold" data-val="0" onclick="MB_CONTRATACION.setCheck('firma_reglamento', false)">Pendiente</button>
+                        </div>
+                    </div>
+                    <div class="rounded-xl border border-white/10 p-4" data-contratacion-check="firma_confidencialidad">
+                        <p class="text-sm font-bold text-white mb-3">🔒 Firma de confidencialidad</p>
+                        <div class="flex gap-2">
+                            <button type="button" class="flex-1 py-2 rounded-lg border border-white/10 text-xs font-bold" data-val="1" onclick="MB_CONTRATACION.setCheck('firma_confidencialidad', true)">Firmado</button>
+                            <button type="button" class="flex-1 py-2 rounded-lg border border-white/10 text-xs font-bold" data-val="0" onclick="MB_CONTRATACION.setCheck('firma_confidencialidad', false)">Pendiente</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="p-6 border-t border-white/5 flex flex-wrap gap-3 justify-end mb-modal-footer--balanced">
+                <button type="button" class="mb-modal-btn px-6 py-3 rounded-xl bg-white/10 text-slate-300 text-xs font-black uppercase tracking-widest" onclick="MB_CONTRATACION.closeContratacionModal()">Cancelar</button>
+                <button type="button" id="btnGuardarContratacion" class="mb-modal-btn px-6 py-3 rounded-xl bg-mabaker-blue/20 text-mabaker-blue border border-mabaker-blue/30 text-xs font-black uppercase tracking-widest">Guardar avance</button>
+                <button type="button" id="btnFinalizarContratacion" class="mb-modal-btn px-6 py-3 rounded-xl bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 text-xs font-black uppercase tracking-widest">Finalizar contratación</button>
+            </div>
+        </div>
+    </div>
+
     <!-- VISOR DE DOCUMENTO (GLASSMORPHIC MODAL) -->
     <div id="modalVisor" class="fixed inset-0 z-[60] hidden flex items-center justify-center p-8">
         <div class="absolute inset-0 bg-dark-depth/95 backdrop-blur-2xl" onclick="cerrarVisor()"></div>
@@ -862,17 +952,18 @@
     <!-- Scripts Area -->
     <script src="js/auth.js"></script>
     <script src="js/candidates-api.js"></script>
-    <script src="js/vacantes-api.js"></script>
+    <script src="js/vacantes-api.js?v=20260619a"></script>
     <script type="module">
         import * as pdfjsLib from 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.2.67/pdf.min.mjs';
         pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.2.67/pdf.worker.min.mjs';
         window.pdfjsLib = pdfjsLib;
     </script>
     <script src="js/vacante-document-parser.js"></script>
-    <script src="js/job-description-format.js?v=20260616f"></script>
+    <script src="js/job-description-format.js?v=20260619a"></script>
     <script src="js/portal-vacante-config.js"></script>
     <script src="js/vacantes-pdf-upload.js"></script>
-    <script src="js/dashboard.js"></script>
+    <script src="js/contratacion-panel.js?v=20260619a"></script>
+    <script src="js/dashboard.js?v=20260619a"></script>
     <script>
         // Funciones auxiliares de UI para tabs del candidato y visor de documentos
         function cambiarTabCandidato(tab) {

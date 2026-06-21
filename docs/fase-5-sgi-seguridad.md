@@ -41,4 +41,4 @@ SQL Editor o MCP Supabase con el contenido de `database/migracion-fase5-sgi-segu
 
 ## Siguiente fase (Fase 6)
 
-Contratación: uniforme, EPP, firmas, `fase_actual = contratado`.
+Contratación implementada: panel **Contratación** en dashboard RRHH/Admin, checklist uniforme/EPP/firmas → `fase_actual = contratado`. Ver `docs/fase-6-contratacion.md`.

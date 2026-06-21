@@ -143,6 +143,15 @@
     return x.nombre_puesto || x.puesto || x.codigo_puesto || "-";
   }
 
+  function sortDescripcionesAlphabetically(list) {
+    if (window.MB_VACANTES?.sortVacantesAlphabetically) {
+      return window.MB_VACANTES.sortVacantesAlphabetically(list);
+    }
+    return [...(list || [])].sort((a, b) =>
+      resolveJobName(a).localeCompare(resolveJobName(b), "es", { sensitivity: "base", ignorePunctuation: true })
+    );
+  }
+
   function getWorkExperiences(c) {
     const fromDecision = Array.isArray(c?.decision_agente?.experiencia_laboral)
       ? c.decision_agente.experiencia_laboral
@@ -313,6 +322,17 @@
       });
     }
 
+    const contrato = c.filter((x) => (x.fase_actual || "") === "listo_para_contrato");
+    if (contrato.length) {
+      items.push({
+        id: "contrato",
+        panel: "contratacion",
+        title: `${contrato.length} listo(s) para contrato`,
+        desc: "Uniforme, EPP y firmas pendientes de RRHH",
+        tone: "fuchsia",
+      });
+    }
+
     return items;
   }
 
@@ -322,6 +342,7 @@
       blue: "bg-mabaker-blue/15 text-mabaker-blue border-mabaker-blue/20",
       purple: "bg-purple-500/15 text-purple-300 border-purple-500/20",
       emerald: "bg-emerald-500/15 text-emerald-300 border-emerald-500/20",
+      fuchsia: "bg-fuchsia-500/15 text-fuchsia-300 border-fuchsia-500/20",
     };
     return map[tone] || "bg-white/10 text-slate-300 border-white/10";
   }
@@ -464,6 +485,7 @@
       vacantes: "Catálogo de Puestos",
       rechazados: "Historial de Rechazos",
       logs: "Logs del Sistema",
+      contratacion: "Contratación",
       ajustes: "Ajustes del Sistema",
       pendientes: "Pendientes",
       evaluados: "Evaluados",
@@ -517,6 +539,11 @@
     }
     if (panel === "ajustes") {
       renderAjustesPanel();
+    }
+    if (panel === "contratacion") {
+      reloadCurrentRoleData().then(() => {
+        renderContratacionPanelFromState();
+      });
     }
     if (panel === "descripciones" || panel === "vacantes" || panel === "publicar" || panel === "logs") {
       reloadCurrentRoleData().then(() => {
@@ -633,6 +660,7 @@
     console.log("📋 loadRRHH: data loaded, rendering stats and tables...");
     renderRRHHStats();
     renderRRHHTables();
+    renderContratacionPanelFromState();
     updateNotificationBadge();
     console.log("📋 loadRRHH: rendering completed!");
   }
@@ -655,6 +683,16 @@
     setText("statPsico", c.filter((x) => (x.fase_actual || "").includes("psico")).length);
     setText("statVacantesActivas", v.filter((x) => x.activo === true).length);
     setText("statRechazados", r.length);
+  }
+
+  function renderContratacionPanelFromState() {
+    if (!window.MB_CONTRATACION) return;
+    const list = state.datasets.candidatos || [];
+    window.MB_CONTRATACION.syncCandidates(list);
+    const panel = byId("panel-contratacion");
+    if (panel && panel.classList.contains("active")) {
+      window.MB_CONTRATACION.renderContratacionPanel(list);
+    }
   }
 
   function setVacanteFilter(filter) {
@@ -803,7 +841,7 @@
   function renderPublicarPanel() {
     const el = byId("tablaPublicar");
     if (!el) return;
-    const all = state.datasets.vacantes || [];
+    const all = sortDescripcionesAlphabetically(state.datasets.vacantes || []);
     const counts = vacanteCounts();
     const countEl = byId("publicarCount");
     if (countEl) {
@@ -943,7 +981,7 @@
 
   function renderRRHHTables() {
     const c = rrhhCandidates();
-    const v = state.datasets.vacantes || [];
+    const v = sortDescripcionesAlphabetically(state.datasets.vacantes || []);
     const r = state.datasets.rechazados || [];
     const l = state.datasets.logs || [];
 
@@ -1901,6 +1939,9 @@
   window.cargarEvaluacionesCandidato = cargarEvaluacionesCandidato;
   window.initDashboard = initDashboard;
   window.reloadCurrentRoleData = reloadCurrentRoleData;
+  window.renderRRHHStats = renderRRHHStats;
+  window.updateNotificationBadge = updateNotificationBadge;
+  window.renderContratacionPanelFromState = renderContratacionPanelFromState;
   window.renderRRHHTables = renderRRHHTables;
   window.activarPanel = activarPanel;
   window.setVacanteFilter = setVacanteFilter;

@@ -21,7 +21,7 @@ Todo descriptivo visible al usuario (modal **Ver descripción**, `cargar-puestos
 | Parser HTML | `app/js/job-description-format.js` → `window.MB_JOB_DESC.formatHtml` |
 | Estilos documento | `app/js/theme.js` → `injectModalDetailStyles()` (clases `mb-job-*`) |
 | Modal RRHH/Admin | `#modalVerVacante` en `dashboard-rrhh.html` / `dashboard-admin.html` |
-| Caché script | `?v=20260616f` (subir al cambiar el formateador) |
+| Caché script | `?v=20260619a` (subir SIEMPRE al cambiar el formateador, en las 4 páginas) |
 
 ## Reglas de contenido (obligatorias)
 
@@ -34,6 +34,7 @@ Todo descriptivo visible al usuario (modal **Ver descripción**, `cargar-puestos
    - Responsabilidades concretas en `div.mb-job-bullet` (viñetas), no párrafos largos.
 5. **No emparejar oraciones como etiqueta:valor** — líneas que terminan en `.` y superan ~28 caracteres no son etiquetas de formulario.
 6. **Experiencia:** usar `1 año` / `N años` (no `1 años`).
+7. **VALORES EN MAYÚSCULAS (crítico):** muchos PDF traen etiqueta y valor en MAYÚSCULAS (`DEPARTAMENTO O ÁREA` / `LOGÍSTICA Y ADMINISTRACIÓN`). Las MAYÚSCULAS son formato, **no** estructura. Bajo una **etiqueta conocida** (`isKnownLabelLine`), la siguiente línea no vacía es su valor aunque esté en mayúsculas o sea corta/larga; solo se rechaza un **encabezado estructural real** (numerado `2.`, marcador de sección, corchetes). Ver `isLikelyFieldValue(label, value, labelIsKnown)`, `isStructuralHeader()` y `parseFieldLine()` (límite 320 para etiquetas conocidas). **Síntoma del bug:** la etiqueta queda como párrafo y el valor como subtítulo con barra azul (`mb-job-subsection-title`) en vez de fila `mb-job-field`.
 
 ## Checklist antes de dar por terminado
 
@@ -76,5 +77,6 @@ console.log(html.includes("mb-job-bullet"));
 | Párrafo único en MAYÚSCULAS | Sección + subtítulos + viñetas |
 | `onclick` con id escapado HTML | `data-vacante-action` + delegación en `dashboard.js` |
 | Modal abre después de `formatHtml` | Abrir modal primero; `try/catch` en formato |
+| Valor en MAYÚSCULAS tratado como subtítulo (barra azul) | Bajo etiqueta conocida, emparejar como `mb-job-field` aunque sea mayúsculas |
 | Etiquetas grises ilegibles en oscuro | Clases `mb-cfg-option-label` / `mb-job-field-label` en `theme.js` |
 | Tres botones a distinta altura | `mb-modal-btn` + `items-center` en footer |

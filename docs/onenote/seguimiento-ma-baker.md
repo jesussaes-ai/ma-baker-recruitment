@@ -5,7 +5,23 @@
 
 ---
 
-## 2026-06-16 — Descripciones vs vacantes (independientes)
+## 2026-06-19 — Descriptivos: etiqueta y valor contiguos
+
+- **Problema:** nombres de letrero y su información salían separados (valor en mayúsculas se veía como subtítulo azul).
+- **Arreglo:** formateador empareja `Etiqueta: valor` aunque el valor venga en MAYÚSCULAS; homogéneo en todo modal y portal.
+- **Acción usuario:** Ctrl+F5 (se subió versión de scripts `?v=20260619a`).
+- **Docs:** skill `descriptivo-puesto-legible`.
+
+---
+
+## 2026-06-14 — Fase 6 Contratación
+
+- **Panel:** dashboard RRHH/Admin → **Contratación** (uniforme, EPP, firmas, fecha).
+- **Migración:** `migracion-fase6-contratacion.sql` aplicada en Supabase.
+- **Validado:** pendiente prueba manual con candidato en `listo_para_contrato`.
+- **Docs:** `docs/fase-6-contratacion.md`
+
+---
 
 - **Descripciones de Puesto:** biblioteca permanente; editar/ver/eliminar; no desaparecen al publicar.
 - **Publicar vacantes:** modal con campos opcionales para candidatos (sueldo, escolaridad, etc.).
@@ -31,7 +47,7 @@
 - **Cambio:** `fn_candidatos_list` / `fn_candidato_update` con roles `sgi` y `seguridad`; dashboards dejan REST anon.
 - **Flujo:** `induccion_sgi` → `induccion_seguridad` → `listo_para_contrato`.
 - **SQL:** `database/migracion-fase5-sgi-seguridad.sql` (remota: `fase5_sgi_seguridad_rpc`).
-- **Pendiente:** Fase 6 contratación (uniforme, EPP, firmas).
+- **Pendiente:** prueba manual panel Contratación; `PSYCHOMETRIC_PUBLIC_URL` producción.
 - **Docs:** `docs/fase-5-sgi-seguridad.md`
 
 ---

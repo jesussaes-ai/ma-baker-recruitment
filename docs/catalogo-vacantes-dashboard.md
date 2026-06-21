@@ -39,7 +39,7 @@ Migración SQL: `database/migracion-vacantes-portal-campos.sql` (remota: `vacant
 
 ## Backend
 
-- Lectura admin/RRHH: RPC `fn_catalogo_puestos_list` (todas las descripciones).
+- Lectura admin/RRHH: RPC `fn_catalogo_puestos_list` (todas las descripciones, **orden alfabético por `nombre_puesto`**).
 - Lectura portal: REST `catalogo_puestos?activo=eq.true` (RLS).
 - Escritura: `fn_catalogo_puesto_insert` / `fn_catalogo_puesto_update` (incluye `portal_campos_visibles`).
 - Portal candidato (`index.html` + `app.js`): tarjetas respetan los mismos campos visibles; resumen con `job-description-format.js`.

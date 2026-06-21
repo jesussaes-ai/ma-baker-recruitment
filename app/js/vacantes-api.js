@@ -40,10 +40,25 @@
     return rpc("fn_catalogo_puesto_delete", { p_id: id });
   }
 
-  async function listVacantes() {
-    const data = await rpc("fn_catalogo_puestos_list", {});
-    return Array.isArray(data) ? data : [];
+  function sortVacantesAlphabetically(list) {
+    if (!Array.isArray(list)) return [];
+    return [...list].sort((a, b) => {
+      const nameA = String(a?.nombre_puesto || a?.puesto || a?.codigo_puesto || "").trim();
+      const nameB = String(b?.nombre_puesto || b?.puesto || b?.codigo_puesto || "").trim();
+      return nameA.localeCompare(nameB, "es", { sensitivity: "base", ignorePunctuation: true });
+    });
   }
 
-  window.MB_VACANTES = { updateVacante, insertVacante, deleteVacante, listVacantes };
+  async function listVacantes() {
+    const data = await rpc("fn_catalogo_puestos_list", {});
+    return sortVacantesAlphabetically(Array.isArray(data) ? data : []);
+  }
+
+  window.MB_VACANTES = {
+    updateVacante,
+    insertVacante,
+    deleteVacante,
+    listVacantes,
+    sortVacantesAlphabetically,
+  };
 })();

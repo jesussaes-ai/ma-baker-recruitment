@@ -142,9 +142,11 @@ Credenciales seed en `database/usuarios.sql` (solo desarrollo).
 23. Migración: `database/migracion-fase5-sgi-seguridad.sql` (aplicada remota)
 24. Docs: `docs/fase-5-sgi-seguridad.md`
 
-### Fase 6 — Contratación ⏳ pendiente
-25. Uniforme, EPP, firmas, documentos legales
-26. Transición final: `fase_actual = contratado`
+### Fase 6 — Contratación ✅ implementada
+25. RRHH/Admin (`dashboard-rrhh.html`, `dashboard-admin.html`): checklist uniforme, EPP, firmas
+26. Transición final: `fase_actual = contratado` (requiere 4 puntos completos)
+27. Migración: `database/migracion-fase6-contratacion.sql` (aplicada remota)
+28. Docs: `docs/fase-6-contratacion.md`
 
 ---
 
@@ -198,7 +200,7 @@ formulario_web
 ## Dashboards — capacidades recientes (jun-2026)
 
 - **Ajustes del Sistema:** sesión, tema claro/oscuro, accesos rápidos
-- **Campana notificaciones:** vacantes sin publicar, candidatos nuevos (7 días), psicométricos pendientes, fase médica
+- **Campana notificaciones:** vacantes sin publicar, candidatos nuevos (7 días), psicométricos pendientes, fase médica, listos para contrato
 - **Logs del sistema:** `fn_sistema_logs_list` (admin/rrhh) — unifica IA, postulaciones, vacantes
 - **Ayuda contextual:** `app/ayuda.html` + tooltips `data-help` + botón flotante
 - **Navegación global:** `navigation.js` (Atrás / Inicio)
@@ -335,7 +337,8 @@ Al terminar cada sesión de trabajo con impacto en el proyecto, el agente debe:
 
 - [ ] **NotebookLM:** pegar/actualizar este documento como fuente maestra en el cuaderno
 - [ ] **NotebookLM:** renombrar los 2 «Texto pegado» con títulos descriptivos
-- [x] **GitHub:** push `main` hasta `4b0265a` (2026-06-14)
+- [x] **GitHub:** push `main` hasta `cdb0f2d` (2026-06-14)
+- [ ] **GitHub:** commit/push Fase 6 contratación (cambios locales sin commit)
 - [ ] Producción: `PSYCHOMETRIC_PUBLIC_URL` con dominio real (no localhost)
 - [ ] Prueba manual carga .docx vacantes en entorno usuario
 

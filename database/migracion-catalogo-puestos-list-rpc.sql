@@ -26,7 +26,7 @@ begin
   return query
     select *
     from public.catalogo_puestos
-    order by creado_en desc nulls last, nombre_puesto asc;
+    order by lower(trim(coalesce(nombre_puesto, ''))) asc, lower(trim(coalesce(departamento, ''))) asc;
 end;
 $$;
 

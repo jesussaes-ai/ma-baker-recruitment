@@ -296,10 +296,14 @@
     const value = m[2].trim();
     if (!value || label.length < 2) return null;
     if (/^https?$/i.test(label)) return null;
-    if (value.length <= 24 && isMostlyUppercase(value)) return null;
     if (label.length > 52 && !isKnownLabelLine(label)) return null;
     if (!isFieldLabelLine(label) && !isKnownLabelLine(label)) return null;
-    if (value.length > 110) return null;
+    const known = isKnownLabelLine(label);
+    // Valores cortos en MAYÚSCULAS solo se descartan bajo etiqueta no conocida
+    // (en estos PDFs el valor real suele venir en mayúsculas).
+    if (value.length <= 24 && isMostlyUppercase(value) && !known) return null;
+    const maxLen = known ? 320 : 110;
+    if (value.length > maxLen) return null;
     return { label, value };
   }
 
@@ -403,19 +407,36 @@
     return isGenericFormLabel(t);
   }
 
-  function isLikelyFieldValue(labelLine, valueLine) {
+  /** Encabezado estructural real (numerado, marcador de sección, corchetes). */
+  function isStructuralHeader(value) {
+    const t = String(value || "").trim();
+    if (!t) return false;
+    if (/^\d+[.)]\s+/.test(t)) return true;
+    if (/^\[.+\]$/.test(t)) return true;
+    if (isSectionHeader(t)) return true;
+    return DENSE_SECTION_MARKERS.some(
+      (m) => normalizeLabelText(t).toUpperCase() === m.toUpperCase()
+    );
+  }
+
+  function isLikelyFieldValue(labelLine, valueLine, labelIsKnown) {
     const value = String(valueLine || "").trim();
     if (!value) return false;
     if (/[.!?]$/.test(String(labelLine || "").trim()) && String(labelLine || "").trim().length > 28) return false;
-    if (value.length > 110) return false;
-    if (isSectionHeader(value) || isSubsectionHeader(value)) return false;
+    // Etiquetas conocidas admiten valores más largos (p. ej. Horario detallado).
+    const maxLen = labelIsKnown ? 320 : 110;
+    if (value.length > maxLen) return false;
+    // Solo se rechaza un encabezado estructural real. Las MAYÚSCULAS son
+    // formato del PDF, no estructura: el valor sigue siendo el valor.
+    if (isStructuralHeader(value)) return false;
+    if (!labelIsKnown && isSubsectionHeader(value)) return false;
     if (parseFieldLine(value)) return false;
     if (isKnownLabelLine(value)) return false;
 
     const label = normalizeLabelText(labelLine);
     if (value.toLowerCase() === label.toLowerCase()) return false;
 
-    if (isFieldLabelLine(value) && !looksLikeStandaloneValue(value)) {
+    if (!labelIsKnown && isFieldLabelLine(value) && !looksLikeStandaloneValue(value)) {
       if (isKnownLabelLine(value) || LABEL_HINT_RE.test(value)) return false;
     }
     return true;
@@ -432,8 +453,9 @@
   function tryPairField(labelLine, lines, lineIndex) {
     const label = normalizeLabelText(labelLine);
     if (!isFieldLabelLine(label)) return null;
+    const labelIsKnown = isKnownLabelLine(label);
     const next = nextNonEmptyLine(lines, lineIndex);
-    if (!next || !isLikelyFieldValue(label, next.text)) return null;
+    if (!next || !isLikelyFieldValue(label, next.text, labelIsKnown)) return null;
     return { label, value: next.text, skipTo: next.index };
   }
 

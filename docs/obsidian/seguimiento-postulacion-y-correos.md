@@ -143,6 +143,29 @@ El envío real debe resolverse en backend/servicio seguro (Edge Function, API in
 - **UI:** pie modal alineado (`mb-modal-footer--balanced`); experiencia «1 año» / «N años».
 - **Commit:** `f21e20a` en `main` (2026-06-14). **Push remoto:** `main` en GitHub hasta `1d29b05`.
 
+## Sesión 2026-06-19 — Descriptivos con valores en MAYÚSCULAS (etiqueta:valor contiguo)
+
+- **Síntoma:** en el modal Ver descripción, etiqueta y valor salían en bloques separados; el valor se pintaba como subtítulo (barra azul) cuando el PDF traía todo en MAYÚSCULAS (ej. `DEPARTAMENTO O ÁREA` / `LOGÍSTICA Y ADMINISTRACIÓN`).
+- **Causa:** `job-description-format.js` rechazaba el valor por parecer "subtítulo" solo por estar en mayúsculas (`isLikelyFieldValue` / `parseFieldLine`).
+- **Arreglo:** bajo etiqueta conocida, la siguiente línea es el valor aunque esté en mayúsculas o sea larga; solo se rechaza encabezado estructural real (numerado/marcador). Nuevas reglas `isStructuralHeader`, `labelIsKnown`, límite 320 chars.
+- **Verificado:** prueba Node con el texto real de ambos descriptivos → todos los campos como `mb-job-field` contiguos.
+- **Caché:** script bump `?v=20260619a` en dashboard-rrhh, dashboard-admin, index, cargar-puestos (+ versión en dashboard.js y vacantes-api.js). **Ctrl+F5 obligatorio.**
+- **Skill:** `.cursor/skills/descriptivo-puesto-legible/SKILL.md` (regla 7).
+
+## Sesión 2026-06-14 — Orden alfabético descripciones
+
+- **Biblioteca Descripciones de Puesto:** listado A→Z por `nombre_puesto` (es-MX) en dashboard, Publicar vacantes y RPC `fn_catalogo_puestos_list`.
+- **Migración:** `database/migracion-catalogo-puestos-orden-alfabetico.sql` (aplicada en Supabase).
+- **Validar:** Ctrl+F5 en dashboard → Descripciones de Puesto.
+
 ## Sesión 2026-06-14 — Portal candidato alineado con campos de vacante
 
 - **Portal (`index.html`):** tarjetas respetan `portal_campos_visibles`; chips conocimientos/competencias; resumen legible con `job-description-format.js`.
+
+## Sesión 2026-06-14 — Fase 6 Contratación
+
+- **Panel RRHH/Admin:** menú **Contratación** — checklist uniforme, EPP, reglamento, confidencialidad + fecha de alta.
+- **RPC:** `fn_candidato_update` actualizado (`database/migracion-fase6-contratacion.sql`, aplicada en Supabase).
+- **UI:** `app/js/contratacion-panel.js`; notificación campana para candidatos `listo_para_contrato`.
+- **Docs:** `docs/fase-6-contratacion.md`
+- **Validar:** Ctrl+F5 → login RRHH → Contratación → finalizar con los 4 puntos marcados.

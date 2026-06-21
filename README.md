@@ -71,6 +71,7 @@ Abrir en Cursor: **File → Open Folder** → ruta del clon local. Actualizar: `
 - Fase 3 psicométricos (link automático al promovido): `docs/fase-3-psicometricos.md`.
 - Fase 4 médico + jefe (transición de fases y RPC dashboards): `docs/fase-4-medico-jefe.md`.
 - Fase 5 SGI + Seguridad (inducción vía RPC): `docs/fase-5-sgi-seguridad.md`.
+- Fase 6 Contratación (uniforme, EPP, firmas, checklist RRHH): `docs/fase-6-contratacion.md`.
 - Catálogo de vacantes en dashboard (ver descripción, editar, subir PDF/Word/Excel): `docs/catalogo-vacantes-dashboard.md`.
 - Portal candidato (`index.html`): tarjetas respetan `portal_campos_visibles` (descripción, escolaridad, experiencia, edad, sueldo, conocimientos, competencias); resumen legible vía `job-description-format.js`.
 - Formato legible descriptivos RRHH (modal Ver descripción): skill `.cursor/skills/descriptivo-puesto-legible/SKILL.md`.
