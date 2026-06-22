@@ -1,7 +1,7 @@
 # Estado del Proyecto — Ma Baker and Chef
 ## Sistema de Reclutamiento y Selección de Personal Automatizado
 
-**Actualizado:** 2026-06-16  
+**Actualizado:** 2026-06-21  
 **Versión operativa:** 2.1 (In-House Supabase, sin GoHighLevel)  
 **GitHub:** https://github.com/jesussaes-ai/ma-baker-recruitment  
 **Supabase project ref:** `znskpdixdyxdbvpapqrg`  
@@ -253,6 +253,13 @@ URLs con o sin `.html` (ej. `/login` y `/login.html` funcionan igual):
 - Supabase, Vercel, Superpowers, antigravity-awesome-skills
 - Instalación: `docs/agent-skills-setup.md`
 
+### Herramientas de desarrollo (entorno, todos los proyectos)
+- **Repomix** (`npm install -g repomix`, v1.15.0): empaqueta un repo en un archivo único para IA (auditoría, contexto, revisión).
+- Config global: `%LOCALAPPDATA%\Repomix\repomix.config.json` (salida Markdown, security check ON).
+- Integrado como servidor MCP en Cursor (`~/.cursor/mcp.json` → `repomix --mcp`); reiniciar Cursor para activarlo.
+- Uso: `repomix`, `repomix --compress`, `repomix --remote user/repo`, `repomix --copy`.
+- Docs: `docs/herramienta-repomix.md`
+
 ### Documentos técnicos clave
 - `docs/CONTEXTO.md` — contexto completo (actualizar fecha al editar)
 - `docs/obsidian/seguimiento-postulacion-y-correos.md` — operación diaria
@@ -311,8 +318,9 @@ Al terminar cada sesión de trabajo con impacto en el proyecto, el agente debe:
 2. Actualizar `docs/obsidian/seguimiento-postulacion-y-correos.md`.
 3. Actualizar espejo `docs/onenote/seguimiento-ma-baker.md`.
 4. Enlazar o nota breve en `README.md` si hay doc nuevo.
-5. Indicar al usuario si debe **pegar de nuevo** en NotebookLM (solo cuando cambie arquitectura, fases o flujos).
-6. GitHub: commit/push solo si el usuario lo pide.
+5. Registrar también **herramientas de entorno/flujo** (CLI, MCP, skills globales) aquí y en Obsidian/OneNote, aunque no cambien la arquitectura del producto, para mantener el inventario siempre actualizado.
+6. Indicar al usuario si debe **pegar de nuevo** en NotebookLM (siempre que cambie arquitectura, fases, flujos o el inventario de herramientas).
+7. GitHub: commit/push solo si el usuario lo pide.
 
 ### Histórico — fuentes ya eliminadas (sesión jun-2026)
 
@@ -338,7 +346,8 @@ Al terminar cada sesión de trabajo con impacto en el proyecto, el agente debe:
 - [ ] **NotebookLM:** pegar/actualizar este documento como fuente maestra en el cuaderno
 - [ ] **NotebookLM:** renombrar los 2 «Texto pegado» con títulos descriptivos
 - [x] **GitHub:** push `main` hasta `cdb0f2d` (2026-06-14)
-- [ ] **GitHub:** commit/push Fase 6 contratación (cambios locales sin commit)
+- [x] **GitHub:** commit/push Fase 6 contratación (`95aec4c`, 2026-06-21)
+- [ ] **NotebookLM:** re-pegar fuente maestra actualizada (incluye Herramientas de desarrollo · Repomix, 2026-06-21)
 - [ ] Producción: `PSYCHOMETRIC_PUBLIC_URL` con dominio real (no localhost)
 - [ ] Prueba manual carga .docx vacantes en entorno usuario
 
