@@ -79,6 +79,7 @@ Abrir en Cursor: **File → Open Folder** → ruta del clon local. Actualizar: `
 - Ayuda contextual actualizada: `app/ayuda.html` + tooltips `data-help` en dashboards.
 - Espejo OneNote (seguimiento operativo): `docs/onenote/seguimiento-ma-baker.md`.
 - **NotebookLM** (cuaderno + inventario): `docs/notebooklm-estado-proyecto-jun-2026.md` — actualizar al cierre de cada sesión; pegar en cuaderno si cambia arquitectura/flujo.
+- Repomix (empaquetar repo para IA; instalación global + MCP en Cursor): `docs/herramienta-repomix.md`.
 - Skill de cierre documental (Obsidian + README + OneNote + GitHub): `.cursor/skills/documentacion-cierre-ma-baker/SKILL.md`.
 - Skills personales globales (auto-aprendizaje): `~/.cursor/skills/auto-skill-from-learning/`.
 

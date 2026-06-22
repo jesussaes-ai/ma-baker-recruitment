@@ -5,6 +5,17 @@
 
 ---
 
+## 2026-06-21 — Repomix (herramienta para todos los proyectos)
+
+- **Qué:** empaqueta un repositorio completo en un archivo único optimizado para IA.
+- **Instalación:** global con `npm install -g repomix` (v1.15.0); comando `repomix` en cualquier carpeta.
+- **Config global:** salida Markdown, revisión de seguridad activada, ignora salidas y carpetas de build.
+- **Cursor:** agregado como servidor MCP global (`~/.cursor/mcp.json`); **reiniciar Cursor** para usarlo desde el chat.
+- **Uso típico:** `repomix` (proyecto actual) · `repomix --remote user/repo` (repo remoto) · `repomix --copy` (al portapapeles).
+- **Docs:** `docs/herramienta-repomix.md`
+
+---
+
 ## 2026-06-19 — Descriptivos: etiqueta y valor contiguos
 
 - **Problema:** nombres de letrero y su información salían separados (valor en mayúsculas se veía como subtítulo azul).

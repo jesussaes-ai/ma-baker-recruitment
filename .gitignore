@@ -16,6 +16,9 @@ skills-lock.json
 # Supabase CLI temporal
 supabase/.temp/
 
+# Repomix (salidas generadas)
+repomix-output.*
+
 # Sistema
 .DS_Store
 Thumbs.db

@@ -169,3 +169,13 @@ El envío real debe resolverse en backend/servicio seguro (Edge Function, API in
 - **UI:** `app/js/contratacion-panel.js`; notificación campana para candidatos `listo_para_contrato`.
 - **Docs:** `docs/fase-6-contratacion.md`
 - **Validar:** Ctrl+F5 → login RRHH → Contratación → finalizar con los 4 puntos marcados.
+
+## Sesión 2026-06-21 — Repomix (herramienta de flujo, todos los proyectos)
+
+- **Qué:** Repomix empaqueta cualquier repo en un solo archivo para IA (auditoría, contexto del agente, revisión).
+- **Instalación global:** `npm install -g repomix` (v1.15.0); comando `repomix` disponible en todos los proyectos.
+- **Config global:** `%LOCALAPPDATA%\Repomix\repomix.config.json` — salida Markdown, security check ON, ignora `dist/build/coverage/*.lock/repomix-output.*`.
+- **MCP Cursor:** registrado en `~/.cursor/mcp.json` (`cmd /c npx -y repomix --mcp`); **reiniciar Cursor** para activarlo.
+- **`.gitignore`:** se agregó `repomix-output.*` para no subir salidas generadas.
+- **Uso:** `repomix` · `repomix --compress` · `repomix --remote user/repo` · `repomix --copy`.
+- **Docs:** `docs/herramienta-repomix.md`
