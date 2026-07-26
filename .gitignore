@@ -19,6 +19,13 @@ supabase/.temp/
 # Repomix (salidas generadas)
 repomix-output.*
 
+# Auditorías locales (Playwright / reportes)
+tmp/
+
 # Sistema
 .DS_Store
 Thumbs.db
+.cursor/hooks/telegram-approval.config.json
+.cursor/hooks/.telegram-approval.*
+.cursor/hooks/.telegram-inbox.json
+.cursor/hooks/.telegram-agent-*

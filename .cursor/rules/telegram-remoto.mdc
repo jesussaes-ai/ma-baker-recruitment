@@ -1,0 +1,22 @@
+---
+description: Telegram remoto — resúmenes, autorizaciones, preguntas y acciones
+alwaysApply: true
+---
+
+# Telegram en este proyecto (Ma Baker Recruitment)
+
+Skill canónica: `C:\Users\jesus\.cursor\skills\telegram-remoto-cursor\SKILL.md`
+
+## Obligatorio
+
+- Resúmenes al cerrar turnos con avances → Telegram.
+- **Toda autorización sensible** (commit, push, SSH, borrados, producción, migraciones Supabase, despliegues Edge, secretos) → pedir confirmación **por Telegram** (botones ✅/⛔ o mensaje explícito), no solo en el chat de Cursor.
+- Preguntas/acciones remotas vía `scripts/telegram-agente.mjs`.
+- Sin secretos, tokens ni contraseñas en Telegram.
+- Si falta el cableado: instalar con `setup-telegram-bridge.ps1` de la skill global (o copia manual desde plantillas).
+
+## Local
+
+- Envío: `node .cursor/hooks/telegram-approval.mjs send`
+- Hooks: `.cursor/hooks.json` → `beforeShellExecution` / `beforeMCPExecution`
+- Config local (no git): `.cursor/hooks/telegram-approval.config.json`

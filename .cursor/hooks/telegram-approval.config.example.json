@@ -1,0 +1,7 @@
+{
+  "botToken": "PON_AQUI_EL_TOKEN_DE_BOTFATHER",
+  "chatId": "PON_AQUI_TU_CHAT_ID",
+  "mode": "sensitive",
+  "timeoutSeconds": 180,
+  "onTimeout": "ask"
+}

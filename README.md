@@ -82,6 +82,7 @@ Abrir en Cursor: **File → Open Folder** → ruta del clon local. Actualizar: `
 - Repomix (empaquetar repo para IA; instalación global + MCP en Cursor): `docs/herramienta-repomix.md`.
 - Skill de cierre documental (Obsidian + README + OneNote + GitHub): `.cursor/skills/documentacion-cierre-ma-baker/SKILL.md`.
 - Skills personales globales (auto-aprendizaje): `~/.cursor/skills/auto-skill-from-learning/`.
+- **Auditoría readiness (2026-07-25):** `docs/auditoria-readiness-2026-07-25.md` — noche: **listo con reservas** (falta URL psicométrica de producción + E2E); scripts `npm run audit:readiness` / `npm run audit:ui-deep`.
 
 ### Carga documental opcional para candidatos >= 80%
 

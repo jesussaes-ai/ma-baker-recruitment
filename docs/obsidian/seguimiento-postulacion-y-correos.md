@@ -170,6 +170,23 @@ El envío real debe resolverse en backend/servicio seguro (Edge Function, API in
 - **Docs:** `docs/fase-6-contratacion.md`
 - **Validar:** Ctrl+F5 → login RRHH → Contratación → finalizar con los 4 puntos marcados.
 
+## Sesión 2026-07-25 (noche) — Paquete go-live (Telegram ✅)
+
+- **Autorización:** aprobada por Telegram (paquete go-live).
+- **Hecho:**
+  1. Migración `fix_rechazados_token_sesion` aplicada en Supabase.
+  2. Edge `upload-candidato-document` desplegada (responde 400 sin campos = viva).
+  3. Correos: probe 200 vía SMTP (`mabakerandchef.com`).
+  4. Vacantes activas: 10 (portal OK).
+- **Re-auditoría:** 46 PASS / 0 FAIL / 1 WARN → **LISTO_CON_RESERVAS**.
+- **Pendiente:** `PSYCHOMETRIC_PUBLIC_URL` con dominio real; E2E candidato; NotebookLM; commit/push si se pide.
+- **Hooks:** `.cursor/hooks.json` apunta al puente Telegram del hub Ma Baker CRM (mismo bot, un solo listener).
+
+## Sesión 2026-07-25 (mañana) — Auditoría readiness (pruebas físicas)
+
+- **Veredicto inicial:** NO LISTO (luego corregido en la noche).
+- **Docs/scripts:** `docs/auditoria-readiness-2026-07-25.md`, `scripts/audit-readiness.mjs`, `scripts/audit-ui-deep.mjs`.
+
 ## Sesión 2026-06-21 — Repomix (herramienta de flujo, todos los proyectos)
 
 - **Qué:** Repomix empaqueta cualquier repo en un solo archivo para IA (auditoría, contexto del agente, revisión).

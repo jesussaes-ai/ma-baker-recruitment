@@ -1,0 +1,19 @@
+{
+  "version": 1,
+  "hooks": {
+    "beforeShellExecution": [
+      {
+        "command": "node C:/Users/jesus/Proyectos/ma-baker-crm/.cursor/hooks/telegram-approval.mjs shell",
+        "timeout": 660,
+        "failClosed": true
+      }
+    ],
+    "beforeMCPExecution": [
+      {
+        "command": "node C:/Users/jesus/Proyectos/ma-baker-crm/.cursor/hooks/telegram-approval.mjs mcp",
+        "timeout": 660,
+        "failClosed": true
+      }
+    ]
+  }
+}

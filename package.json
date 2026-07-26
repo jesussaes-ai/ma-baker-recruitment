@@ -1,0 +1,33 @@
+{
+  "name": "ma-baker-recruitment",
+  "version": "1.0.0",
+  "description": "Este proyecto implementa un sistema agéntico avanzado para automatizar el proceso de reclutamiento, validación y onboarding de talento en Ma Baker and Chef.",
+  "main": "index.js",
+  "directories": {
+    "doc": "docs"
+  },
+  "scripts": {
+    "audit:readiness": "node scripts/audit-readiness.mjs",
+    "audit:ui-deep": "node scripts/audit-ui-deep.mjs",
+    "repair:production": "node scripts/repair-production.mjs",
+    "sync:edge-secrets": "node scripts/sync-edge-secrets.mjs"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/jesussaes-ai/ma-baker-recruitment.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/jesussaes-ai/ma-baker-recruitment/issues"
+  },
+  "homepage": "https://github.com/jesussaes-ai/ma-baker-recruitment#readme",
+  "dependencies": {
+    "@cursor/sdk": "^1.0.24"
+  },
+  "devDependencies": {
+    "playwright": "^1.54.1"
+  }
+}

@@ -5,6 +5,16 @@
 
 ---
 
+## 2026-07-25 (noche) — Go-live parcial (Telegram ✅)
+
+- Migración RPC rechazos aplicada; Edge upload desplegada; correos SMTP OK; 10 vacantes activas.
+- Re-auditoría: **LISTO_CON_RESERVAS** (falta URL psicométrica de producción + E2E).
+- Doc: `docs/auditoria-readiness-2026-07-25.md`
+
+## 2026-07-25 (mañana) — Auditoría readiness (NO LISTO)
+
+- Hallazgos iniciales corregidos en la noche (ver entrada anterior).
+
 ## 2026-06-21 — Repomix (herramienta para todos los proyectos)
 
 - **Qué:** empaqueta un repositorio completo en un archivo único optimizado para IA.

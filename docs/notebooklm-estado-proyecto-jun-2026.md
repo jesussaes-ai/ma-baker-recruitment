@@ -1,8 +1,9 @@
 # Estado del Proyecto — Ma Baker and Chef
 ## Sistema de Reclutamiento y Selección de Personal Automatizado
 
-**Actualizado:** 2026-06-21  
+**Actualizado:** 2026-07-25  
 **Versión operativa:** 2.1 (In-House Supabase, sin GoHighLevel)  
+**Readiness:** LISTO_CON_RESERVAS (2026-07-25 noche) — ver `docs/auditoria-readiness-2026-07-25.md`  
 **GitHub:** https://github.com/jesussaes-ai/ma-baker-recruitment  
 **Supabase project ref:** `znskpdixdyxdbvpapqrg`  
 **URL Supabase:** https://znskpdixdyxdbvpapqrg.supabase.co
@@ -341,15 +342,22 @@ Al terminar cada sesión de trabajo con impacto en el proyecto, el agente debe:
 
 ---
 
-## Pendientes activos (jun-2026)
+## Pendientes activos (jul-2026)
 
+- [x] **Go-live:** correos (SMTP OK en probe 2026-07-25 noche)
+- [x] **Go-live:** vacantes activas en portal (10)
+- [x] **Go-live:** migración `fix_rechazados_token_sesion`
+- [x] **Go-live:** Edge `upload-candidato-document` desplegada
+- [x] Login: `config.js` + `runtime-config.js` en `login.html`
+- [ ] Producción: `PSYCHOMETRIC_PUBLIC_URL` / `POSTULACION_PUBLIC_URL` con dominio real
+- [ ] Crear usuario rol `seguridad` si se usará ese dashboard
+- [ ] Prueba E2E postulación → contratación con candidato real de prueba
 - [ ] **NotebookLM:** pegar/actualizar este documento como fuente maestra en el cuaderno
 - [ ] **NotebookLM:** renombrar los 2 «Texto pegado» con títulos descriptivos
 - [x] **GitHub:** push `main` hasta `cdb0f2d` (2026-06-14)
 - [x] **GitHub:** commit/push Fase 6 contratación (`95aec4c`, 2026-06-21)
-- [ ] **NotebookLM:** re-pegar fuente maestra actualizada (incluye Herramientas de desarrollo · Repomix, 2026-06-21)
-- [ ] Producción: `PSYCHOMETRIC_PUBLIC_URL` con dominio real (no localhost)
-- [ ] Prueba manual carga .docx vacantes en entorno usuario
+- [x] **Auditoría:** 2026-07-25 — `docs/auditoria-readiness-2026-07-25.md` (re-audit noche: LISTO_CON_RESERVAS)
+
 
 ---
 

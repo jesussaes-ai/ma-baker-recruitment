@@ -9,12 +9,17 @@ const CORS_HEADERS = {
 const RESEND_API_KEY = Deno.env.get("RESEND_API_KEY") || "";
 const POSTMARK_SERVER_TOKEN = Deno.env.get("POSTMARK_SERVER_TOKEN") || "";
 const BREVO_API_KEY = Deno.env.get("BREVO_API_KEY") || "";
+const SMTP_HOST = Deno.env.get("SMTP_HOST") || "";
+const SMTP_PORT = Number(Deno.env.get("SMTP_PORT") || "587");
+const SMTP_SECURE = (Deno.env.get("SMTP_SECURE") || "false").toLowerCase() === "true";
+const SMTP_USER = Deno.env.get("SMTP_USER") || "";
+const SMTP_PASSWORD = Deno.env.get("SMTP_PASSWORD") || "";
 const GOOGLE_CLIENT_ID = Deno.env.get("GOOGLE_CLIENT_ID") || "";
 const GOOGLE_CLIENT_SECRET = Deno.env.get("GOOGLE_CLIENT_SECRET") || "";
 const GOOGLE_REFRESH_TOKEN = Deno.env.get("GOOGLE_REFRESH_TOKEN") || "";
 const GMAIL_SENDER_EMAIL = Deno.env.get("GMAIL_SENDER_EMAIL") || "";
 const MAIL_FROM = Deno.env.get("MAIL_FROM") || "Ma Baker and Chef <no-reply@mabakerandchef.com>";
-const EMAIL_PROVIDER_PRIORITY = (Deno.env.get("EMAIL_PROVIDER_PRIORITY") || "gmail,resend,postmark,brevo")
+const EMAIL_PROVIDER_PRIORITY = (Deno.env.get("EMAIL_PROVIDER_PRIORITY") || "smtp,gmail,resend,postmark,brevo")
   .split(",")
   .map((v) => v.trim().toLowerCase())
   .filter(Boolean);
@@ -58,6 +63,9 @@ function hasProviderCredentials(provider: string): boolean {
   if (provider === "resend") return !!RESEND_API_KEY;
   if (provider === "postmark") return !!POSTMARK_SERVER_TOKEN;
   if (provider === "brevo") return !!BREVO_API_KEY;
+  if (provider === "smtp") {
+    return !!SMTP_HOST && !!SMTP_USER && !!SMTP_PASSWORD;
+  }
   return false;
 }
 
@@ -205,7 +213,31 @@ async function sendWithBrevo(payload: { to: string[]; subject: string; text?: st
   return { ok: true, provider: "brevo", id: data?.messageId || null, detail: data };
 }
 
+async function sendWithSmtp(payload: { to: string[]; subject: string; text?: string; html?: string; }): Promise<SendResult> {
+  const nodemailer = await import("npm:nodemailer@6.9.16");
+  const transport = nodemailer.default.createTransport({
+    host: SMTP_HOST,
+    port: SMTP_PORT,
+    secure: SMTP_SECURE,
+    auth: { user: SMTP_USER, pass: SMTP_PASSWORD },
+  });
+  const info = await transport.sendMail({
+    from: MAIL_FROM || SMTP_USER,
+    to: payload.to.join(", "),
+    subject: payload.subject.slice(0, 140),
+    text: payload.text || undefined,
+    html: payload.html || undefined,
+  });
+  return {
+    ok: true,
+    provider: "smtp",
+    id: info.messageId || null,
+    detail: { accepted: info.accepted, rejected: info.rejected },
+  };
+}
+
 async function sendWithProvider(provider: string, payload: { to: string[]; subject: string; text?: string; html?: string; }) {
+  if (provider === "smtp") return sendWithSmtp(payload);
   if (provider === "gmail") return sendWithGmail(payload);
   if (provider === "resend") return sendWithResend(payload);
   if (provider === "postmark") return sendWithPostmark(payload);
@@ -227,7 +259,7 @@ serve(async (req) => {
     return json({
       ok: false,
       error: "missing_email_provider_credentials",
-      detail: "Configura al menos una: GOOGLE_CLIENT_ID/GOOGLE_CLIENT_SECRET/GOOGLE_REFRESH_TOKEN/GMAIL_SENDER_EMAIL, RESEND_API_KEY, POSTMARK_SERVER_TOKEN o BREVO_API_KEY",
+      detail: "Configura al menos una: SMTP_HOST/SMTP_USER/SMTP_PASSWORD, GOOGLE_*, RESEND_API_KEY, POSTMARK_SERVER_TOKEN o BREVO_API_KEY",
     }, 500);
   }
 

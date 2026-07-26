@@ -33,6 +33,7 @@
     role: null,
     resources: [],
     datasets: {},
+    loadErrors: {},
     filteredCandidates: null,
     vacanteFilter: "todas",
     vacantesViewMode: "descripciones",
@@ -629,6 +630,7 @@
   async function loadRRHH(resources) {
     console.log("📋 loadRRHH: starting...");
     const map = {};
+    const errors = {};
     await Promise.all(
       resources.map(async (r) => {
         try {
@@ -637,25 +639,27 @@
             return;
           }
           if (r.id === "rechazados" && window.MB_CANDIDATES && localStorage.getItem("mb_token")) {
-            map[r.id] = await window.MB_CANDIDATES.listRejected().catch(() => []);
+            map[r.id] = await window.MB_CANDIDATES.listRejected();
             return;
           }
           if (r.id === "logs" && window.MB_CANDIDATES && localStorage.getItem("mb_token")) {
-            map[r.id] = await window.MB_CANDIDATES.listSystemLogs(50).catch(() => []);
+            map[r.id] = await window.MB_CANDIDATES.listSystemLogs(50);
             return;
           }
           if (r.id === "vacantes" && window.MB_VACANTES && localStorage.getItem("mb_token")) {
-            map[r.id] = await window.MB_VACANTES.listVacantes().catch(() => []);
+            map[r.id] = await window.MB_VACANTES.listVacantes();
             return;
           }
           const data = await supaGet(r.endpoint);
           map[r.id] = data;
         } catch (e) {
           console.error("📋 loadRRHH: failed for " + r.id, e);
+          errors[r.id] = e.message || String(e);
           map[r.id] = [];
         }
       })
     );
+    state.loadErrors = errors;
     state.datasets = map;
     console.log("📋 loadRRHH: data loaded, rendering stats and tables...");
     renderRRHHStats();
@@ -1250,7 +1254,18 @@
         );
       }
     }
-    if (byId("tablaRechazados")) byId("tablaRechazados").innerHTML = table(["Candidato", "Vacante Aplicada", "Score", "Motivo de Descarte", "Fecha"], rRows);
+    if (byId("tablaRechazados")) {
+      const rechazoErr = state.loadErrors && state.loadErrors.rechazados;
+      if (rechazoErr) {
+        byId("tablaRechazados").innerHTML = `<div class="p-8 text-center space-y-2">
+          <p class="text-rose-400 font-bold">No se pudo cargar el historial de rechazos</p>
+          <p class="text-xs text-slate-400 max-w-xl mx-auto">${esc(rechazoErr)}</p>
+          <p class="text-xs text-slate-500">Si el error menciona <code class="text-amber-300">sesion_token</code>, aplica en Supabase el SQL <code class="text-amber-300">database/migracion-fix-rechazados-token-sesion.sql</code>.</p>
+        </div>`;
+      } else {
+        byId("tablaRechazados").innerHTML = table(["Candidato", "Vacante Aplicada", "Score", "Motivo de Descarte", "Fecha"], rRows);
+      }
+    }
     if (byId("tablaLogs")) {
       const logsHtml = l.length
         ? table(["Evento / Operación", "Actor / Usuario", "Detalle", "Fecha de Registro"], lRows)
