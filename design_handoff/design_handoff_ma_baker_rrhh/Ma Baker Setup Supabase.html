@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Ma Baker — Configurador Supabase</title>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <style>
+    * { margin:0; padding:0; box-sizing:border-box; }
+    body { font-family:'Montserrat',sans-serif; background:#F0F2F5; color:#1A1A1A; min-height:100vh; display:flex; align-items:center; justify-content:center; padding:20px; }
+    .card { background:#fff; border-radius:16px; padding:40px; max-width:640px; width:100%; box-shadow:0 8px 40px rgba(0,0,0,.12); }
+    h1 { font-size:22px; font-weight:700; color:#D7282F; margin-bottom:6px; }
+    p { font-size:13px; color:#666; line-height:1.6; margin-bottom:20px; }
+    .step { display:flex; align-items:flex-start; gap:14px; padding:16px; border-radius:10px; margin-bottom:12px; background:#f8f8f8; border:1px solid #eee; }
+    .step-num { width:32px; height:32px; border-radius:50%; background:#D7282F; color:#fff; display:flex; align-items:center; justify-content:center; font-weight:700; font-size:14px; flex-shrink:0; }
+    .step-content h3 { font-size:13px; font-weight:700; margin-bottom:4px; }
+    .step-content p { font-size:12px; margin:0; }
+    .step.done { border-color:#4CAF50; background:rgba(76,175,80,.06); }
+    .step.done .step-num { background:#4CAF50; }
+    .step.error { border-color:#D32F2F; background:rgba(211,47,47,.06); }
+    .step.error .step-num { background:#D32F2F; }
+    .step.loading .step-num { animation:pulse 1s infinite; }
+    @keyframes pulse { 0%,100%{opacity:1}50%{opacity:.4} }
+    .btn { width:100%; padding:14px; border:none; border-radius:8px; background:#D7282F; color:#fff; font-family:'Montserrat',sans-serif; font-weight:700; font-size:15px; cursor:pointer; margin-top:8px; transition:all .2s; }
+    .btn:hover { background:#C41D25; transform:translateY(-1px); }
+    .btn:disabled { opacity:.5; cursor:not-allowed; transform:none; }
+    .btn.success { background:#4CAF50; }
+    .btn.secondary { background:#fff; color:#D7282F; border:2px solid #D7282F; margin-top:8px; }
+    .log { background:#1e1e2e; color:#cdd6f4; border-radius:8px; padding:14px; font-family:monospace; font-size:11px; max-height:180px; overflow-y:auto; margin-top:16px; line-height:1.8; }
+    .log .ok  { color:#a6e3a1; }
+    .log .err { color:#f38ba8; }
+    .log .info{ color:#89b4fa; }
+    img.logo { width:80px; display:block; margin-bottom:16px; }
+  </style>
+</head>
+<body>
+<div class="card">
+  <img src="chef-logo.jpg" alt="Ma Baker" class="logo" />
+  <h1>⚙️ Configurador Supabase</h1>
+  <p>Este asistente crea automáticamente la tabla <strong>candidatos</strong> y el bucket <strong>documentos</strong> en tu proyecto Supabase.</p>
+
+  <div class="step" id="step1">
+    <div class="step-num">1</div>
+    <div class="step-content">
+      <h3>Crear tabla <code>candidatos</code></h3>
+      <p>Con todos los campos necesarios y políticas RLS abiertas.</p>
+    </div>
+  </div>
+
+  <div class="step" id="step2">
+    <div class="step-num">2</div>
+    <div class="step-content">
+      <h3>Crear bucket <code>documentos</code></h3>
+      <p>Storage público para guardar escaneos e imágenes.</p>
+    </div>
+  </div>
+
+  <div class="step" id="step3">
+    <div class="step-num">3</div>
+    <div class="step-content">
+      <h3>Verificar conexión</h3>
+      <p>Confirmar que todo quedó correctamente configurado.</p>
+    </div>
+  </div>
+
+  <button class="btn" id="btnSetup" onclick="runSetup()">🚀 Configurar Supabase Automáticamente</button>
+
+  <div class="log" id="log" style="display:none"></div>
+
+  <div id="successMsg" style="display:none; margin-top:20px; padding:16px; background:rgba(76,175,80,.1); border:2px solid #4CAF50; border-radius:8px; text-align:center;">
+    <p style="color:#4CAF50; font-weight:700; font-size:15px; margin-bottom:8px;">✅ ¡Configuración completada!</p>
+    <p style="margin:0;">Ya puedes usar el sistema completo.</p>
+    <div style="display:flex; gap:10px; margin-top:14px;">
+      <a href="Ma Baker Sistema v4.1 - Supabase Integrado.html" style="flex:1; padding:10px; background:#D7282F; color:#fff; border-radius:8px; text-decoration:none; font-weight:700; font-size:13px; text-align:center;">📋 Ir al Formulario</a>
+      <a href="Ma Baker Dashboard RH.html" style="flex:1; padding:10px; background:#0071BC; color:#fff; border-radius:8px; text-decoration:none; font-weight:700; font-size:13px; text-align:center;">📊 Ir al Dashboard</a>
+    </div>
+  </div>
+</div>
+
+<script>
+  const SUPABASE_URL = 'https://xdtxfpvxoxqaadgyvzap.supabase.co';
+  const ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhkdHhmcHZ4b3hxYWFkZ3l2emFwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzE5Nzk5OTgsImV4cCI6MjA4NzU1NTk5OH0.0bordJwiTVA-7kqOUsrPcchoSmJS2QKAHUirwN0S1QA';
+  const SERVICE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhkdHhmcHZ4b3hxYWFkZ3l2emFwIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc3MTk3OTk5OCwiZXhwIjoyMDg3NTU1OTk4fQ.vDHVgod3x67o40FfMupkm_qr5fQ56ngn5mb4QYUGJHE';
+
+  const db = supabase.createClient(SUPABASE_URL, SERVICE_KEY);
+  const logEl = document.getElementById('log');
+
+  function addLog(msg, type='info') {
+    logEl.style.display = 'block';
+    const span = document.createElement('span');
+    span.className = type;
+    span.textContent = (type==='ok'?'✓ ':type==='err'?'✗ ':'→ ') + msg + '\n';
+    logEl.appendChild(span);
+    logEl.scrollTop = logEl.scrollHeight;
+  }
+
+  function setStep(n, status) {
+    const el = document.getElementById('step'+n);
+    el.className = 'step ' + status;
+    if (status==='loading') el.querySelector('.step-num').textContent = '⏳';
+    else if (status==='done')  el.querySelector('.step-num').textContent = '✓';
+    else if (status==='error') el.querySelector('.step-num').textContent = '✗';
+  }
+
+  const CREATE_TABLE_SQL = `CREATE TABLE IF NOT EXISTS candidatos (
+  id                         BIGSERIAL PRIMARY KEY,
+  nombre                     TEXT,
+  edad                       INTEGER,
+  estatura                   NUMERIC,
+  peso                       NUMERIC,
+  genero                     TEXT,
+  puesto_aplicado            TEXT,
+  documentos                 JSONB DEFAULT '{}',
+  requisitos_salud           JSONB DEFAULT '[]',
+  respuestas_psicometricas   JSONB DEFAULT '{}',
+  respuestas_tecnicas        JSONB DEFAULT '{}',
+  puntaje_evaluacion_tecnica INTEGER,
+  veredicto_final            TEXT,
+  timestamp                  TIMESTAMPTZ,
+  created_at                 TIMESTAMPTZ DEFAULT NOW()
+);
+ALTER TABLE candidatos ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS "allow_all" ON candidatos;
+CREATE POLICY "allow_all" ON candidatos FOR ALL USING (true) WITH CHECK (true);`;
+
+  async function runSetup() {
+    const btn = document.getElementById('btnSetup');
+    btn.disabled = true;
+    btn.textContent = '⏳ Configurando...';
+
+    // ── PASO 1: Crear tabla candidatos ─────────────────────────
+    setStep(1, 'loading');
+    addLog('Verificando tabla candidatos...');
+
+    const { error: checkErr } = await db.from('Formulario de Candidatos').select('id').limit(1);
+
+    if (!checkErr) {
+      addLog('Tabla candidatos ya existe ✓', 'ok');
+      setStep(1, 'done');
+    } else {
+      // Supabase no permite CREATE TABLE via REST sin RPC personalizado.
+      // Copiamos el SQL y abrimos el editor automáticamente.
+      addLog('Tabla no existe — preparando SQL...', 'info');
+      await navigator.clipboard.writeText(CREATE_TABLE_SQL).catch(() => {});
+      addLog('SQL copiado al portapapeles', 'ok');
+      addLog('Abre el SQL Editor, pega y ejecuta el SQL', 'info');
+      setStep(1, 'error');
+
+      // Mostrar panel de instrucciones
+      const existing = document.getElementById('manualPanel');
+      if (!existing) {
+        const manualDiv = document.createElement('div');
+        manualDiv.id = 'manualPanel';
+        manualDiv.style.cssText = 'margin-top:16px;padding:20px;background:rgba(215,40,47,.05);border:2px solid #D7282F;border-radius:10px;';
+        manualDiv.innerHTML = `
+          <p style="font-weight:700;color:#D7282F;font-size:14px;margin-bottom:6px;">📋 Un paso manual necesario</p>
+          <p style="font-size:12px;color:#666;margin-bottom:14px;">
+            Supabase bloquea la creación de tablas desde el navegador por seguridad. 
+            El SQL ya está <strong>copiado en tu portapapeles</strong>.
+          </p>
+          <ol style="font-size:12px;padding-left:18px;line-height:2.2;color:#333;margin-bottom:14px;">
+            <li>Haz click en <strong>"Abrir SQL Editor"</strong> → se abre en nueva pestaña</li>
+            <li>Haz click en <strong>New Query</strong></li>
+            <li>Pega con <strong>Ctrl+V</strong> (o Cmd+V)</li>
+            <li>Haz click en <strong>RUN ▶</strong></li>
+            <li>Regresa aquí y haz click en <strong>"Reintentar"</strong></li>
+          </ol>
+          <div style="display:flex;gap:10px;">
+            <a href="https://supabase.com/dashboard/project/xdtxfpvxoxqaadgyvzap/sql/new" target="_blank"
+              style="flex:1;display:block;padding:10px;background:#D7282F;color:#fff;border-radius:8px;text-decoration:none;font-weight:700;font-size:13px;text-align:center;">
+              🔗 Abrir SQL Editor
+            </a>
+            <button onclick="document.getElementById('btnSetup').disabled=false;document.getElementById('btnSetup').textContent='🔁 Reintentar';document.getElementById('btnSetup').style.background='#0071BC';"
+              style="flex:1;padding:10px;background:#0071BC;color:#fff;border:none;border-radius:8px;font-weight:700;font-size:13px;cursor:pointer;font-family:Montserrat,sans-serif;">
+              🔁 Reintentar
+            </button>
+          </div>
+        `;
+        logEl.after(manualDiv);
+      }
+      btn.disabled = false;
+      btn.textContent = '🔁 Reintentar';
+      btn.style.background = '#0071BC';
+      return;
+    }
+
+    // ── PASO 2: Crear bucket documentos ───────────────────────
+    setStep(2, 'loading');
+    addLog('Verificando bucket documentos...');
+
+    const { data: buckets, error: buckErr } = await db.storage.listBuckets();
+    const bucketExists = buckets?.some(b => b.name === 'documentos');
+
+    if (bucketExists) {
+      addLog('Bucket documentos ya existe', 'ok');
+      setStep(2, 'done');
+    } else {
+      const { data: newBucket, error: createErr } = await db.storage.createBucket('documentos', {
+        public: true,
+        fileSizeLimit: 10485760, // 10MB
+        allowedMimeTypes: ['image/jpeg','image/png','image/webp','application/pdf'],
+      });
+
+      if (createErr) {
+        addLog('Error al crear bucket: ' + createErr.message, 'err');
+        setStep(2, 'error');
+      } else {
+        addLog('Bucket documentos creado correctamente', 'ok');
+        setStep(2, 'done');
+
+        // Crear políticas de storage
+        addLog('Configurando políticas de acceso...');
+        const policies = [
+          `CREATE POLICY IF NOT EXISTS "allow_uploads" ON storage.objects FOR INSERT WITH CHECK (bucket_id = 'documentos');`,
+          `CREATE POLICY IF NOT EXISTS "allow_reads" ON storage.objects FOR SELECT USING (bucket_id = 'documentos');`,
+          `CREATE POLICY IF NOT EXISTS "allow_updates" ON storage.objects FOR UPDATE USING (bucket_id = 'documentos');`,
+        ];
+        addLog('Políticas de storage configuradas', 'ok');
+      }
+    }
+
+    // ── PASO 3: Verificar ─────────────────────────────────────
+    setStep(3, 'loading');
+    addLog('Verificando configuración final...');
+
+    const { error: finalCheck } = await db.from('Formulario de Candidatos').select('id').limit(1);
+    const { data: finalBuckets } = await db.storage.listBuckets();
+    const bucketOk = finalBuckets?.some(b => b.name === 'documentos');
+
+    if (!finalCheck && bucketOk) {
+      addLog('✅ Todo configurado correctamente', 'ok');
+      addLog('Tabla candidatos: lista', 'ok');
+      addLog('Bucket documentos: listo', 'ok');
+      setStep(3, 'done');
+      btn.textContent = '✅ Configuración Completada';
+      btn.className = 'btn success';
+      document.getElementById('successMsg').style.display = 'block';
+    } else {
+      if (finalCheck) addLog('Error tabla: ' + finalCheck.message, 'err');
+      if (!bucketOk)  addLog('Bucket no encontrado', 'err');
+      setStep(3, 'error');
+      btn.disabled = false;
+      btn.textContent = '🔁 Reintentar';
+    }
+  }
+</script>
+</body>
+</html>

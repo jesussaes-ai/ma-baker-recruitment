@@ -1,0 +1,1466 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestor de Psicométricos — Ma Baker and Chef</title>
+    <link rel="icon" href="assets/favicon.ico">
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&display=swap"
+        rel="stylesheet">
+    <style>
+        *,
+        *::before,
+        *::after {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        :root {
+            --mb-red: #D7282F;
+            --mb-blue: #0071BC;
+            --mb-black: #1C1C1C;
+            --mb-white: #FFFFFF;
+            --mb-light: #F5F7FA;
+            --mb-gray: #94A3B8;
+            --mb-border: #E2E8F0;
+            --mb-success: #16A34A;
+            --mb-warn: #D97706;
+            --font: 'Montserrat', sans-serif;
+            --shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+            --radius: 12px;
+            --radius-sm: 8px;
+        }
+
+        body {
+            font-family: var(--font);
+            background: var(--mb-light);
+            color: var(--mb-black);
+            min-height: 100vh;
+        }
+
+        /* ── TOPBAR ── */
+        .topbar {
+            background: var(--mb-black);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 24px;
+            height: 64px;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            box-shadow: 0 2px 12px rgba(0, 0, 0, 0.3);
+        }
+
+        .topbar-brand {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .topbar-brand img {
+            height: 38px;
+            filter: brightness(0) invert(1);
+        }
+
+        .topbar-title {
+            font-size: 17px;
+            font-weight: 700;
+            letter-spacing: -0.3px;
+        }
+
+        .topbar-title span {
+            color: var(--mb-red);
+        }
+
+        .topbar-nav {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .topbar-nav a {
+            color: #CBD5E1;
+            text-decoration: none;
+            font-size: 13px;
+            font-weight: 500;
+            padding: 6px 12px;
+            border-radius: 6px;
+            transition: all 0.2s;
+        }
+
+        .topbar-nav a:hover {
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+        }
+
+        .topbar-nav a.active {
+            background: var(--mb-red);
+            color: white;
+        }
+
+        /* ── MAIN LAYOUT ── */
+        .main {
+            max-width: 1280px;
+            margin: 0 auto;
+            padding: 32px 24px;
+        }
+
+        /* ── PAGE HEADER ── */
+        .page-header {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 16px;
+            margin-bottom: 32px;
+        }
+
+        .page-header-left h1 {
+            font-size: 28px;
+            font-weight: 800;
+            background: linear-gradient(135deg, var(--mb-red), var(--mb-blue));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 4px;
+        }
+
+        .page-header-left p {
+            color: var(--mb-gray);
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        .page-actions {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        /* ── BOTONES ── */
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 20px;
+            border-radius: var(--radius-sm);
+            font-family: var(--font);
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            border: none;
+            transition: all 0.2s;
+            text-decoration: none;
+        }
+
+        .btn-primary {
+            background: var(--mb-red);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #B91C1C;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(215, 40, 47, 0.4);
+        }
+
+        .btn-secondary {
+            background: var(--mb-blue);
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            background: #005A96;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(0, 113, 188, 0.4);
+        }
+
+        .btn-ghost {
+            background: white;
+            color: var(--mb-black);
+            border: 1.5px solid var(--mb-border);
+        }
+
+        .btn-ghost:hover {
+            background: var(--mb-light);
+            border-color: var(--mb-gray);
+        }
+
+        .btn-sm {
+            padding: 7px 14px;
+            font-size: 12px;
+        }
+
+        .btn-icon {
+            width: 34px;
+            height: 34px;
+            padding: 0;
+            justify-content: center;
+        }
+
+        /* ── STATS ROW ── */
+        .stats-row {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 16px;
+            margin-bottom: 28px;
+        }
+
+        .stat-pill {
+            background: white;
+            border-radius: var(--radius);
+            padding: 20px;
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            box-shadow: var(--shadow);
+            border: 1px solid var(--mb-border);
+        }
+
+        .stat-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 22px;
+            flex-shrink: 0;
+        }
+
+        .icon-red {
+            background: #FEF2F2;
+        }
+
+        .icon-blue {
+            background: #EFF6FF;
+        }
+
+        .icon-green {
+            background: #F0FDF4;
+        }
+
+        .icon-amber {
+            background: #FFFBEB;
+        }
+
+        .stat-pill-info {}
+
+        .stat-num {
+            font-size: 26px;
+            font-weight: 800;
+            color: var(--mb-black);
+        }
+
+        .stat-lbl {
+            font-size: 12px;
+            color: var(--mb-gray);
+            font-weight: 500;
+        }
+
+        /* ── TWO COLUMNS ── */
+        .grid-2 {
+            display: grid;
+            grid-template-columns: 340px 1fr;
+            gap: 20px;
+            align-items: start;
+        }
+
+        @media (max-width: 900px) {
+            .grid-2 {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* ── CARD ── */
+        .card {
+            background: white;
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            border: 1px solid var(--mb-border);
+            overflow: hidden;
+        }
+
+        .card-header {
+            padding: 18px 20px;
+            border-bottom: 1px solid var(--mb-border);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .card-title {
+            font-size: 14px;
+            font-weight: 700;
+            color: var(--mb-black);
+        }
+
+        .card-body {
+            padding: 16px 20px;
+        }
+
+        /* ── LISTA DE PUESTOS ── */
+        .puesto-search {
+            display: flex;
+            gap: 8px;
+            padding: 12px 16px;
+            border-bottom: 1px solid var(--mb-border);
+        }
+
+        .puesto-search input {
+            flex: 1;
+            border: 1.5px solid var(--mb-border);
+            border-radius: var(--radius-sm);
+            padding: 8px 12px;
+            font-family: var(--font);
+            font-size: 13px;
+            outline: none;
+        }
+
+        .puesto-search input:focus {
+            border-color: var(--mb-blue);
+        }
+
+        .puesto-list {
+            max-height: calc(100vh - 320px);
+            overflow-y: auto;
+        }
+
+        .puesto-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 14px 16px;
+            border-bottom: 1px solid var(--mb-border);
+            cursor: pointer;
+            transition: background 0.15s;
+        }
+
+        .puesto-item:hover {
+            background: #F8FAFC;
+        }
+
+        .puesto-item.active {
+            background: #EFF6FF;
+            border-left: 3px solid var(--mb-blue);
+        }
+
+        .puesto-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 10px;
+            background: linear-gradient(135deg, var(--mb-red), #F97316);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            font-weight: 700;
+            color: white;
+            flex-shrink: 0;
+        }
+
+        .puesto-info {}
+
+        .puesto-nombre {
+            font-size: 13px;
+            font-weight: 700;
+            color: var(--mb-black);
+        }
+
+        .puesto-depto {
+            font-size: 11px;
+            color: var(--mb-gray);
+            font-weight: 500;
+        }
+
+        .puesto-badge {
+            margin-left: auto;
+            background: var(--mb-light);
+            border: 1px solid var(--mb-border);
+            color: var(--mb-gray);
+            font-size: 10px;
+            font-weight: 700;
+            padding: 3px 8px;
+            border-radius: 30px;
+        }
+
+        .puesto-badge.has-tests {
+            background: #EFF6FF;
+            border-color: #BFDBFE;
+            color: var(--mb-blue);
+        }
+
+        /* ── PANEL DE CONFIGURACIÓN ── */
+        .config-placeholder {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 60px 24px;
+            text-align: center;
+        }
+
+        .config-placeholder .icon-big {
+            font-size: 64px;
+            margin-bottom: 16px;
+        }
+
+        .config-placeholder h3 {
+            font-size: 18px;
+            font-weight: 700;
+            margin-bottom: 8px;
+        }
+
+        .config-placeholder p {
+            color: var(--mb-gray);
+            font-size: 13px;
+            max-width: 280px;
+        }
+
+        /* ── TEST CARDS (baterías asignadas) ── */
+        .prueba-card {
+            background: var(--mb-light);
+            border: 1.5px solid var(--mb-border);
+            border-radius: var(--radius);
+            padding: 16px;
+            margin-bottom: 12px;
+            position: relative;
+            transition: border-color 0.2s;
+        }
+
+        .prueba-card:hover {
+            border-color: var(--mb-blue);
+        }
+
+        .prueba-card-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 10px;
+        }
+
+        .prueba-orden {
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            background: var(--mb-blue);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            font-weight: 800;
+            flex-shrink: 0;
+        }
+
+        .prueba-nombre {
+            font-size: 14px;
+            font-weight: 700;
+        }
+
+        .prueba-categoria {
+            font-size: 11px;
+            color: var(--mb-gray);
+        }
+
+        .prueba-card-actions {
+            position: absolute;
+            top: 12px;
+            right: 12px;
+            display: flex;
+            gap: 6px;
+        }
+
+        .prueba-meta {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 8px;
+            margin-top: 12px;
+        }
+
+        .prueba-meta-item {
+            text-align: center;
+        }
+
+        .prueba-meta-val {
+            font-size: 15px;
+            font-weight: 700;
+            color: var(--mb-black);
+        }
+
+        .prueba-meta-lbl {
+            font-size: 10px;
+            color: var(--mb-gray);
+            font-weight: 500;
+        }
+
+        .badge-momento {
+            display: inline-block;
+            font-size: 10px;
+            font-weight: 700;
+            padding: 3px 10px;
+            border-radius: 30px;
+            margin-top: 8px;
+        }
+
+        .momento-pre {
+            background: #EFF6FF;
+            color: #1D4ED8;
+        }
+
+        .momento-dur {
+            background: #FFF7ED;
+            color: #C2410C;
+        }
+
+        .momento-post {
+            background: #F0FDF4;
+            color: #15803D;
+        }
+
+        /* ── FORMULARIO AGREGAR PRUEBA ── */
+        .add-prueba-area {
+            border: 2px dashed var(--mb-border);
+            border-radius: var(--radius);
+            padding: 20px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s;
+            margin-top: 4px;
+        }
+
+        .add-prueba-area:hover {
+            border-color: var(--mb-blue);
+            background: #EFF6FF;
+        }
+
+        /* ── MODAL ── */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .modal-overlay.open {
+            display: flex;
+        }
+
+        .modal {
+            background: white;
+            border-radius: 16px;
+            width: 100%;
+            max-width: 560px;
+            max-height: 90vh;
+            overflow-y: auto;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.25);
+            animation: modalIn 0.25s ease;
+        }
+
+        @keyframes modalIn {
+            from {
+                transform: scale(0.94);
+                opacity: 0;
+            }
+
+            to {
+                transform: scale(1);
+                opacity: 1;
+            }
+        }
+
+        .modal-header {
+            padding: 20px 24px 18px;
+            border-bottom: 1px solid var(--mb-border);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .modal-title {
+            font-size: 17px;
+            font-weight: 800;
+        }
+
+        .modal-body {
+            padding: 20px 24px;
+        }
+
+        .modal-footer {
+            padding: 16px 24px;
+            border-top: 1px solid var(--mb-border);
+            display: flex;
+            gap: 10px;
+            justify-content: flex-end;
+        }
+
+        .form-group {
+            margin-bottom: 16px;
+        }
+
+        .form-label {
+            font-size: 12px;
+            font-weight: 700;
+            color: #64748B;
+            display: block;
+            margin-bottom: 6px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .form-control {
+            width: 100%;
+            border: 1.5px solid var(--mb-border);
+            border-radius: var(--radius-sm);
+            padding: 10px 14px;
+            font-family: var(--font);
+            font-size: 13px;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+
+        .form-control:focus {
+            border-color: var(--mb-blue);
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+        }
+
+        .toggle-group {
+            display: flex;
+            gap: 8px;
+        }
+
+        .toggle-btn {
+            flex: 1;
+            padding: 9px;
+            border: 1.5px solid var(--mb-border);
+            border-radius: var(--radius-sm);
+            font-family: var(--font);
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            background: white;
+            transition: all 0.2s;
+            text-align: center;
+        }
+
+        .toggle-btn.sel-red {
+            background: #FEE2E2;
+            border-color: var(--mb-red);
+            color: var(--mb-red);
+        }
+
+        .toggle-btn.sel-blue {
+            background: #DBEAFE;
+            border-color: var(--mb-blue);
+            color: var(--mb-blue);
+        }
+
+        .toggle-btn.sel-green {
+            background: #DCFCE7;
+            border-color: var(--mb-success);
+            color: var(--mb-success);
+        }
+
+        .toggle-btn:hover {
+            background: var(--mb-light);
+        }
+
+        /* ── PREGUNTA CARD ── */
+        .questions-area {
+            margin-top: 24px;
+        }
+
+        .section-title {
+            font-size: 13px;
+            font-weight: 700;
+            color: #64748B;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .section-title::after {
+            content: '';
+            flex: 1;
+            height: 1px;
+            background: var(--mb-border);
+        }
+
+        .pregunta-card {
+            background: white;
+            border: 1px solid var(--mb-border);
+            border-radius: var(--radius-sm);
+            padding: 14px 16px;
+            margin-bottom: 8px;
+            display: flex;
+            gap: 10px;
+            align-items: flex-start;
+        }
+
+        .pregunta-num {
+            width: 22px;
+            height: 22px;
+            border-radius: 50%;
+            background: var(--mb-light);
+            font-size: 11px;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            margin-top: 1px;
+        }
+
+        .pregunta-text {
+            flex: 1;
+            font-size: 13px;
+            color: var(--mb-black);
+            line-height: 1.4;
+        }
+
+        .pregunta-tipo {
+            font-size: 10px;
+            font-weight: 700;
+            padding: 2px 8px;
+            border-radius: 30px;
+            background: var(--mb-light);
+            color: var(--mb-gray);
+            flex-shrink: 0;
+        }
+
+        /* ── EMPTY STATE ── */
+        .empty {
+            text-align: center;
+            padding: 40px 20px;
+        }
+
+        .empty-icon {
+            font-size: 48px;
+            margin-bottom: 12px;
+        }
+
+        .empty h4 {
+            font-size: 15px;
+            font-weight: 700;
+            margin-bottom: 6px;
+        }
+
+        .empty p {
+            color: var(--mb-gray);
+            font-size: 12px;
+        }
+
+        /* ── TOAST ── */
+        .toast {
+            position: fixed;
+            bottom: 24px;
+            right: 24px;
+            background: #1E293B;
+            color: white;
+            padding: 14px 20px;
+            border-radius: var(--radius-sm);
+            font-size: 13px;
+            font-weight: 600;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+            transform: translateY(80px);
+            opacity: 0;
+            transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+            z-index: 9999;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .toast.show {
+            transform: translateY(0);
+            opacity: 1;
+        }
+
+        /* ── SCROLLBAR ── */
+        ::-webkit-scrollbar {
+            width: 5px;
+            height: 5px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: var(--mb-light);
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: var(--mb-border);
+            border-radius: 10px;
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- TOPBAR -->
+    <header class="topbar">
+        <div class="topbar-brand">
+            <img src="assets/logo.webp" alt="Ma Baker" onerror="this.style.display='none'">
+            <span class="topbar-title">Ma Baker <span>& Chef</span> · Psicométricos</span>
+        </div>
+        <nav class="topbar-nav">
+            <a href="dashboard-admin.html">← Regresar</a>
+            <a href="cargar-puestos.html">📤 Cargar PDFs</a>
+            <a href="#" class="active">🧠 Psicométricos</a>
+            <a href="login.html" onclick="return confirm('¿Cerrar sesión?')">Salir</a>
+        </nav>
+    </header>
+
+    <!-- MAIN -->
+    <main class="main">
+
+        <!-- HEADER -->
+        <div class="page-header">
+            <div class="page-header-left">
+                <h1>🧠 Gestión de Psicométricos</h1>
+                <p>Configure las baterías de preguntas por puesto de trabajo</p>
+            </div>
+            <div class="page-actions">
+                <button class="btn btn-ghost" id="btnNuevaPrueba" onclick="openModalNuevaPrueba()">
+                    ➕ Nueva Batería
+                </button>
+                <button class="btn btn-primary" onclick="openModalNuevaPreg()">
+                    📝 Agregar Preguntas
+                </button>
+            </div>
+        </div>
+
+        <!-- STATS -->
+        <div class="stats-row">
+            <div class="stat-pill">
+                <div class="stat-icon icon-blue">💼</div>
+                <div class="stat-pill-info">
+                    <div class="stat-num" id="statPuestos">—</div>
+                    <div class="stat-lbl">Puestos con Baterías</div>
+                </div>
+            </div>
+            <div class="stat-pill">
+                <div class="stat-icon icon-red">🧩</div>
+                <div class="stat-pill-info">
+                    <div class="stat-num" id="statPruebas">—</div>
+                    <div class="stat-lbl">Tipos de Prueba</div>
+                </div>
+            </div>
+            <div class="stat-pill">
+                <div class="stat-icon icon-green">📝</div>
+                <div class="stat-pill-info">
+                    <div class="stat-num" id="statPreguntas">—</div>
+                    <div class="stat-lbl">Preguntas en Banco</div>
+                </div>
+            </div>
+            <div class="stat-pill">
+                <div class="stat-icon icon-amber">⏳</div>
+                <div class="stat-pill-info">
+                    <div class="stat-num" id="statPendientes">—</div>
+                    <div class="stat-lbl">Evaluaciones Pendientes</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- GRID DOS COLUMNAS -->
+        <div class="grid-2">
+
+            <!-- LISTA DE PUESTOS -->
+            <div class="card">
+                <div class="card-header">
+                    <span class="card-title">📋 Puestos de Trabajo</span>
+                    <span style="font-size:11px;color:var(--mb-gray);">Selecciona para configurar</span>
+                </div>
+                <div class="puesto-search">
+                    <input type="text" id="buscarPuesto" placeholder="🔍  Buscar puesto…" oninput="filtrarPuestos()">
+                </div>
+                <div class="puesto-list" id="listaPuestos">
+                    <div class="empty" style="padding:40px 20px;">
+                        <div class="empty-icon">⏳</div>
+                        <p>Cargando puestos…</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- PANEL CONFIGURACIÓN -->
+            <div class="card" id="panelConfig">
+                <div class="card-header">
+                    <span class="card-title" id="panelTitleText">Selecciona un puesto</span>
+                    <div style="display:flex;gap:8px;" id="panelAcciones" style="display:none;">
+                        <button class="btn btn-sm btn-secondary" onclick="openModalAsignar()">
+                            ➕ Asignar Batería
+                        </button>
+                    </div>
+                </div>
+                <!-- Placeholder -->
+                <div class="config-placeholder" id="configPlaceholder">
+                    <div class="icon-big">👈</div>
+                    <h3>Selecciona un Puesto</h3>
+                    <p>Elige un puesto de la lista para ver y configurar sus baterías psicométricas</p>
+                </div>
+                <!-- Contenido del puesto seleccionado -->
+                <div class="card-body" id="configContent" style="display:none;">
+                    <div class="section-title">Baterías Asignadas</div>
+                    <div id="listaBaterias"></div>
+                    <div class="add-prueba-area" onclick="openModalAsignar()">
+                        <span style="font-size:24px;">➕</span>
+                        <p style="font-size:13px;font-weight:600;color:var(--mb-blue);margin-top:6px;">Asignar nueva
+                            batería a este puesto</p>
+                    </div>
+                    <div class="questions-area">
+                        <div class="section-title">Banco de Preguntas</div>
+                        <div id="listaPreguntas"></div>
+                        <button class="btn btn-ghost btn-sm" style="width:100%;margin-top:8px;"
+                            onclick="openModalNuevaPreg()">
+                            📝 Agregar Pregunta
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- ═══════════════════════════════════════════ -->
+    <!-- MODAL: Nueva Batería / Prueba Psicométrica  -->
+    <!-- ═══════════════════════════════════════════ -->
+    <div class="modal-overlay" id="modalNuevaPrueba">
+        <div class="modal">
+            <div class="modal-header">
+                <span class="modal-title">🧩 Nueva Batería Psicométrica</span>
+                <button class="btn btn-icon btn-ghost" onclick="closeModal('modalNuevaPrueba')">✕</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label class="form-label">Código de la Prueba</label>
+                    <input class="form-control" id="np_codigo" placeholder="Ej: TERMAN, PERSONALIDAD, LIDERAZGO…">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Nombre Completo</label>
+                    <input class="form-control" id="np_nombre"
+                        placeholder="Ej: Terman-Merril, Inventario de Personalidad 16PF…">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Descripción</label>
+                    <textarea class="form-control" id="np_descripcion" rows="2"
+                        placeholder="¿Qué evalúa esta prueba?"></textarea>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label">Categoría</label>
+                        <select class="form-control" id="np_categoria">
+                            <option value="inteligencia">🧠 Inteligencia</option>
+                            <option value="personalidad">😊 Personalidad</option>
+                            <option value="liderazgo">🏆 Liderazgo</option>
+                            <option value="situacional">💼 Juicio Situacional</option>
+                            <option value="aptitud">📐 Aptitud Técnica</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Tiempo Límite (min)</label>
+                        <input class="form-control" id="np_tiempo" type="number" min="0" placeholder="0 = sin límite">
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label">Score Mínimo Global (%)</label>
+                        <input class="form-control" id="np_score_min" type="number" min="0" max="100" value="70">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Versión</label>
+                        <input class="form-control" id="np_version" placeholder="Ej: 1.0, 2.0…" value="1.0">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Instrucciones para el Candidato</label>
+                    <textarea class="form-control" id="np_instrucciones" rows="3"
+                        placeholder="Texto que verá el candidato antes de iniciar la prueba…"></textarea>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-ghost" onclick="closeModal('modalNuevaPrueba')">Cancelar</button>
+                <button class="btn btn-primary" onclick="guardarNuevaPrueba()">💾 Guardar Batería</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ═══════════════════════════════════════════ -->
+    <!-- MODAL: Asignar Batería a Puesto            -->
+    <!-- ═══════════════════════════════════════════ -->
+    <div class="modal-overlay" id="modalAsignar">
+        <div class="modal">
+            <div class="modal-header">
+                <span class="modal-title">➕ Asignar Batería al Puesto</span>
+                <button class="btn btn-icon btn-ghost" onclick="closeModal('modalAsignar')">✕</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label class="form-label">Puesto</label>
+                    <input class="form-control" id="as_puesto_nombre" readonly style="background:#F8FAFC">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Batería Psicométrica</label>
+                    <select class="form-control" id="as_prueba_id">
+                        <option value="">— Selecciona una batería —</option>
+                    </select>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label">Orden de Aplicación</label>
+                        <input class="form-control" id="as_orden" type="number" min="1" value="1">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Score Mínimo para Este Puesto (%)</label>
+                        <input class="form-control" id="as_score" type="number" min="0" max="100"
+                            placeholder="Usa el global si vacío">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Momento de Aplicación</label>
+                    <div class="toggle-group">
+                        <div class="toggle-btn" id="btn_pre" onclick="selMomento('pre_entrevista')">⏭ Pre-Entrevista
+                        </div>
+                        <div class="toggle-btn" id="btn_dur" onclick="selMomento('durante_entrevista')">🎤 Durante</div>
+                        <div class="toggle-btn" id="btn_post" onclick="selMomento('post_entrevista')">✅ Post-Entrevista
+                        </div>
+                    </div>
+                    <input type="hidden" id="as_momento" value="pre_entrevista">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">¿Es Obligatoria?</label>
+                    <div class="toggle-group">
+                        <div class="toggle-btn sel-green" id="btn_oblig_si" onclick="selOblig(true)">✅ Sí, obligatoria
+                        </div>
+                        <div class="toggle-btn" id="btn_oblig_no" onclick="selOblig(false)">✱ Opcional</div>
+                    </div>
+                    <input type="hidden" id="as_obligatoria" value="true">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Instrucciones adicionales (opcional)</label>
+                    <textarea class="form-control" id="as_instrucciones" rows="2"
+                        placeholder="Instrucciones específicas para este puesto…"></textarea>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-ghost" onclick="closeModal('modalAsignar')">Cancelar</button>
+                <button class="btn btn-secondary" onclick="guardarAsignacion()">✅ Asignar Batería</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ═══════════════════════════════════════════ -->
+    <!-- MODAL: Agregar Pregunta                    -->
+    <!-- ═══════════════════════════════════════════ -->
+    <div class="modal-overlay" id="modalPregunta">
+        <div class="modal" style="max-width:640px;">
+            <div class="modal-header">
+                <span class="modal-title">📝 Agregar Pregunta al Banco</span>
+                <button class="btn btn-icon btn-ghost" onclick="closeModal('modalPregunta')">✕</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label">Batería</label>
+                        <select class="form-control" id="pq_prueba_id" onchange="actualizarSiguienteNum()">
+                            <option value="">— Selecciona batería —</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Número de Pregunta</label>
+                        <input class="form-control" id="pq_numero" type="number" min="1" value="1">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Texto de la Pregunta</label>
+                    <textarea class="form-control" id="pq_texto" rows="3"
+                        placeholder="Escribe la pregunta completa aquí…"></textarea>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label">Tipo de Respuesta</label>
+                        <select class="form-control" id="pq_tipo" onchange="mostrarOpciones()">
+                            <option value="opcion_multiple">Opción Múltiple (A B C D)</option>
+                            <option value="escala_likert">Escala Likert (1-5 o 1-7)</option>
+                            <option value="verdadero_falso">Verdadero / Falso</option>
+                            <option value="ordenamiento">Ordenamiento</option>
+                            <option value="texto_libre">Texto Libre</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Subdimensión</label>
+                        <input class="form-control" id="pq_subtipo" placeholder="razonamiento_verbal, memoria…">
+                    </div>
+                </div>
+                <!-- Opciones (dinámicas según tipo) -->
+                <div id="opcionesArea"></div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label">Dificultad</label>
+                        <select class="form-control" id="pq_dificultad">
+                            <option value="baja">🟢 Baja</option>
+                            <option value="media" selected>🟡 Media</option>
+                            <option value="alta">🔴 Alta</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Valor Máximo (puntos)</label>
+                        <input class="form-control" id="pq_valor" type="number" min="0.1" step="0.5" value="1">
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-ghost" onclick="closeModal('modalPregunta')">Cancelar</button>
+                <button class="btn btn-primary" onclick="guardarPregunta()">💾 Guardar Pregunta</button>
+                <button class="btn btn-secondary" onclick="guardarYOtra()">💾 Guardar y Agregar Otra</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- TOAST -->
+    <div class="toast" id="toast">
+        <span id="toastIcon">✅</span>
+        <span id="toastMsg">Operación exitosa</span>
+    </div>
+
+    <script src="js/auth.js"></script>
+    <script>
+        // ── SUPABASE CONFIG ──
+        const SUPA_URL = 'https://znskpdixdyxdbvpapqrg.supabase.co';
+        const SUPA_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inpuc2twZGl4ZHl4ZGJ2cGFwcXJnIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc3Mjg1ODgwOCwiZXhwIjoyMDg4NDM0ODA4fQ.s7yC5ODssUgqHjH0PsAhTZuNQ1R-lMuJAt62OKDwryg';
+
+        const H = { 'apikey': SUPA_KEY, 'Authorization': 'Bearer ' + SUPA_KEY, 'Content-Type': 'application/json', 'Prefer': 'return=representation' };
+        const api = async (path, opt = {}) => {
+            const r = await fetch(SUPA_URL + path, { headers: H, ...opt });
+            return r.ok ? r.json() : null;
+        };
+
+        // ── ESTADO ──
+        let puestos = [], pruebas = [], puestoActivo = null;
+        let momentoSel = 'pre_entrevista', obligSel = true;
+
+        // ── INIT ──
+        async function init() {
+            // Validar sesión (admin o rrhh)
+            const sess = JSON.parse(sessionStorage.getItem('mb_session') || '{}');
+            if (!sess.token || !['admin', 'rrhh'].includes(sess.rol)) {
+                window.location = 'login.html'; return;
+            }
+
+            // Cargar puestos y pruebas en paralelo
+            [puestos, pruebas] = await Promise.all([
+                api('/rest/v1/catalogo_puestos?select=*&activo=eq.true&order=nombre_puesto.asc'),
+                api('/rest/v1/pruebas_psicometricas?select=*&activa=eq.true&order=codigo.asc')
+            ]);
+
+            renderPuestos(puestos || []);
+            renderStats();
+            llenarSelectPruebas();
+        }
+
+        function renderStats() {
+            document.getElementById('statPuestos').textContent = (puestos || []).length;
+            document.getElementById('statPruebas').textContent = (pruebas || []).length;
+            // Preguntas y pendientes: queries adicionales
+            api('/rest/v1/preguntas_psicometricas?select=id&activa=eq.true')
+                .then(d => document.getElementById('statPreguntas').textContent = (d || []).length);
+            api('/rest/v1/evaluaciones_psicometricas?select=id&estado=eq.pendiente')
+                .then(d => document.getElementById('statPendientes').textContent = (d || []).length);
+        }
+
+        function renderPuestos(lista) {
+            const el = document.getElementById('listaPuestos');
+            if (!lista.length) {
+                el.innerHTML = `<div class="empty"><div class="empty-icon">💼</div><h4>Sin puestos</h4><p>Carga descripciones de puesto primero</p></div>`;
+                return;
+            }
+            el.innerHTML = lista.map(p => `
+            <div class="puesto-item" onclick="selPuesto('${p.id}')" id="pi_${p.id}">
+                <div class="puesto-avatar">${p.nombre_puesto.charAt(0)}</div>
+                <div class="puesto-info">
+                    <div class="puesto-nombre">${p.nombre_puesto}</div>
+                    <div class="puesto-depto">${p.departamento} · ${p.codigo_puesto}</div>
+                </div>
+                <div class="puesto-badge has-tests" id="badge_${p.id}">—</div>
+            </div>
+        `).join('');
+            // Contar configuraciones por puesto
+            api('/rest/v1/puesto_prueba_config?select=id_puesto').then(cfg => {
+                if (!cfg) return;
+                const cnt = {};
+                cfg.forEach(c => cnt[c.id_puesto] = (cnt[c.id_puesto] || 0) + 1);
+                lista.forEach(p => {
+                    const b = document.getElementById('badge_' + p.id);
+                    if (b) { b.textContent = (cnt[p.id] || 0) + ' baterías'; }
+                });
+            });
+        }
+
+        function filtrarPuestos() {
+            const q = document.getElementById('buscarPuesto').value.toLowerCase();
+            const filtrados = puestos.filter(p =>
+                p.nombre_puesto.toLowerCase().includes(q) || p.departamento.toLowerCase().includes(q)
+            );
+            renderPuestos(filtrados);
+        }
+
+        async function selPuesto(id) {
+            puestoActivo = puestos.find(p => p.id === id);
+            if (!puestoActivo) return;
+
+            // Activar visualmente
+            document.querySelectorAll('.puesto-item').forEach(i => i.classList.remove('active'));
+            document.getElementById('pi_' + id)?.classList.add('active');
+
+            // Actualizar panel
+            document.getElementById('panelTitleText').textContent = '💼 ' + puestoActivo.nombre_puesto;
+            document.getElementById('panelAcciones').style.display = 'flex';
+            document.getElementById('configPlaceholder').style.display = 'none';
+            document.getElementById('configContent').style.display = 'block';
+            document.getElementById('as_puesto_nombre').value = puestoActivo.nombre_puesto;
+
+            await Promise.all([cargarBaterias(id), cargarPreguntas()]);
+        }
+
+        async function cargarBaterias(puestoId) {
+            const data = await api(
+                `/rest/v1/puesto_prueba_config?id_puesto=eq.${puestoId}&select=*,pruebas_psicometricas(codigo,nombre,categoria,tiempo_limite_min)&order=orden_aplicacion.asc`
+            );
+            const el = document.getElementById('listaBaterias');
+            if (!data || !data.length) {
+                el.innerHTML = `<div class="empty"><div class="empty-icon">🧩</div><h4>Sin baterías asignadas</h4><p>Asigna la primera batería a este puesto</p></div>`;
+                return;
+            }
+            const momentoColor = { pre_entrevista: 'momento-pre', durante_entrevista: 'momento-dur', post_entrevista: 'momento-post' };
+            const momentoLabel = { pre_entrevista: '⏭ Pre-Entrevista', durante_entrevista: '🎤 Durante', post_entrevista: '✅ Post-Entrevista' };
+            el.innerHTML = data.map(c => {
+                const p = c.pruebas_psicometricas || {};
+                return `
+                <div class="prueba-card">
+                    <div class="prueba-card-actions">
+                        <button class="btn btn-icon btn-ghost btn-sm" onclick="eliminarBateria('${c.id}')" title="Eliminar">🗑</button>
+                    </div>
+                    <div class="prueba-card-header">
+                        <div class="prueba-orden">${c.orden_aplicacion}</div>
+                        <div>
+                            <div class="prueba-nombre">${p.nombre || '—'}</div>
+                            <div class="prueba-categoria">${p.categoria || '—'} · ${p.codigo || ''}</div>
+                        </div>
+                    </div>
+                    <div class="prueba-meta">
+                        <div class="prueba-meta-item">
+                            <div class="prueba-meta-val">${c.score_minimo_puesto || '70'}%</div>
+                            <div class="prueba-meta-lbl">Score Mín.</div>
+                        </div>
+                        <div class="prueba-meta-item">
+                            <div class="prueba-meta-val">${c.tiempo_limite_min || p.tiempo_limite_min || '∞'}</div>
+                            <div class="prueba-meta-lbl">Min.</div>
+                        </div>
+                        <div class="prueba-meta-item">
+                            <div class="prueba-meta-val">${c.es_obligatoria ? '✅' : '⭕'}</div>
+                            <div class="prueba-meta-lbl">${c.es_obligatoria ? 'Oblig.' : 'Opcional'}</div>
+                        </div>
+                    </div>
+                    <div>
+                        <span class="badge-momento ${momentoColor[c.momento_aplicacion]}">${momentoLabel[c.momento_aplicacion]}</span>
+                    </div>
+                </div>`;
+            }).join('');
+        }
+
+        async function cargarPreguntas() {
+            const pruebaId = document.getElementById('pq_prueba_id').value;
+            if (!pruebaId) { document.getElementById('listaPreguntas').innerHTML = '<div class="empty"><div class="empty-icon">📝</div><p>Selecciona una batería para ver sus preguntas</p></div>'; return; }
+            const data = await api(`/rest/v1/preguntas_psicometricas?id_prueba=eq.${pruebaId}&activa=eq.true&order=numero_orden.asc&limit=30`);
+            const el = document.getElementById('listaPreguntas');
+            if (!data || !data.length) {
+                el.innerHTML = '<div class="empty"><div class="empty-icon">📝</div><h4>Sin preguntas</h4><p>Agrega preguntas a esta batería</p></div>';
+                return;
+            }
+            const tipoLabel = { opcion_multiple: '🔵 Múltiple', escala_likert: '📊 Likert', verdadero_falso: '⚪ V/F', ordenamiento: '📋 Orden', texto_libre: '✏️ Libre' };
+            el.innerHTML = data.map(q => `
+            <div class="pregunta-card">
+                <div class="pregunta-num">${q.numero_orden}</div>
+                <div class="pregunta-text">${q.texto_pregunta}</div>
+                <div class="pregunta-tipo">${tipoLabel[q.tipo_respuesta] || q.tipo_respuesta}</div>
+            </div>
+        `).join('');
+        }
+
+        function llenarSelectPruebas() {
+            const opts = (pruebas || []).map(p => `<option value="${p.id}">${p.codigo} — ${p.nombre}</option>`).join('');
+            ['as_prueba_id', 'pq_prueba_id'].forEach(id => {
+                const el = document.getElementById(id);
+                if (el) el.innerHTML = '<option value="">— Selecciona —</option>' + opts;
+            });
+        }
+
+        // ── MODALES ──
+        function openModalNuevaPrueba() { document.getElementById('modalNuevaPrueba').classList.add('open'); }
+        function openModalAsignar() { if (!puestoActivo) { toast('⚠️ Selecciona un puesto primero'); return; } document.getElementById('modalAsignar').classList.add('open'); momentoSel = 'pre_entrevista'; obligSel = true; actualizarTogglesMom(); actualizarTogglesOblig(); }
+        function openModalNuevaPreg() { document.getElementById('modalPregunta').classList.add('open'); mostrarOpciones(); }
+        function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+
+        function selMomento(val) {
+            momentoSel = val;
+            document.getElementById('as_momento').value = val;
+            actualizarTogglesMom();
+        }
+        function actualizarTogglesMom() {
+            document.getElementById('btn_pre').className = 'toggle-btn' + (momentoSel === 'pre_entrevista' ? ' sel-red' : '');
+            document.getElementById('btn_dur').className = 'toggle-btn' + (momentoSel === 'durante_entrevista' ? ' sel-red' : '');
+            document.getElementById('btn_post').className = 'toggle-btn' + (momentoSel === 'post_entrevista' ? ' sel-red' : '');
+        }
+        function selOblig(val) {
+            obligSel = val;
+            document.getElementById('as_obligatoria').value = val;
+            actualizarTogglesOblig();
+        }
+        function actualizarTogglesOblig() {
+            document.getElementById('btn_oblig_si').className = 'toggle-btn' + (obligSel ? ' sel-green' : '');
+            document.getElementById('btn_oblig_no').className = 'toggle-btn' + (!obligSel ? ' sel-red' : '');
+        }
+
+        function mostrarOpciones() {
+            const tipo = document.getElementById('pq_tipo').value;
+            const area = document.getElementById('opcionesArea');
+            if (tipo === 'opcion_multiple') {
+                area.innerHTML = `
+                <div class="form-group"><label class="form-label">Opciones (A/B/C/D) y Respuesta Correcta</label>
+                <input class="form-control" id="pq_opA" placeholder="A) Opción A" style="margin-bottom:6px;">
+                <input class="form-control" id="pq_opB" placeholder="B) Opción B" style="margin-bottom:6px;">
+                <input class="form-control" id="pq_opC" placeholder="C) Opción C" style="margin-bottom:6px;">
+                <input class="form-control" id="pq_opD" placeholder="D) Opción D" style="margin-bottom:8px;">
+                <label class="form-label">Respuesta Correcta</label>
+                <select class="form-control" id="pq_correcta"><option value="A">A</option><option value="B">B</option><option value="C">C</option><option value="D">D</option></select></div>`;
+            } else if (tipo === 'escala_likert') {
+                area.innerHTML = `<div class="form-group"><label class="form-label">Rango de la Escala</label>
+                <div class="form-row">
+                    <input class="form-control" id="pq_likert_min" type="number" min="1" max="3" value="1" placeholder="Mínimo">
+                    <input class="form-control" id="pq_likert_max" type="number" min="4" max="10" value="5" placeholder="Máximo">
+                </div></div>`;
+            } else { area.innerHTML = ''; }
+        }
+
+        // ── GUARDAR ──
+        async function guardarNuevaPrueba() {
+            const body = {
+                codigo: document.getElementById('np_codigo').value.trim().toUpperCase(),
+                nombre: document.getElementById('np_nombre').value.trim(),
+                descripcion: document.getElementById('np_descripcion').value.trim(),
+                categoria: document.getElementById('np_categoria').value,
+                tiempo_limite_min: parseInt(document.getElementById('np_tiempo').value) || null,
+                score_min_aprobatorio: parseFloat(document.getElementById('np_score_min').value) || 70,
+                version_actual: document.getElementById('np_version').value || '1.0',
+                instrucciones: document.getElementById('np_instrucciones').value.trim(),
+                activa: true
+            };
+            if (!body.codigo || !body.nombre) { toast('⚠️ Código y nombre son obligatorios'); return; }
+            const r = await api('/rest/v1/pruebas_psicometricas', { method: 'POST', body: JSON.stringify(body) });
+            if (r) { toast('✅ Batería guardada: ' + body.nombre); closeModal('modalNuevaPrueba'); pruebas = await api('/rest/v1/pruebas_psicometricas?select=*&activa=eq.true&order=codigo.asc') || []; llenarSelectPruebas(); renderStats(); }
+            else toast('❌ Error al guardar. Verifica que el schema esté ejecutado en Supabase.');
+        }
+
+        async function guardarAsignacion() {
+            if (!puestoActivo) { toast('⚠️ Sin puesto activo'); return; }
+            const pruebaId = document.getElementById('as_prueba_id').value;
+            if (!pruebaId) { toast('⚠️ Selecciona una batería'); return; }
+            const body = {
+                id_puesto: puestoActivo.id,
+                id_prueba: pruebaId,
+                orden_aplicacion: parseInt(document.getElementById('as_orden').value) || 1,
+                score_minimo_puesto: parseFloat(document.getElementById('as_score').value) || null,
+                momento_aplicacion: document.getElementById('as_momento').value || 'pre_entrevista',
+                es_obligatoria: document.getElementById('as_obligatoria').value === 'true',
+                instrucciones_adicionales: document.getElementById('as_instrucciones').value.trim() || null
+            };
+            const r = await api('/rest/v1/puesto_prueba_config', { method: 'POST', body: JSON.stringify(body) });
+            if (r) { toast('✅ Batería asignada al puesto'); closeModal('modalAsignar'); await cargarBaterias(puestoActivo.id); }
+            else toast('❌ Error. La batería ya puede estar asignada.');
+        }
+
+        async function guardarPregunta(cerrar = true) {
+            const pruebaId = document.getElementById('pq_prueba_id').value;
+            if (!pruebaId) { toast('⚠️ Selecciona una batería'); return; }
+            const tipo = document.getElementById('pq_tipo').value;
+            let opciones = null;
+            let correcta = null;
+            if (tipo === 'opcion_multiple') {
+                opciones = [
+                    { id: 'A', texto: document.getElementById('pq_opA')?.value || '' },
+                    { id: 'B', texto: document.getElementById('pq_opB')?.value || '' },
+                    { id: 'C', texto: document.getElementById('pq_opC')?.value || '' },
+                    { id: 'D', texto: document.getElementById('pq_opD')?.value || '' }
+                ];
+                correcta = document.getElementById('pq_correcta')?.value;
+            } else if (tipo === 'escala_likert') {
+                opciones = { min: parseInt(document.getElementById('pq_likert_min')?.value) || 1, max: parseInt(document.getElementById('pq_likert_max')?.value) || 5 };
+            }
+            const body = {
+                id_prueba: pruebaId,
+                numero_orden: parseInt(document.getElementById('pq_numero').value) || 1,
+                texto_pregunta: document.getElementById('pq_texto').value.trim(),
+                tipo_respuesta: tipo,
+                opciones, respuesta_correcta: correcta,
+                subtipo: document.getElementById('pq_subtipo').value.trim() || null,
+                dificultad: document.getElementById('pq_dificultad').value,
+                valor_maximo: parseFloat(document.getElementById('pq_valor').value) || 1,
+                activa: true
+            };
+            if (!body.texto_pregunta) { toast('⚠️ Escribe el texto de la pregunta'); return; }
+            const r = await api('/rest/v1/preguntas_psicometricas', { method: 'POST', body: JSON.stringify(body) });
+            if (r) { toast('✅ Pregunta guardada'); if (cerrar) closeModal('modalPregunta'); else { document.getElementById('pq_numero').value = body.numero_orden + 1; document.getElementById('pq_texto').value = ''; } renderStats(); cargarPreguntas(); }
+            else toast('❌ Error al guardar pregunta');
+        }
+
+        function guardarYOtra() { guardarPregunta(false); }
+
+        async function guardarYOtraModal() { await guardarPregunta(false); }
+
+        async function eliminarBateria(id) {
+            if (!confirm('¿Quitar esta batería del puesto?')) return;
+            await api('/rest/v1/puesto_prueba_config?id=eq.' + id, { method: 'DELETE' });
+            toast('🗑 Batería quitada del puesto');
+            if (puestoActivo) await cargarBaterias(puestoActivo.id);
+        }
+
+        async function actualizarSiguienteNum() {
+            const pruebaId = document.getElementById('pq_prueba_id').value;
+            if (!pruebaId) return;
+            const data = await api('/rest/v1/preguntas_psicometricas?id_prueba=eq.' + pruebaId + '&select=numero_orden&order=numero_orden.desc&limit=1');
+            const next = data && data.length ? data[0].numero_orden + 1 : 1;
+            document.getElementById('pq_numero').value = next;
+            cargarPreguntas();
+        }
+
+        // ── TOAST ──
+        function toast(msg, icon = '✅') {
+            const t = document.getElementById('toast');
+            document.getElementById('toastMsg').textContent = msg;
+            document.getElementById('toastIcon').textContent = icon;
+            t.classList.add('show');
+            setTimeout(() => t.classList.remove('show'), 3500);
+        }
+
+        // Cerrar modal al click fuera
+        document.querySelectorAll('.modal-overlay').forEach(m => {
+            m.addEventListener('click', e => { if (e.target === m) m.classList.remove('open'); });
+        });
+
+        init();
+    </script>
+</body>
+
+</html>

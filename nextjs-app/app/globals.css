@@ -1,0 +1,77 @@
+@import "tailwindcss";
+
+:root {
+  --primary: #D7282F;
+  --secondary: #0071BC;
+  --bg-light: #FFFFFF;
+  --bg-gray: #F5F5F5;
+  --text-dark: #1A1A1A;
+  --text-light: #666666;
+  --border: #E0E0E0;
+  --success: #4CAF50;
+  --warning: #FFC107;
+  --danger: #D32F2F;
+}
+
+html,
+body {
+  height: 100%;
+  background: var(--bg-gray);
+  color: var(--text-dark);
+  font-family: 'Montserrat', system-ui, -apple-system, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+input,
+select,
+textarea,
+option {
+  text-transform: uppercase !important;
+  font-family: 'Montserrat', sans-serif;
+}
+
+input::placeholder,
+textarea::placeholder {
+  text-transform: uppercase !important;
+}
+
+input:focus,
+textarea:focus,
+select:focus {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+}
+
+button {
+  font-family: 'Montserrat', sans-serif;
+  cursor: pointer;
+  transition: transform 0.2s ease;
+}
+
+button:not(:disabled):hover {
+  transform: translateY(-2px);
+}
+
+button:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+@keyframes pulse-custom {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+
+@keyframes slideIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.animate-slideIn { animation: slideIn 0.3s ease forwards; }
+.animate-fadeIn { animation: fadeIn 0.3s ease forwards; }
+.animate-pulse-custom { animation: pulse-custom 1.5s ease-in-out infinite; }

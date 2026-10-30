@@ -1,0 +1,482 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8" />
+<title>🔄 Backups — Ma Baker</title>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+  :root {
+    --primary: #d7282f;
+    --success: #16a34a;
+    --warning: #f59e0b;
+    --danger: #dc2626;
+    --bg: #f8fafc;
+    --surface: #ffffff;
+    --border: #e2e8f0;
+    --text: #0f172a;
+    --text-light: #64748b;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    padding: 32px 20px;
+  }
+  .container { max-width: 1000px; margin: 0 auto; }
+  .header { display: flex; align-items: center; gap: 18px; margin-bottom: 32px; }
+  .logo {
+    width: 56px; height: 56px; border-radius: 12px;
+    background: var(--primary); color: white;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 28px;
+  }
+  h1 { font-size: 26px; font-weight: 800; }
+  .subtitle { font-size: 14px; color: var(--text-light); }
+
+  .grid-options {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 16px;
+    margin-bottom: 24px;
+  }
+  .option-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 24px;
+    transition: all 0.2s;
+  }
+  .option-card:hover { box-shadow: 0 4px 12px rgba(0,0,0,0.06); }
+  .option-icon { font-size: 36px; margin-bottom: 12px; }
+  .option-title { font-size: 18px; font-weight: 700; margin-bottom: 6px; }
+  .option-desc { font-size: 13px; color: var(--text-light); margin-bottom: 16px; line-height: 1.5; }
+
+  .btn {
+    padding: 11px 20px;
+    border-radius: 8px;
+    border: none;
+    font-weight: 600;
+    font-size: 13px;
+    cursor: pointer;
+    transition: all 0.15s;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .btn-primary { background: var(--primary); color: white; }
+  .btn-primary:hover { filter: brightness(1.1); }
+  .btn-primary:disabled { opacity: 0.5; cursor: not-allowed; }
+  .btn-ghost {
+    background: transparent;
+    color: var(--text);
+    border: 1px solid var(--border);
+  }
+  .btn-ghost:hover { background: var(--bg); }
+
+  .summary {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 24px;
+    margin-bottom: 16px;
+  }
+  .summary h2 { font-size: 18px; font-weight: 700; margin-bottom: 16px; }
+  .stat-row {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    padding: 10px 0;
+    border-top: 1px solid var(--border);
+    font-size: 14px;
+  }
+  .stat-row:first-of-type { border-top: none; }
+  .stat-label { color: var(--text-light); }
+  .stat-value { font-weight: 700; font-variant-numeric: tabular-nums; }
+
+  .history-section {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 24px;
+  }
+  .history-section h2 { font-size: 18px; font-weight: 700; margin-bottom: 16px; }
+  .history-item {
+    display: grid;
+    grid-template-columns: 1fr auto auto;
+    gap: 12px;
+    padding: 12px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    align-items: center;
+    margin-bottom: 8px;
+    font-size: 13px;
+  }
+  .history-meta { color: var(--text-light); font-size: 11px; }
+  .empty { padding: 30px; text-align: center; color: var(--text-light); font-size: 13px; }
+
+  .alert {
+    padding: 14px 16px;
+    border-radius: 8px;
+    font-size: 13px;
+    margin-bottom: 16px;
+    display: none;
+  }
+  .alert.show { display: block; }
+  .alert-success { background: #dcfce7; color: #166534; border: 1px solid #86efac; }
+  .alert-error { background: #fee2e2; color: #991b1b; border: 1px solid #fca5a5; }
+  .alert-info { background: #dbeafe; color: #1e40af; border: 1px solid #93c5fd; }
+
+  .progress {
+    height: 4px;
+    background: var(--border);
+    border-radius: 2px;
+    overflow: hidden;
+    margin-top: 12px;
+    display: none;
+  }
+  .progress.show { display: block; }
+  .progress-bar {
+    height: 100%;
+    background: var(--primary);
+    width: 0%;
+    transition: width 0.3s;
+  }
+</style>
+</head>
+<body>
+<div class="container">
+  <div class="header">
+    <div class="logo">🔄</div>
+    <div>
+      <h1>Backups y Exportación</h1>
+      <div class="subtitle">Respalda los datos del sistema en distintos formatos</div>
+    </div>
+  </div>
+
+  <div id="alert" class="alert"></div>
+
+  <!-- Resumen de datos -->
+  <div class="summary">
+    <h2>📋 Datos disponibles para respaldar</h2>
+    <div id="summary">
+      <div class="empty">Cargando...</div>
+    </div>
+    <div class="progress" id="progress"><div class="progress-bar" id="progressBar"></div></div>
+  </div>
+
+  <!-- Opciones de backup -->
+  <div class="grid-options">
+    <div class="option-card">
+      <div class="option-icon">📊</div>
+      <div class="option-title">Excel / CSV</div>
+      <div class="option-desc">Tabla con todos los candidatos. Ideal para abrir en Excel, Google Sheets o Numbers.</div>
+      <button class="btn btn-primary" id="btnCsv">📥 Descargar CSV</button>
+    </div>
+
+    <div class="option-card">
+      <div class="option-icon">📦</div>
+      <div class="option-title">JSON completo</div>
+      <div class="option-desc">Estructura completa con respuestas, puntajes y URLs. Para importar a otra base de datos.</div>
+      <button class="btn btn-primary" id="btnJson">📥 Descargar JSON</button>
+    </div>
+
+    <div class="option-card">
+      <div class="option-icon">📜</div>
+      <div class="option-title">Reporte ejecutivo</div>
+      <div class="option-desc">HTML legible con estadísticas, gráficas y resumen por puesto. Imprimible.</div>
+      <button class="btn btn-primary" id="btnReport">📥 Generar Reporte</button>
+    </div>
+
+    <div class="option-card">
+      <div class="option-icon">📁</div>
+      <div class="option-title">Backup completo (ZIP)</div>
+      <div class="option-desc">Todo: CSV + JSON + listado de URLs de documentos. Para archivar mensualmente.</div>
+      <button class="btn btn-primary" id="btnZip">📥 Descargar Todo</button>
+    </div>
+  </div>
+
+  <!-- Historial local -->
+  <div class="history-section">
+    <h2>📅 Historial de descargas (este navegador)</h2>
+    <div id="history"></div>
+  </div>
+</div>
+
+<script>
+  const SUPABASE_URL = 'https://xdtxfpvxoxqaadgyvzap.supabase.co';
+  const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhkdHhmcHZ4b3hxYWFkZ3l2emFwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzE5Nzk5OTgsImV4cCI6MjA4NzU1NTk5OH0.0bordJwiTVA-7kqOUsrPcchoSmJS2QKAHUirwN0S1QA';
+  const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+  const TABLE = 'Formulario de Candidatos';
+  const HISTORY_KEY = 'mabaker_backup_history_v1';
+
+  let cachedData = null;
+
+  function showAlert(msg, type) {
+    const a = document.getElementById('alert');
+    a.className = 'alert show alert-' + type;
+    a.textContent = msg;
+    setTimeout(() => a.classList.remove('show'), 4000);
+  }
+
+  function showProgress(pct) {
+    const p = document.getElementById('progress');
+    const b = document.getElementById('progressBar');
+    if (pct === null) { p.classList.remove('show'); b.style.width = '0%'; return; }
+    p.classList.add('show');
+    b.style.width = pct + '%';
+  }
+
+  async function loadData() {
+    showProgress(20);
+    const { data, error } = await sb.from(TABLE).select('*').order('created_at', { ascending: false });
+    showProgress(100);
+    setTimeout(() => showProgress(null), 500);
+    if (error) {
+      showAlert('Error al cargar datos: ' + error.message, 'error');
+      return null;
+    }
+    cachedData = data || [];
+    renderSummary();
+    return cachedData;
+  }
+
+  function renderSummary() {
+    const d = cachedData;
+    const summary = document.getElementById('summary');
+    if (!d || d.length === 0) {
+      summary.innerHTML = '<div class="empty">No hay candidatos para respaldar todavía</div>';
+      return;
+    }
+    const today = new Date().toISOString().slice(0,10);
+    const hoy = d.filter(c => (c.created_at || '').slice(0,10) === today).length;
+    const aptos = d.filter(c => c.veredicto_final === 'Apto para Entrevista').length;
+    const conIne = d.filter(c => c.documento_ine).length;
+    const conCv = d.filter(c => c.documento_cv).length;
+    const sizeKb = (JSON.stringify(d).length / 1024).toFixed(1);
+
+    summary.innerHTML = `
+      <div class="stat-row"><span class="stat-label">Total de candidatos</span><span class="stat-value">${d.length}</span></div>
+      <div class="stat-row"><span class="stat-label">Aplicaciones de hoy</span><span class="stat-value">${hoy}</span></div>
+      <div class="stat-row"><span class="stat-label">Aptos para entrevista</span><span class="stat-value">${aptos}</span></div>
+      <div class="stat-row"><span class="stat-label">Con identificación subida</span><span class="stat-value">${conIne}</span></div>
+      <div class="stat-row"><span class="stat-label">Con CV subido</span><span class="stat-value">${conCv}</span></div>
+      <div class="stat-row"><span class="stat-label">Tamaño estimado del backup</span><span class="stat-value">${sizeKb} KB</span></div>
+    `;
+  }
+
+  function recordHistory(type, count, sizeKb) {
+    const hist = JSON.parse(localStorage.getItem(HISTORY_KEY) || '[]');
+    hist.unshift({ ts: new Date().toISOString(), type, count, sizeKb });
+    localStorage.setItem(HISTORY_KEY, JSON.stringify(hist.slice(0, 20)));
+    renderHistory();
+  }
+
+  function renderHistory() {
+    const hist = JSON.parse(localStorage.getItem(HISTORY_KEY) || '[]');
+    const c = document.getElementById('history');
+    if (hist.length === 0) {
+      c.innerHTML = '<div class="empty">No hay descargas previas</div>';
+      return;
+    }
+    c.innerHTML = hist.map(h => {
+      const d = new Date(h.ts);
+      return `
+        <div class="history-item">
+          <div>
+            <div style="font-weight:600">${h.type}</div>
+            <div class="history-meta">${d.toLocaleString('es-MX')} · ${h.count} registros · ${h.sizeKb} KB</div>
+          </div>
+        </div>
+      `;
+    }).join('');
+  }
+
+  function downloadBlob(blob, filename) {
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = filename;
+    a.click();
+    setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+  }
+
+  // ─── CSV ─────────────────────────────────────
+  function escapeCsv(v) {
+    if (v == null) return '';
+    const s = typeof v === 'object' ? JSON.stringify(v) : String(v);
+    if (/[",\n]/.test(s)) return '"' + s.replace(/"/g, '""') + '"';
+    return s;
+  }
+  async function exportCsv() {
+    if (!cachedData) await loadData();
+    if (!cachedData || cachedData.length === 0) { showAlert('No hay datos', 'error'); return; }
+    const cols = ['id','created_at','nombre','edad','estatura','peso','genero','puesto_aplicado','puntaje_evaluacion_tecnica','veredicto_final','documento_ine','documento_cv','requisitos_salud','respuestas_psicometricas','respuestas_tecnicas'];
+    const headers = cols.join(',');
+    const rows = cachedData.map(c => cols.map(k => escapeCsv(c[k])).join(','));
+    const csv = '\uFEFF' + headers + '\n' + rows.join('\n'); // BOM para Excel
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8' });
+    const fn = `mabaker-candidatos-${new Date().toISOString().slice(0,10)}.csv`;
+    downloadBlob(blob, fn);
+    recordHistory('CSV', cachedData.length, (csv.length/1024).toFixed(1));
+    showAlert(`CSV descargado: ${cachedData.length} registros`, 'success');
+  }
+
+  // ─── JSON ────────────────────────────────────
+  async function exportJson() {
+    if (!cachedData) await loadData();
+    if (!cachedData || cachedData.length === 0) { showAlert('No hay datos', 'error'); return; }
+    const payload = {
+      meta: {
+        exportedAt: new Date().toISOString(),
+        source: 'Ma Baker Sistema v4.1',
+        recordCount: cachedData.length
+      },
+      candidatos: cachedData
+    };
+    const json = JSON.stringify(payload, null, 2);
+    const blob = new Blob([json], { type: 'application/json' });
+    const fn = `mabaker-backup-${new Date().toISOString().slice(0,10)}.json`;
+    downloadBlob(blob, fn);
+    recordHistory('JSON', cachedData.length, (json.length/1024).toFixed(1));
+    showAlert(`JSON descargado: ${cachedData.length} registros`, 'success');
+  }
+
+  // ─── Reporte ejecutivo HTML ──────────────────
+  async function exportReport() {
+    if (!cachedData) await loadData();
+    if (!cachedData || cachedData.length === 0) { showAlert('No hay datos', 'error'); return; }
+    const d = cachedData;
+    const today = new Date().toLocaleDateString('es-MX', { dateStyle: 'long' });
+    const labels = { almacen: 'Almacén', cocinero: 'Cocinero', mesero: 'Mesero', cajero: 'Cajero' };
+    const porPuesto = {};
+    d.forEach(c => { const p = c.puesto_aplicado || 'sin'; porPuesto[p] = (porPuesto[p] || 0) + 1; });
+    const aptos = d.filter(c => c.veredicto_final === 'Apto para Entrevista').length;
+    const adicional = d.filter(c => c.veredicto_final === 'Evaluación Adicional').length;
+    const noApto = d.filter(c => c.veredicto_final && c.veredicto_final.includes('No cumple')).length;
+    const conPuntaje = d.filter(c => typeof c.puntaje_evaluacion_tecnica === 'number');
+    const avg = conPuntaje.length > 0 ? Math.round(conPuntaje.reduce((s,c) => s+c.puntaje_evaluacion_tecnica, 0)/conPuntaje.length) : 0;
+    const max = Math.max(...Object.values(porPuesto), 1);
+
+    const html = `<!DOCTYPE html>
+<html lang="es"><head><meta charset="UTF-8"/><title>Reporte Ma Baker - ${today}</title>
+<style>
+  body{font-family:-apple-system,sans-serif;max-width:900px;margin:40px auto;padding:0 24px;color:#0f172a}
+  h1{font-size:32px;border-bottom:3px solid #d7282f;padding-bottom:12px;color:#d7282f}
+  h2{font-size:22px;margin-top:36px;color:#d7282f}
+  .meta{color:#64748b;font-size:14px;margin-bottom:30px}
+  .stats{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin:24px 0}
+  .stat{background:#f8fafc;padding:18px;border-radius:8px;border-left:4px solid #d7282f}
+  .stat-label{font-size:12px;color:#64748b;text-transform:uppercase}
+  .stat-val{font-size:28px;font-weight:800;margin-top:4px}
+  table{width:100%;border-collapse:collapse;margin:16px 0;font-size:13px}
+  th,td{padding:10px;text-align:left;border-bottom:1px solid #e2e8f0}
+  th{background:#f8fafc;font-weight:700}
+  .pill{padding:3px 10px;border-radius:99px;font-size:11px;font-weight:600}
+  .apto{background:#dcfce7;color:#166534}
+  .adic{background:#fef3c7;color:#92400e}
+  .no{background:#fee2e2;color:#991b1b}
+  .bar{height:24px;background:#f1f5f9;border-radius:4px;overflow:hidden;margin-top:6px}
+  .bar-fill{height:100%;background:#d7282f;display:flex;align-items:center;color:white;padding-left:10px;font-size:12px;font-weight:600}
+  @media print { body { margin: 20px; } h2 { page-break-after: avoid; } table { page-break-inside: avoid; } }
+</style></head><body>
+<h1>Reporte Ma Baker — Reclutamiento</h1>
+<div class="meta">Generado el ${today} · ${d.length} candidatos en sistema</div>
+
+<h2>📊 Resumen ejecutivo</h2>
+<div class="stats">
+  <div class="stat"><div class="stat-label">Total candidatos</div><div class="stat-val">${d.length}</div></div>
+  <div class="stat"><div class="stat-label">Aptos</div><div class="stat-val">${aptos}</div></div>
+  <div class="stat"><div class="stat-label">Eval. adicional</div><div class="stat-val">${adicional}</div></div>
+  <div class="stat"><div class="stat-label">Promedio puntaje</div><div class="stat-val">${avg}%</div></div>
+</div>
+
+<h2>👔 Distribución por puesto</h2>
+${Object.entries(porPuesto).map(([p, n]) => `
+  <div style="margin:12px 0">
+    <div style="display:flex;justify-content:space-between;font-size:14px;margin-bottom:4px">
+      <strong>${labels[p] || p}</strong><span>${n} candidato${n===1?'':'s'}</span>
+    </div>
+    <div class="bar"><div class="bar-fill" style="width:${(n/max)*100}%">${Math.round((n/d.length)*100)}%</div></div>
+  </div>
+`).join('')}
+
+<h2>👥 Listado completo de candidatos</h2>
+<table>
+  <thead><tr>
+    <th>Nombre</th><th>Edad</th><th>Puesto</th><th>Puntaje</th><th>Veredicto</th><th>Fecha</th>
+  </tr></thead>
+  <tbody>
+${d.map(c => {
+  const v = c.veredicto_final || '—';
+  const cls = v.includes('Apto') ? 'apto' : v.includes('Adicional') ? 'adic' : 'no';
+  const fecha = c.created_at ? new Date(c.created_at).toLocaleDateString('es-MX') : '—';
+  return `<tr>
+    <td><strong>${c.nombre || '(sin nombre)'}</strong></td>
+    <td>${c.edad || '—'}</td>
+    <td>${labels[c.puesto_aplicado] || c.puesto_aplicado || '—'}</td>
+    <td>${typeof c.puntaje_evaluacion_tecnica === 'number' ? c.puntaje_evaluacion_tecnica + '%' : '—'}</td>
+    <td><span class="pill ${cls}">${v}</span></td>
+    <td>${fecha}</td>
+  </tr>`;
+}).join('')}
+  </tbody>
+</table>
+
+<div style="margin-top:40px;padding-top:20px;border-top:1px solid #e2e8f0;font-size:11px;color:#64748b;text-align:center">
+  Ma Baker — Sistema de Reclutamiento · Documento confidencial
+</div>
+</body></html>`;
+    const blob = new Blob([html], { type: 'text/html;charset=utf-8' });
+    const fn = `mabaker-reporte-${new Date().toISOString().slice(0,10)}.html`;
+    downloadBlob(blob, fn);
+    recordHistory('Reporte HTML', d.length, (html.length/1024).toFixed(1));
+    showAlert('Reporte HTML descargado. Ábrelo y usa Imprimir → PDF para guardarlo como PDF.', 'success');
+  }
+
+  // ─── Backup completo (todo en un JSON envoltorio) ──
+  async function exportZipLike() {
+    if (!cachedData) await loadData();
+    if (!cachedData || cachedData.length === 0) { showAlert('No hay datos', 'error'); return; }
+    // Sin librería de zip externa, lo entregamos como un JSON-bundle con los 3 formatos embebidos
+    const cols = ['id','created_at','nombre','edad','estatura','peso','genero','puesto_aplicado','puntaje_evaluacion_tecnica','veredicto_final','documento_ine','documento_cv'];
+    const csvHeaders = cols.join(',');
+    const csvRows = cachedData.map(c => cols.map(k => escapeCsv(c[k])).join(','));
+    const csv = '\uFEFF' + csvHeaders + '\n' + csvRows.join('\n');
+
+    const docs = cachedData.map(c => ({
+      candidato: c.nombre,
+      ine: c.documento_ine || null,
+      cv: c.documento_cv || null
+    })).filter(x => x.ine || x.cv);
+
+    const bundle = {
+      meta: {
+        exportedAt: new Date().toISOString(),
+        source: 'Ma Baker Sistema v4.1',
+        recordCount: cachedData.length,
+        contents: ['candidatos_json', 'candidatos_csv', 'documentos_urls']
+      },
+      candidatos_json: cachedData,
+      candidatos_csv: csv,
+      documentos_urls: docs
+    };
+    const json = JSON.stringify(bundle, null, 2);
+    const blob = new Blob([json], { type: 'application/json' });
+    const fn = `mabaker-backup-completo-${new Date().toISOString().slice(0,10)}.json`;
+    downloadBlob(blob, fn);
+    recordHistory('Backup completo', cachedData.length, (json.length/1024).toFixed(1));
+    showAlert(`Backup completo descargado (${(json.length/1024).toFixed(0)} KB)`, 'success');
+  }
+
+  document.getElementById('btnCsv').addEventListener('click', exportCsv);
+  document.getElementById('btnJson').addEventListener('click', exportJson);
+  document.getElementById('btnReport').addEventListener('click', exportReport);
+  document.getElementById('btnZip').addEventListener('click', exportZipLike);
+
+  // Init
+  loadData();
+  renderHistory();
+</script>
+</body>
+</html>

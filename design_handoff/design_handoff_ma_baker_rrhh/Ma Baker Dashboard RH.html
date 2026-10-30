@@ -1,0 +1,605 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Ma Baker — Dashboard Reclutamiento y Selección</title>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+  <script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+  <script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    html, body, #root { height: 100%; width: 100%; }
+    body {
+      font-family: 'Montserrat', sans-serif;
+      background: #F0F2F5;
+      color: #1A1A1A;
+      -webkit-font-smoothing: antialiased;
+    }
+    :root {
+      --primary: #D7282F;
+      --secondary: #0071BC;
+      --bg-light: #FFFFFF;
+      --bg-gray: #F0F2F5;
+      --text-dark: #1A1A1A;
+      --text-light: #666666;
+      --border: #E0E0E0;
+      --success: #4CAF50;
+      --warning: #FFC107;
+      --danger: #D32F2F;
+      --sidebar-w: 240px;
+    }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
+    @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.4} }
+    button, input, select { font-family: 'Montserrat', sans-serif; }
+    input:focus, select:focus { outline: 2px solid var(--primary); outline-offset: 2px; }
+    ::-webkit-scrollbar { width: 6px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+  </style>
+</head>
+<body>
+  <div id="root"></div>
+  <script type="text/babel">
+    const { useState, useEffect, useCallback } = React;
+
+    // ── Supabase ──────────────────────────────────────────────────
+    const SUPABASE_URL  = 'https://xdtxfpvxoxqaadgyvzap.supabase.co';
+    const SUPABASE_KEY  = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhkdHhmcHZ4b3hxYWFkZ3l2emFwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzE5Nzk5OTgsImV4cCI6MjA4NzU1NTk5OH0.0bordJwiTVA-7kqOUsrPcchoSmJS2QKAHUirwN0S1QA';
+    const db = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+    // ── Helpers ───────────────────────────────────────────────────
+    const VERDICT_META = {
+      'Apto para Entrevista':  { color: 'var(--success)', bg: 'rgba(76,175,80,.12)',  icon: '✅' },
+      'Evaluación Adicional':  { color: '#E65100',        bg: 'rgba(255,193,7,.15)',  icon: '⚠️' },
+      'No cumple perfil':      { color: 'var(--danger)',  bg: 'rgba(211,47,47,.1)',   icon: '❌' },
+    };
+
+    const fmtDate = (iso) =>
+      iso ? new Date(iso).toLocaleDateString('es-MX', { day:'2-digit', month:'short', year:'numeric' }) : '—';
+
+    const exportCSV = (rows) => {
+      const cols = ['id','nombre','edad','puesto_aplicado','puntaje_evaluacion_tecnica','veredicto_final','timestamp'];
+      const lines = [cols.join(','), ...rows.map(r => cols.map(c => `"${r[c] ?? ''}"`).join(','))];
+      const blob = new Blob([lines.join('\n')], { type: 'text/csv;charset=utf-8;' });
+      const url  = URL.createObjectURL(blob);
+      const a    = Object.assign(document.createElement('a'), { href: url, download: `candidatos_${Date.now()}.csv` });
+      document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url);
+    };
+
+    // ── Componentes base ──────────────────────────────────────────
+    function Btn({ children, variant='primary', onClick, disabled=false, small=false, style={} }) {
+      const v = {
+        primary:   { background:'var(--primary)',   color:'#fff', border:'none' },
+        secondary: { background:'#fff',             color:'var(--primary)', border:'2px solid var(--primary)' },
+        ghost:     { background:'transparent',      color:'var(--text-light)', border:'1px solid var(--border)' },
+        success:   { background:'var(--success)',   color:'#fff', border:'none' },
+        danger:    { background:'var(--danger)',     color:'#fff', border:'none' },
+      };
+      return (
+        <button onClick={onClick} disabled={disabled}
+          style={{ padding: small?'6px 12px':'10px 20px', borderRadius:8, fontWeight:600,
+            fontSize: small?12:13, cursor:disabled?'not-allowed':'pointer',
+            opacity:disabled?.5:1, transition:'all .2s', ...v[variant], ...style }}
+          onMouseEnter={e=>!disabled&&(e.target.style.opacity='.85')}
+          onMouseLeave={e=>(e.target.style.opacity='1')}
+        >{children}</button>
+      );
+    }
+
+    function Badge({ verdict }) {
+      const m = VERDICT_META[verdict] || { color:'var(--text-light)', bg:'#eee', icon:'·' };
+      return (
+        <span style={{ display:'inline-flex', alignItems:'center', gap:4, padding:'4px 10px',
+          borderRadius:20, background:m.bg, color:m.color, fontWeight:700, fontSize:11 }}>
+          {m.icon} {verdict}
+        </span>
+      );
+    }
+
+    function KpiCard({ label, value, sub, color='var(--primary)' }) {
+      return (
+        <div style={{ background:'#fff', borderRadius:12, padding:'20px 24px',
+          borderTop:`4px solid ${color}`, boxShadow:'0 2px 8px rgba(0,0,0,.06)' }}>
+          <p style={{ fontSize:11, fontWeight:600, color:'var(--text-light)', marginBottom:6 }}>{label}</p>
+          <p style={{ fontSize:32, fontWeight:700, color }}>{value}</p>
+          {sub && <p style={{ fontSize:11, color:'var(--text-light)', marginTop:4 }}>{sub}</p>}
+        </div>
+      );
+    }
+
+    // ── Modal Detalle ─────────────────────────────────────────────
+    function DetailModal({ candidate, onClose }) {
+      if (!candidate) return null;
+      const docs = candidate.documentos || {};
+      const techR = candidate.respuestas_tecnicas || {};
+      const psyR  = candidate.respuestas_psicometricas || {};
+      const vm = VERDICT_META[candidate.veredicto_final] || {};
+
+      return (
+        <div style={{ position:'fixed', inset:0, background:'rgba(0,0,0,.6)',
+          display:'flex', alignItems:'center', justifyContent:'center', zIndex:1000, padding:20 }}
+          onClick={e=>e.target===e.currentTarget && onClose()}>
+          <div style={{ background:'#fff', borderRadius:16, maxWidth:820, width:'100%',
+            maxHeight:'90vh', overflowY:'auto', boxShadow:'0 30px 80px rgba(0,0,0,.25)', animation:'fadeIn .2s ease' }}>
+
+            {/* Header modal */}
+            <div style={{ background:'linear-gradient(135deg,var(--primary),var(--secondary))',
+              padding:'24px 32px', borderRadius:'16px 16px 0 0',
+              display:'flex', justifyContent:'space-between', alignItems:'center' }}>
+              <div>
+                <h2 style={{ color:'#fff', fontSize:22, fontWeight:700 }}>{candidate.nombre}</h2>
+                <p style={{ color:'rgba(255,255,255,.85)', fontSize:13 }}>
+                  {candidate.puesto_aplicado} · {candidate.edad} años · {fmtDate(candidate.timestamp)}
+                </p>
+              </div>
+              <button onClick={onClose}
+                style={{ background:'rgba(255,255,255,.2)', border:'none', color:'#fff',
+                  width:36, height:36, borderRadius:'50%', cursor:'pointer', fontSize:18, fontWeight:700 }}>
+                ✕
+              </button>
+            </div>
+
+            <div style={{ padding:'32px' }}>
+              {/* Veredicto */}
+              <div style={{ textAlign:'center', marginBottom:28, padding:20,
+                background: vm.bg||'#f5f5f5', borderRadius:12 }}>
+                <p style={{ fontSize:40, marginBottom:4 }}>{vm.icon}</p>
+                <p style={{ fontSize:20, fontWeight:700, color:vm.color }}>{candidate.veredicto_final}</p>
+                <p style={{ fontSize:28, fontWeight:700, color:vm.color }}>
+                  {candidate.puntaje_evaluacion_tecnica}%
+                </p>
+              </div>
+
+              {/* Datos biométricos */}
+              <h3 style={{ fontSize:14, fontWeight:700, color:'var(--primary)', marginBottom:12 }}>
+                Datos del Candidato
+              </h3>
+              <div style={{ display:'grid', gridTemplateColumns:'repeat(3,1fr)', gap:10, marginBottom:24 }}>
+                {[
+                  ['Edad', `${candidate.edad} años`],
+                  ['Estatura', `${candidate.estatura} m`],
+                  ['Peso', `${candidate.peso} kg`],
+                  ['Género', candidate.genero === 'M' ? 'Masculino' : 'Femenino'],
+                  ['Puesto', candidate.puesto_aplicado],
+                  ['Fecha', fmtDate(candidate.timestamp)],
+                ].map(([l,v]) => (
+                  <div key={l} style={{ background:'var(--bg-gray)', padding:'10px 14px', borderRadius:8 }}>
+                    <p style={{ fontSize:10, color:'var(--text-light)', fontWeight:600 }}>{l}</p>
+                    <p style={{ fontSize:13, fontWeight:600 }}>{v||'—'}</p>
+                  </div>
+                ))}
+              </div>
+
+              {/* Documentos */}
+              <h3 style={{ fontSize:14, fontWeight:700, color:'var(--primary)', marginBottom:12 }}>
+                Documentos Cargados
+              </h3>
+              {Object.keys(docs).length === 0
+                ? <p style={{ fontSize:12, color:'var(--text-light)', marginBottom:24 }}>Sin documentos registrados</p>
+                : (
+                  <div style={{ display:'grid', gridTemplateColumns:'repeat(2,1fr)', gap:10, marginBottom:24 }}>
+                    {Object.entries(docs).map(([key, doc]) => (
+                      <a key={key} href={doc.url} target="_blank" rel="noreferrer"
+                        style={{ display:'flex', alignItems:'center', gap:10, padding:'10px 14px',
+                          background:'rgba(0,113,188,.06)', border:'1px solid rgba(0,113,188,.2)',
+                          borderRadius:8, textDecoration:'none', color:'var(--secondary)' }}>
+                        <span style={{ fontSize:20 }}>
+                          {doc.type?.includes('pdf') ? '📄' : '🖼️'}
+                        </span>
+                        <div>
+                          <p style={{ fontSize:11, fontWeight:700 }}>{doc.name}</p>
+                          <p style={{ fontSize:10, color:'var(--text-light)' }}>
+                            {doc.size ? `${(doc.size/1024).toFixed(0)} KB` : ''} · Ver ↗
+                          </p>
+                        </div>
+                      </a>
+                    ))}
+                  </div>
+                )
+              }
+
+              {/* Respuestas técnicas */}
+              <h3 style={{ fontSize:14, fontWeight:700, color:'var(--primary)', marginBottom:12 }}>
+                Evaluación Técnica
+              </h3>
+              <div style={{ background:'var(--bg-gray)', padding:16, borderRadius:8, marginBottom:24 }}>
+                <p style={{ fontSize:12 }}>
+                  <strong>Respuestas registradas:</strong> {Object.keys(techR).length}/10
+                </p>
+                <p style={{ fontSize:12, marginTop:6 }}>
+                  <strong>Puntaje:</strong> {candidate.puntaje_evaluacion_tecnica}%
+                </p>
+              </div>
+
+              {/* Botones */}
+              <div style={{ display:'flex', gap:12 }}>
+                <Btn variant="ghost" onClick={onClose} style={{ flex:1 }}>Cerrar</Btn>
+                <Btn variant="primary"
+                  onClick={() => {
+                    const text = `Candidato: ${candidate.nombre}\nPuesto: ${candidate.puesto_aplicado}\nPuntaje: ${candidate.puntaje_evaluacion_tecnica}%\nVeredicto: ${candidate.veredicto_final}\nFecha: ${fmtDate(candidate.timestamp)}`;
+                    navigator.clipboard?.writeText(text);
+                    alert('Resumen copiado al portapapeles');
+                  }}
+                  style={{ flex:1 }}>
+                  📋 Copiar Resumen
+                </Btn>
+              </div>
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    // ── Dashboard principal ───────────────────────────────────────
+    function Dashboard() {
+      const [candidates, setCandidates]   = useState([]);
+      const [loading, setLoading]         = useState(true);
+      const [error, setError]             = useState(null);
+      const [selected, setSelected]       = useState(null);
+      const [search, setSearch]           = useState('');
+      const [filterPuesto, setFilterPuesto] = useState('todos');
+      const [filterVerdict, setFilterVerdict] = useState('todos');
+      const [sortField, setSortField]     = useState('timestamp');
+      const [sortAsc, setSortAsc]         = useState(false);
+
+      const loadCandidates = useCallback(async () => {
+        setLoading(true); setError(null);
+        const { data, error } = await db.from('Formulario de Candidatos').select('*').order('created_at', { ascending: false });
+        if (error) setError(error.message);
+        else setCandidates(data || []);
+        setLoading(false);
+      }, []);
+
+      useEffect(() => { loadCandidates(); }, [loadCandidates]);
+
+      // Filtrado + búsqueda
+      const filtered = candidates
+        .filter(c => {
+          const q = search.toLowerCase();
+          const matchSearch = !q || c.nombre?.toLowerCase().includes(q) || c.puesto_aplicado?.toLowerCase().includes(q);
+          const matchPuesto  = filterPuesto === 'todos' || c.puesto_aplicado === filterPuesto;
+          const matchVerdict = filterVerdict === 'todos' || c.veredicto_final === filterVerdict;
+          return matchSearch && matchPuesto && matchVerdict;
+        })
+        .sort((a, b) => {
+          const va = a[sortField] ?? '';
+          const vb = b[sortField] ?? '';
+          return sortAsc ? (va > vb ? 1 : -1) : (va < vb ? 1 : -1);
+        });
+
+      // KPIs
+      const total   = candidates.length;
+      const aptos   = candidates.filter(c => c.veredicto_final === 'Apto para Entrevista').length;
+      const avgScore = total
+        ? Math.round(candidates.reduce((s, c) => s + (c.puntaje_evaluacion_tecnica || 0), 0) / total)
+        : 0;
+
+      const handleSort = (field) => {
+        if (sortField === field) setSortAsc(!sortAsc);
+        else { setSortField(field); setSortAsc(false); }
+      };
+
+      const thStyle = (field) => ({
+        padding: '12px 16px', background: '#f8f8f8', fontSize: 11, fontWeight: 700,
+        color: sortField === field ? 'var(--primary)' : 'var(--text-light)',
+        textAlign: 'left', cursor: 'pointer', userSelect: 'none',
+        borderBottom: '2px solid var(--border)', whiteSpace: 'nowrap',
+      });
+
+      return (
+        <div style={{ display:'flex', height:'100vh', overflow:'hidden' }}>
+
+          {/* ── Sidebar ── */}
+          <aside style={{ width:'var(--sidebar-w)', background:'#fff',
+            borderRight:'1px solid var(--border)', display:'flex', flexDirection:'column',
+            flexShrink:0, padding:'0 0 20px' }}>
+            <div style={{ padding:'24px 20px', borderBottom:'1px solid var(--border)' }}>
+              <img src="chef-logo.jpg" alt="Ma Baker" style={{ width:100, display:'block', marginBottom:12 }} />
+              <p style={{ fontSize:11, fontWeight:700, color:'var(--text-light)', letterSpacing:1 }}>
+                RECLUTAMIENTO Y SELECCIÓN
+              </p>
+            </div>
+
+            <nav style={{ padding:'16px 12px', flex:1 }}>
+              {[
+                { icon:'👥', label:'Candidatos', active:true },
+                { icon:'📊', label:'Reportes',   active:false },
+                { icon:'⚙️', label:'Ajustes',    active:false },
+              ].map(item => (
+                <div key={item.label} style={{
+                  display:'flex', alignItems:'center', gap:10,
+                  padding:'10px 12px', borderRadius:8, marginBottom:4, cursor:'pointer',
+                  background: item.active ? 'rgba(215,40,47,.08)' : 'transparent',
+                  color: item.active ? 'var(--primary)' : 'var(--text-light)',
+                  fontWeight: item.active ? 700 : 500, fontSize:13,
+                }}>
+                  <span>{item.icon}</span> {item.label}
+                </div>
+              ))}
+            </nav>
+
+            <div style={{ padding:'16px 20px', borderTop:'1px solid var(--border)' }}>
+              <p style={{ fontSize:11, fontWeight:600 }}>RH Admin</p>
+              <p style={{ fontSize:10, color:'var(--text-light)' }}>Sesión activa</p>
+            </div>
+          </aside>
+
+          {/* ── Main ── */}
+          <main style={{ flex:1, display:'flex', flexDirection:'column', overflow:'hidden' }}>
+
+            {/* Topbar */}
+            <div style={{ background:'#fff', borderBottom:'1px solid var(--border)',
+              padding:'16px 28px', display:'flex', justifyContent:'space-between', alignItems:'center' }}>
+              <div>
+                <h1 style={{ fontSize:20, fontWeight:700 }}>Panel de Candidatos</h1>
+                <p style={{ fontSize:12, color:'var(--text-light)' }}>
+                  {fmtDate(new Date().toISOString())} · {total} registro{total !== 1 ? 's' : ''}
+                </p>
+              </div>
+              <div style={{ display:'flex', gap:10 }}>
+                <Btn variant="ghost" onClick={loadCandidates} small>🔄 Actualizar</Btn>
+                <Btn variant="secondary" onClick={() => exportCSV(filtered)} small disabled={!filtered.length}>
+                  ⬇ Exportar CSV
+                </Btn>
+              </div>
+            </div>
+
+            {/* KPIs */}
+            <div style={{ padding:'20px 28px', display:'grid',
+              gridTemplateColumns:'repeat(4,1fr)', gap:16, flexShrink:0 }}>
+              <KpiCard label="Total Candidatos"  value={total}     color="var(--secondary)" />
+              <KpiCard label="Aptos para Entrevista" value={aptos} color="var(--success)"   sub={total?`${Math.round(aptos/total*100)}% del total`:''}/>
+              <KpiCard label="Promedio Técnico"  value={`${avgScore}%`} color="var(--primary)" />
+              <KpiCard label="Últimas 24h"
+                value={candidates.filter(c => {
+                  const d = new Date(c.created_at || c.timestamp);
+                  return Date.now() - d < 86400000;
+                }).length}
+                color="#7B1FA2"
+              />
+            </div>
+
+            {/* Filtros */}
+            <div style={{ padding:'0 28px 16px', display:'flex', gap:12, flexShrink:0, flexWrap:'wrap' }}>
+              <input
+                type="text"
+                placeholder="🔍  Buscar por nombre o puesto..."
+                value={search}
+                onChange={e => setSearch(e.target.value)}
+                style={{ flex:1, minWidth:200, padding:'9px 14px', border:'1px solid var(--border)',
+                  borderRadius:8, fontSize:13 }}
+              />
+              <select value={filterPuesto} onChange={e => setFilterPuesto(e.target.value)}
+                style={{ padding:'9px 14px', border:'1px solid var(--border)', borderRadius:8, fontSize:13 }}>
+                <option value="todos">Todos los puestos</option>
+                <option value="Auxiliar de Almacén">Auxiliar de Almacén</option>
+                <option value="Mezclador">Mezclador</option>
+              </select>
+              <select value={filterVerdict} onChange={e => setFilterVerdict(e.target.value)}
+                style={{ padding:'9px 14px', border:'1px solid var(--border)', borderRadius:8, fontSize:13 }}>
+                <option value="todos">Todos los veredictos</option>
+                <option value="Apto para Entrevista">✅ Apto</option>
+                <option value="Evaluación Adicional">⚠️ Evaluación adicional</option>
+                <option value="No cumple perfil">❌ No cumple</option>
+              </select>
+            </div>
+
+            {/* Tabla */}
+            <div style={{ flex:1, overflow:'auto', padding:'0 28px 28px' }}>
+              {loading ? (
+                <div style={{ textAlign:'center', padding:80 }}>
+                  <p style={{ fontSize:32, animation:'pulse 1s infinite' }}>⏳</p>
+                  <p style={{ fontSize:14, color:'var(--text-light)', marginTop:12 }}>Cargando candidatos desde Supabase...</p>
+                </div>
+              ) : error ? (
+                <div style={{ background:'#fff', border:'2px solid var(--danger)',
+                  borderRadius:12, padding:32, maxWidth:620, margin:'0 auto' }}>
+                  <p style={{ color:'var(--danger)', fontWeight:700, fontSize:16, marginBottom:8 }}>
+                    ⚠️ Tabla no encontrada en Supabase
+                  </p>
+                  <p style={{ fontSize:13, color:'var(--text-light)', marginBottom:20 }}>
+                    La conexión a Supabase funciona correctamente, pero la tabla <strong>"Formulario de Candidatos"</strong> aún no tiene las columnas necesarias. Ejecuta el SQL en <strong>Ma Baker SQL Setup v2.html</strong>:
+                  </p>
+
+                  {/* SQL block */}
+                  <div style={{ background:'#1e1e2e', borderRadius:8, padding:16, marginBottom:20, position:'relative' }}>
+                    <pre style={{ color:'#cdd6f4', fontSize:11, fontFamily:'monospace', whiteSpace:'pre-wrap', lineHeight:1.7 }}>{`CREATE TABLE candidatos (
+  id                         BIGSERIAL PRIMARY KEY,
+  nombre                     TEXT,
+  edad                       INTEGER,
+  estatura                   NUMERIC,
+  peso                       NUMERIC,
+  genero                     TEXT,
+  puesto_aplicado            TEXT,
+  documentos                 JSONB DEFAULT '{}',
+  requisitos_salud           JSONB DEFAULT '[]',
+  respuestas_psicometricas   JSONB DEFAULT '{}',
+  respuestas_tecnicas        JSONB DEFAULT '{}',
+  puntaje_evaluacion_tecnica INTEGER,
+  veredicto_final            TEXT,
+  timestamp                  TIMESTAMPTZ,
+  created_at                 TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- Permitir lectura/escritura pública (ajusta RLS en producción)
+ALTER TABLE candidatos ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "allow_all" ON candidatos FOR ALL USING (true) WITH CHECK (true);`}</pre>
+                    <button
+                      onClick={() => {
+                        const sql = `CREATE TABLE candidatos (
+  id BIGSERIAL PRIMARY KEY,
+  nombre TEXT,
+  edad INTEGER,
+  estatura NUMERIC,
+  peso NUMERIC,
+  genero TEXT,
+  puesto_aplicado TEXT,
+  documentos JSONB DEFAULT '{}',
+  requisitos_salud JSONB DEFAULT '[]',
+  respuestas_psicometricas JSONB DEFAULT '{}',
+  respuestas_tecnicas JSONB DEFAULT '{}',
+  puntaje_evaluacion_tecnica INTEGER,
+  veredicto_final TEXT,
+  timestamp TIMESTAMPTZ,
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
+ALTER TABLE candidatos ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "allow_all" ON candidatos FOR ALL USING (true) WITH CHECK (true);`;
+                        navigator.clipboard?.writeText(sql);
+                        alert('✅ SQL copiado al portapapeles. Pégalo en Supabase → SQL Editor → New Query → Run');
+                      }}
+                      style={{ position:'absolute', top:12, right:12, background:'rgba(255,255,255,.15)',
+                        border:'none', color:'#fff', padding:'4px 10px', borderRadius:6,
+                        cursor:'pointer', fontSize:11, fontWeight:600 }}>
+                      📋 Copiar SQL
+                    </button>
+                  </div>
+
+                  {/* Pasos */}
+                  <div style={{ background:'rgba(0,113,188,.06)', border:'1px solid rgba(0,113,188,.2)',
+                    borderRadius:8, padding:16, marginBottom:20, fontSize:12 }}>
+                    <p style={{ fontWeight:700, color:'var(--secondary)', marginBottom:8 }}>
+                      📋 Pasos para crear la tabla:
+                    </p>
+                    <ol style={{ paddingLeft:18, lineHeight:2 }}>
+                      <li>Entra a <a href="https://supabase.com/dashboard" target="_blank" rel="noreferrer" style={{ color:'var(--secondary)' }}>supabase.com/dashboard</a></li>
+                      <li>Selecciona tu proyecto <strong>xdtxfpvxoxqaadgyvzap</strong></li>
+                      <li>Ve a <strong>SQL Editor → New Query</strong></li>
+                      <li>Pega el SQL de arriba y haz click en <strong>Run</strong></li>
+                      <li>Regresa aquí y haz click en <strong>Reintentar</strong></li>
+                    </ol>
+                  </div>
+
+                  <div style={{ display:'flex', gap:12 }}>
+                    <Btn variant="ghost" style={{ flex:1 }}
+                      onClick={() => window.open('https://supabase.com/dashboard/project/xdtxfpvxoxqaadgyvzap/sql/new', '_blank')}>
+                      🔗 Abrir SQL Editor
+                    </Btn>
+                    <Btn variant="primary" onClick={loadCandidates} style={{ flex:1 }}>
+                      🔄 Reintentar conexión
+                    </Btn>
+                  </div>
+                </div>
+              ) : filtered.length === 0 ? (
+                <div style={{ textAlign:'center', padding:80, color:'var(--text-light)' }}>
+                  <p style={{ fontSize:40, marginBottom:12 }}>📭</p>
+                  <p style={{ fontSize:14, fontWeight:600 }}>
+                    {candidates.length === 0 ? 'Aún no hay candidatos registrados' : 'Sin resultados para los filtros aplicados'}
+                  </p>
+                  {candidates.length === 0 && (
+                    <p style={{ fontSize:12, marginTop:8 }}>
+                      Completa una evaluación en el sistema principal para ver registros aquí.
+                    </p>
+                  )}
+                </div>
+              ) : (
+                <div style={{ background:'#fff', borderRadius:12, overflow:'hidden',
+                  boxShadow:'0 2px 12px rgba(0,0,0,.06)', border:'1px solid var(--border)' }}>
+                  <table style={{ width:'100%', borderCollapse:'collapse' }}>
+                    <thead>
+                      <tr>
+                        {[
+                          { label:'#',        field:'id' },
+                          { label:'Nombre',   field:'nombre' },
+                          { label:'Puesto',   field:'puesto_aplicado' },
+                          { label:'Edad',     field:'edad' },
+                          { label:'Puntaje',  field:'puntaje_evaluacion_tecnica' },
+                          { label:'Veredicto',field:'veredicto_final' },
+                          { label:'Docs',     field:'documentos' },
+                          { label:'Fecha',    field:'timestamp' },
+                          { label:'',         field:'' },
+                        ].map(col => (
+                          <th key={col.label} onClick={() => col.field && handleSort(col.field)}
+                            style={thStyle(col.field)}>
+                            {col.label} {sortField===col.field ? (sortAsc?'↑':'↓') : ''}
+                          </th>
+                        ))}
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {filtered.map((c, idx) => {
+                        const vm = VERDICT_META[c.veredicto_final] || {};
+                        const docsCount = Object.keys(c.documentos || {}).length;
+                        return (
+                          <tr key={c.id}
+                            style={{ borderBottom:'1px solid var(--border)',
+                              background: idx%2===0 ? '#fff' : '#fafafa',
+                              transition:'background .15s', cursor:'pointer' }}
+                            onMouseEnter={e => (e.currentTarget.style.background='rgba(215,40,47,.04)')}
+                            onMouseLeave={e => (e.currentTarget.style.background= idx%2===0?'#fff':'#fafafa')}
+                          >
+                            <td style={{ padding:'12px 16px', fontSize:11, color:'var(--text-light)' }}>
+                              #{c.id}
+                            </td>
+                            <td style={{ padding:'12px 16px', fontWeight:600, fontSize:13 }}>
+                              {c.nombre}
+                            </td>
+                            <td style={{ padding:'12px 16px', fontSize:12, color:'var(--secondary)' }}>
+                              {c.puesto_aplicado}
+                            </td>
+                            <td style={{ padding:'12px 16px', fontSize:12 }}>
+                              {c.edad} años
+                            </td>
+                            <td style={{ padding:'12px 16px' }}>
+                              <div style={{ display:'flex', alignItems:'center', gap:8 }}>
+                                <div style={{ flex:1, height:6, background:'var(--border)', borderRadius:3, minWidth:60 }}>
+                                  <div style={{
+                                    height:'100%', borderRadius:3,
+                                    width:`${c.puntaje_evaluacion_tecnica||0}%`,
+                                    background: (c.puntaje_evaluacion_tecnica||0)>=70 ? 'var(--success)'
+                                      : (c.puntaje_evaluacion_tecnica||0)>=50 ? 'var(--warning)'
+                                      : 'var(--danger)',
+                                  }}/>
+                                </div>
+                                <span style={{ fontSize:12, fontWeight:700, width:34 }}>
+                                  {c.puntaje_evaluacion_tecnica||0}%
+                                </span>
+                              </div>
+                            </td>
+                            <td style={{ padding:'12px 16px' }}>
+                              <Badge verdict={c.veredicto_final} />
+                            </td>
+                            <td style={{ padding:'12px 16px', fontSize:12 }}>
+                              <span style={{ color: docsCount>=5?'var(--success)':'var(--warning)', fontWeight:600 }}>
+                                {docsCount}/5
+                              </span>
+                            </td>
+                            <td style={{ padding:'12px 16px', fontSize:11, color:'var(--text-light)' }}>
+                              {fmtDate(c.timestamp || c.created_at)}
+                            </td>
+                            <td style={{ padding:'12px 16px' }}>
+                              <Btn small variant="secondary" onClick={() => setSelected(c)}>
+                                Ver →
+                              </Btn>
+                            </td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+
+                  {/* Footer tabla */}
+                  <div style={{ padding:'12px 20px', background:'#f8f8f8',
+                    borderTop:'1px solid var(--border)', fontSize:11, color:'var(--text-light)',
+                    display:'flex', justifyContent:'space-between' }}>
+                    <span>Mostrando {filtered.length} de {candidates.length} candidatos</span>
+                    <span>Ordenado por: {sortField} {sortAsc?'↑':'↓'}</span>
+                  </div>
+                </div>
+              )}
+            </div>
+          </main>
+
+          {/* Modal */}
+          {selected && <DetailModal candidate={selected} onClose={() => setSelected(null)} />}
+        </div>
+      );
+    }
+
+    ReactDOM.createRoot(document.getElementById('root')).render(<Dashboard />);
+  </script>
+</body>
+</html>

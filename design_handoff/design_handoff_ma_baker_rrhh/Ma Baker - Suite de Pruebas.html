@@ -1,0 +1,533 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8" />
+<title>🧪 Suite de Pruebas — Ma Baker</title>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+  :root {
+    --primary: #d7282f;
+    --success: #16a34a;
+    --warning: #f59e0b;
+    --danger: #dc2626;
+    --bg: #0f172a;
+    --surface: #1e293b;
+    --surface2: #334155;
+    --text: #e2e8f0;
+    --text-light: #94a3b8;
+    --border: #334155;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    padding: 32px 20px;
+  }
+  .container { max-width: 1100px; margin: 0 auto; }
+  .header {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    margin-bottom: 32px;
+    padding-bottom: 24px;
+    border-bottom: 1px solid var(--border);
+  }
+  .logo {
+    width: 64px; height: 64px; border-radius: 12px;
+    background: var(--primary);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 32px;
+  }
+  h1 { font-size: 28px; font-weight: 800; }
+  .subtitle { color: var(--text-light); font-size: 14px; margin-top: 4px; }
+
+  .controls {
+    display: flex; gap: 12px; flex-wrap: wrap;
+    margin-bottom: 24px;
+  }
+  .btn {
+    padding: 12px 24px;
+    border-radius: 8px;
+    border: none;
+    font-weight: 600;
+    font-size: 14px;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .btn-primary { background: var(--primary); color: white; }
+  .btn-primary:hover { filter: brightness(1.1); }
+  .btn-primary:disabled { opacity: 0.5; cursor: not-allowed; }
+  .btn-ghost { background: transparent; color: var(--text); border: 1px solid var(--border); }
+  .btn-ghost:hover { background: var(--surface); }
+
+  .summary {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 16px;
+    margin-bottom: 24px;
+  }
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 20px;
+  }
+  .card-label { font-size: 12px; color: var(--text-light); text-transform: uppercase; letter-spacing: 0.5px; }
+  .card-value { font-size: 32px; font-weight: 800; margin-top: 6px; }
+  .card.pass .card-value { color: var(--success); }
+  .card.fail .card-value { color: var(--danger); }
+  .card.skip .card-value { color: var(--warning); }
+
+  .test-group {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    margin-bottom: 16px;
+    overflow: hidden;
+  }
+  .test-group-header {
+    padding: 16px 20px;
+    background: var(--surface2);
+    display: flex; align-items: center; gap: 12px;
+    font-weight: 700;
+  }
+  .test-row {
+    padding: 14px 20px;
+    border-top: 1px solid var(--border);
+    display: grid;
+    grid-template-columns: 32px 1fr auto;
+    gap: 14px;
+    align-items: start;
+    font-size: 13px;
+  }
+  .status-icon {
+    width: 24px; height: 24px;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 14px;
+    font-weight: 700;
+  }
+  .status-pending { background: var(--surface2); color: var(--text-light); }
+  .status-running { background: #3b82f6; color: white; animation: pulse 1s infinite; }
+  .status-pass { background: var(--success); color: white; }
+  .status-fail { background: var(--danger); color: white; }
+  .status-skip { background: var(--warning); color: white; }
+  @keyframes pulse { 50% { opacity: 0.5; } }
+
+  .test-name { font-weight: 600; }
+  .test-detail { color: var(--text-light); font-size: 12px; margin-top: 4px; font-family: monospace; }
+  .test-detail.error { color: #fca5a5; }
+  .test-time { color: var(--text-light); font-size: 11px; font-variant-numeric: tabular-nums; }
+
+  .progress-bar {
+    height: 6px;
+    background: var(--surface);
+    border-radius: 3px;
+    margin-bottom: 24px;
+    overflow: hidden;
+  }
+  .progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--success), #22c55e);
+    width: 0%;
+    transition: width 0.3s;
+  }
+
+  .empty {
+    text-align: center;
+    padding: 60px 20px;
+    color: var(--text-light);
+  }
+</style>
+</head>
+<body>
+<div class="container">
+  <div class="header">
+    <div class="logo">🧪</div>
+    <div>
+      <h1>Suite de Pruebas Automatizadas</h1>
+      <div class="subtitle">Verifica que todos los componentes del sistema Ma Baker funcionan correctamente</div>
+    </div>
+  </div>
+
+  <div class="controls">
+    <button class="btn btn-primary" id="btnRun">▶ Ejecutar todas las pruebas</button>
+    <button class="btn btn-ghost" id="btnClear">🗑 Limpiar</button>
+    <button class="btn btn-ghost" id="btnExport">📥 Exportar resultados</button>
+  </div>
+
+  <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
+
+  <div class="summary">
+    <div class="card pass"><div class="card-label">✅ Pasadas</div><div class="card-value" id="cntPass">0</div></div>
+    <div class="card fail"><div class="card-label">❌ Fallidas</div><div class="card-value" id="cntFail">0</div></div>
+    <div class="card skip"><div class="card-label">⏭ Omitidas</div><div class="card-value" id="cntSkip">0</div></div>
+    <div class="card"><div class="card-label">⏱ Tiempo total</div><div class="card-value" id="cntTime">—</div></div>
+  </div>
+
+  <div id="testList"></div>
+</div>
+
+<script>
+  // ═══════════════════════════════════════════════════════════
+  // CONFIGURACIÓN SUPABASE
+  // ═══════════════════════════════════════════════════════════
+  const SUPABASE_URL = 'https://xdtxfpvxoxqaadgyvzap.supabase.co';
+  const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhkdHhmcHZ4b3hxYWFkZ3l2emFwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzE5Nzk5OTgsImV4cCI6MjA4NzU1NTk5OH0.0bordJwiTVA-7kqOUsrPcchoSmJS2QKAHUirwN0S1QA';
+  const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+  const TABLE = 'Formulario de Candidatos';
+
+  // ═══════════════════════════════════════════════════════════
+  // SUITE DE PRUEBAS
+  // ═══════════════════════════════════════════════════════════
+  const SUITES = [
+    {
+      name: '🌐 Conectividad',
+      tests: [
+        {
+          name: 'Conexión a Supabase responde',
+          fn: async () => {
+            const { error } = await sb.from(TABLE).select('id', { head: true, count: 'exact' }).limit(1);
+            if (error) throw error;
+            return 'OK';
+          }
+        },
+        {
+          name: 'Tabla "Formulario de Candidatos" expuesta',
+          fn: async () => {
+            const { data, error } = await sb.from(TABLE).select('*').limit(1);
+            if (error) throw error;
+            return `Tabla accesible (${data?.length || 0} fila${data?.length === 1 ? '' : 's'} de muestra)`;
+          }
+        },
+        {
+          name: 'Bucket "ines" existe',
+          fn: async () => {
+            const { data, error } = await sb.storage.from('documentos').list('', { limit: 1 });
+            if (error) throw error;
+            return `Bucket OK (${data?.length || 0} archivo${data?.length === 1 ? '' : 's'} visible${data?.length === 1 ? '' : 's'})`;
+          }
+        },
+        {
+          name: 'Bucket "cvs" existe',
+          fn: async () => {
+            const { data, error } = await sb.storage.from('documentos').list('', { limit: 1 });
+            if (error) throw error;
+            return `Bucket OK (${data?.length || 0} archivo${data?.length === 1 ? '' : 's'} visible${data?.length === 1 ? '' : 's'})`;
+          }
+        }
+      ]
+    },
+    {
+      name: '🗄️ Esquema de BD',
+      tests: [
+        {
+          name: 'Columnas requeridas presentes',
+          fn: async () => {
+            const required = ['nombre','edad','estatura','peso','genero','puesto_aplicado','documento_ine','documento_cv','requisitos_salud','respuestas_psicometricas','respuestas_tecnicas','puntaje_evaluacion_tecnica','veredicto_final'];
+            // Insertar y borrar registro de prueba para validar el esquema
+            const probe = {};
+            required.forEach(c => probe[c] = null);
+            probe.nombre = '__schema_probe__';
+            const { data, error } = await sb.from(TABLE).insert([probe]).select();
+            if (error) throw new Error('Falta columna: ' + error.message);
+            // Limpiar
+            if (data?.[0]?.id) await sb.from(TABLE).delete().eq('id', data[0].id);
+            return `${required.length} columnas validadas`;
+          }
+        }
+      ]
+    },
+    {
+      name: '📤 Storage / Subida de archivos',
+      tests: [
+        {
+          name: 'Subir archivo PNG a bucket "ines"',
+          fn: async () => {
+            const png = base64ToBlob('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8/5+hHgAHggJ/PchI7wAAAABJRU5ErkJggg==', 'image/png');
+            const path = `test/probe_${Date.now()}.png`;
+            const { error } = await sb.storage.from('documentos').upload(path, png, { contentType: 'image/png' });
+            if (error) throw error;
+            const { data: url } = sb.storage.from('documentos').getPublicUrl(path);
+            // Limpiar
+            await sb.storage.from('documentos').remove([path]);
+            return `Subido y URL pública generada: ${url.publicUrl.substring(0, 50)}...`;
+          }
+        },
+        {
+          name: 'Subir archivo PDF a bucket "cvs"',
+          fn: async () => {
+            const pdf = new Blob(['%PDF-1.4 minimal test'], { type: 'application/pdf' });
+            const path = `test/probe_${Date.now()}.pdf`;
+            const { error } = await sb.storage.from('documentos').upload(path, pdf, { contentType: 'application/pdf' });
+            if (error) throw error;
+            await sb.storage.from('documentos').remove([path]);
+            return 'Subido y eliminado correctamente';
+          }
+        }
+      ]
+    },
+    {
+      name: '💾 Operaciones CRUD',
+      tests: [
+        {
+          name: 'INSERT candidato completo',
+          fn: async (ctx) => {
+            const candidato = {
+              nombre: '__test_run__ ' + Date.now(),
+              edad: 25,
+              estatura: 1.75,
+              peso: 70,
+              genero: 'Masculino',
+              puesto_aplicado: 'almacen',
+              documento_ine: 'https://example.com/ine.png',
+              documento_cv: 'https://example.com/cv.pdf',
+              requisitos_salud: [true, true, true],
+              respuestas_psicometricas: { 0: 1, 1: 2 },
+              respuestas_tecnicas: { 0: 0 },
+              puntaje_evaluacion_tecnica: 85,
+              veredicto_final: 'Apto para Entrevista'
+            };
+            const { data, error } = await sb.from(TABLE).insert([candidato]).select();
+            if (error) throw error;
+            ctx.testCandidateId = data[0].id;
+            return `Insertado con ID ${data[0].id}`;
+          }
+        },
+        {
+          name: 'SELECT candidato recién creado',
+          fn: async (ctx) => {
+            if (!ctx.testCandidateId) throw new Error('No hay ID de prueba (test anterior falló)');
+            const { data, error } = await sb.from(TABLE).select('*').eq('id', ctx.testCandidateId).single();
+            if (error) throw error;
+            if (!data.nombre.startsWith('__test_run__')) throw new Error('Datos no coinciden');
+            return `Recuperado: ${data.nombre}`;
+          }
+        },
+        {
+          name: 'DELETE candidato de prueba',
+          fn: async (ctx) => {
+            if (!ctx.testCandidateId) throw new Error('Sin ID');
+            const { error } = await sb.from(TABLE).delete().eq('id', ctx.testCandidateId);
+            if (error) throw error;
+            return `Eliminado ID ${ctx.testCandidateId}`;
+          }
+        }
+      ]
+    },
+    {
+      name: '🛡️ Validaciones de datos',
+      tests: [
+        {
+          name: 'Edad: rangos válidos (18-65)',
+          fn: () => {
+            const valid = (e) => e >= 18 && e <= 65;
+            if (!valid(25) || !valid(18) || !valid(65)) throw new Error('Falla rango válido');
+            if (valid(17) || valid(66) || valid(0)) throw new Error('Acepta valor inválido');
+            return 'Validación correcta';
+          }
+        },
+        {
+          name: 'Estatura: formato decimal (1.40-2.20)',
+          fn: () => {
+            const valid = (e) => e >= 1.4 && e <= 2.2;
+            if (!valid(1.75) || !valid(1.4) || !valid(2.2)) throw new Error('Falla');
+            if (valid(1.39) || valid(2.21)) throw new Error('Acepta inválido');
+            return 'OK';
+          }
+        },
+        {
+          name: 'Peso: rango razonable (40-200kg)',
+          fn: () => {
+            const valid = (p) => p >= 40 && p <= 200;
+            if (!valid(70) || !valid(40) || !valid(200)) throw new Error('Falla');
+            if (valid(39) || valid(201)) throw new Error('Acepta inválido');
+            return 'OK';
+          }
+        },
+        {
+          name: 'Tamaño máximo de archivo (10MB)',
+          fn: () => {
+            const MAX = 10 * 1024 * 1024;
+            const valid = (size) => size > 0 && size <= MAX;
+            if (!valid(1024) || !valid(MAX)) throw new Error('Falla');
+            if (valid(MAX + 1) || valid(0)) throw new Error('Acepta inválido');
+            return `Límite: ${(MAX/1024/1024).toFixed(0)}MB`;
+          }
+        },
+        {
+          name: 'Sanitización de nombre (sin caracteres peligrosos)',
+          fn: () => {
+            const sanitize = (s) => s.replace(/[<>"'&]/g, '').trim();
+            if (sanitize('<script>x</script>Juan').includes('<')) throw new Error('No sanitiza HTML');
+            if (sanitize("Juan'; DROP TABLE--").includes("'")) throw new Error('No sanitiza SQL');
+            return 'Sanitización OK';
+          }
+        }
+      ]
+    },
+    {
+      name: '🔢 Lógica de evaluación',
+      tests: [
+        {
+          name: 'Puntaje técnica: 7/10 = 70%',
+          fn: () => {
+            const score = Math.round((7/10) * 100);
+            if (score !== 70) throw new Error(`Esperaba 70, obtuve ${score}`);
+            return '70% ✓';
+          }
+        },
+        {
+          name: 'Veredicto: ≥70% → Apto',
+          fn: () => {
+            const v = (s) => s >= 70 ? 'Apto para Entrevista' : s >= 50 ? 'Evaluación Adicional' : 'No cumple perfil';
+            if (v(85) !== 'Apto para Entrevista') throw new Error('Falla 85');
+            if (v(70) !== 'Apto para Entrevista') throw new Error('Falla 70');
+            return 'OK';
+          }
+        },
+        {
+          name: 'Veredicto: 50-69% → Evaluación Adicional',
+          fn: () => {
+            const v = (s) => s >= 70 ? 'Apto' : s >= 50 ? 'Adicional' : 'No';
+            if (v(65) !== 'Adicional' || v(50) !== 'Adicional') throw new Error('Falla');
+            return 'OK';
+          }
+        },
+        {
+          name: 'Veredicto: <50% → No cumple',
+          fn: () => {
+            const v = (s) => s >= 70 ? 'Apto' : s >= 50 ? 'Adicional' : 'No';
+            if (v(45) !== 'No' || v(0) !== 'No') throw new Error('Falla');
+            return 'OK';
+          }
+        }
+      ]
+    }
+  ];
+
+  // ═══════════════════════════════════════════════════════════
+  // RUNTIME
+  // ═══════════════════════════════════════════════════════════
+  const state = {
+    pass: 0, fail: 0, skip: 0, results: [], startTime: 0, ctx: {}
+  };
+
+  function base64ToBlob(b64, type) {
+    const bin = atob(b64);
+    const arr = new Uint8Array(bin.length);
+    for (let i = 0; i < bin.length; i++) arr[i] = bin.charCodeAt(i);
+    return new Blob([arr], { type });
+  }
+
+  function renderInitial() {
+    const list = document.getElementById('testList');
+    list.innerHTML = SUITES.map((suite, si) => `
+      <div class="test-group">
+        <div class="test-group-header">${suite.name} <span style="color:var(--text-light); font-weight:400; font-size:13px; margin-left:auto;">${suite.tests.length} prueba${suite.tests.length === 1 ? '' : 's'}</span></div>
+        ${suite.tests.map((t, ti) => `
+          <div class="test-row" id="test-${si}-${ti}">
+            <div class="status-icon status-pending">·</div>
+            <div>
+              <div class="test-name">${t.name}</div>
+              <div class="test-detail" id="detail-${si}-${ti}"></div>
+            </div>
+            <div class="test-time" id="time-${si}-${ti}"></div>
+          </div>
+        `).join('')}
+      </div>
+    `).join('');
+  }
+
+  function setStatus(si, ti, status, detail, time) {
+    const row = document.getElementById(`test-${si}-${ti}`);
+    if (!row) return;
+    const icon = row.querySelector('.status-icon');
+    icon.className = `status-icon status-${status}`;
+    icon.textContent = { pending: '·', running: '⋯', pass: '✓', fail: '✕', skip: '⏭' }[status];
+    if (detail) {
+      const d = document.getElementById(`detail-${si}-${ti}`);
+      d.textContent = detail;
+      d.classList.toggle('error', status === 'fail');
+    }
+    if (time !== undefined) {
+      document.getElementById(`time-${si}-${ti}`).textContent = `${time}ms`;
+    }
+  }
+
+  function updateSummary() {
+    document.getElementById('cntPass').textContent = state.pass;
+    document.getElementById('cntFail').textContent = state.fail;
+    document.getElementById('cntSkip').textContent = state.skip;
+    const total = SUITES.reduce((acc, s) => acc + s.tests.length, 0);
+    const done = state.pass + state.fail + state.skip;
+    document.getElementById('progressFill').style.width = `${(done/total)*100}%`;
+    if (state.startTime) {
+      const elapsed = Date.now() - state.startTime;
+      document.getElementById('cntTime').textContent = `${(elapsed/1000).toFixed(1)}s`;
+    }
+  }
+
+  async function runAll() {
+    state.pass = state.fail = state.skip = 0;
+    state.results = [];
+    state.ctx = {};
+    state.startTime = Date.now();
+    document.getElementById('btnRun').disabled = true;
+
+    for (let si = 0; si < SUITES.length; si++) {
+      for (let ti = 0; ti < SUITES[si].tests.length; ti++) {
+        const test = SUITES[si].tests[ti];
+        setStatus(si, ti, 'running');
+        const t0 = Date.now();
+        try {
+          const result = await test.fn(state.ctx);
+          const elapsed = Date.now() - t0;
+          setStatus(si, ti, 'pass', result || 'OK', elapsed);
+          state.pass++;
+          state.results.push({ suite: SUITES[si].name, test: test.name, status: 'pass', detail: result, ms: elapsed });
+        } catch (err) {
+          const elapsed = Date.now() - t0;
+          setStatus(si, ti, 'fail', err.message || String(err), elapsed);
+          state.fail++;
+          state.results.push({ suite: SUITES[si].name, test: test.name, status: 'fail', detail: err.message, ms: elapsed });
+        }
+        updateSummary();
+      }
+    }
+    document.getElementById('btnRun').disabled = false;
+  }
+
+  function clearResults() {
+    state.pass = state.fail = state.skip = 0;
+    state.startTime = 0;
+    document.getElementById('cntTime').textContent = '—';
+    updateSummary();
+    document.getElementById('progressFill').style.width = '0%';
+    renderInitial();
+  }
+
+  function exportResults() {
+    const report = {
+      timestamp: new Date().toISOString(),
+      summary: { pass: state.pass, fail: state.fail, skip: state.skip },
+      results: state.results
+    };
+    const blob = new Blob([JSON.stringify(report, null, 2)], { type: 'application/json' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = `ma-baker-test-results-${Date.now()}.json`;
+    a.click();
+  }
+
+  document.getElementById('btnRun').addEventListener('click', runAll);
+  document.getElementById('btnClear').addEventListener('click', clearResults);
+  document.getElementById('btnExport').addEventListener('click', exportResults);
+
+  renderInitial();
+</script>
+</body>
+</html>

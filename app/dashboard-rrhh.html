@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ma Baker — RRHH</title>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Playfair+Display:wght@700&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="styles/main.css">
+    <link rel="stylesheet" href="styles/dashboard.css">
+</head>
+
+<body class="dashboard-body">
+    <nav class="sidebar" id="sidebar">
+        <div class="sidebar-brand"><span class="brand-emoji">🧁</span>
+            <div>
+                <div class="brand-name">Ma Baker</div>
+                <div class="brand-sub">RRHH</div>
+            </div>
+        </div>
+        <nav class="sidebar-nav">
+            <a href="#" class="nav-item active" data-panel="resumen"><span>📊</span> Mi Panel</a>
+            <a href="#" class="nav-item" data-panel="candidatos"><span>👥</span> Candidatos Activos</a>
+            <a href="#" class="nav-item" data-panel="rechazados"><span>📂</span> Rechazados</a>
+            <a href="#" class="nav-item" data-panel="vacantes"><span>💼</span> Vacantes</a>
+            <a href="index.html" class="nav-item" target="_blank"><span>📝</span> Formulario Candidatos</a>
+        </nav>
+        <div class="sidebar-footer">
+            <div class="user-info" id="userInfo"></div><button class="btn-logout" onclick="logout()">Cerrar
+                sesión</button>
+        </div>
+    </nav>
+    <div class="dashboard-main">
+        <header class="dash-header">
+            <button class="menu-toggle" onclick="toggleSidebar()">☰</button>
+            <div class="dash-header-title" id="panelTitle">📊 Mi Panel RRHH</div>
+            <div class="rol-badge rrhh">👥 RRHH</div>
+        </header>
+        <div class="panel active" id="panel-resumen">
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-icon">👥</div>
+                    <div class="stat-num" id="statCandidatos">—</div>
+                    <div class="stat-label">Candidatos Activos</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon">📂</div>
+                    <div class="stat-num" id="statRechazados">—</div>
+                    <div class="stat-label">Rechazados</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon">🕐</div>
+                    <div class="stat-num" id="statPendientes">—</div>
+                    <div class="stat-label">En Psicometría</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon">✅</div>
+                    <div class="stat-num" id="statContratos">—</div>
+                    <div class="stat-label">Listos Contrato</div>
+                </div>
+            </div>
+            <div class="panel-section">
+                <h3 class="section-title">Candidatos Recientes</h3>
+                <div id="recentCandidatos" class="table-wrapper">
+                    <div class="loading-row">Cargando...</div>
+                </div>
+            </div>
+        </div>
+        <div class="panel" id="panel-candidatos">
+            <div class="panel-toolbar">
+                <h2>👥 Candidatos Activos</h2>
+                <select class="filter-select" id="filterFase" onchange="loadCandidatos()">
+                    <option value="">Todas las fases</option>
+                    <option value="espera_psicometricos">Espera Psicometría</option>
+                    <option value="espera_medico">Espera Médico</option>
+                    <option value="espera_jefe">Espera Jefe</option>
+                    <option value="listo_para_contrato">Listo Para Contrato</option>
+                </select>
+            </div>
+            <div id="tablaCandidatos" class="table-wrapper">
+                <div class="loading-row">Cargando...</div>
+            </div>
+        </div>
+        <div class="panel" id="panel-rechazados">
+            <div class="panel-toolbar">
+                <h2>📂 Prospectos Rechazados</h2>
+            </div>
+            <div id="tablaRechazados" class="table-wrapper">
+                <div class="loading-row">Cargando...</div>
+            </div>
+        </div>
+        <div class="panel" id="panel-vacantes">
+            <div class="panel-toolbar">
+                <h2>💼 Catálogo de Vacantes</h2>
+            </div>
+            <div id="tablaVacantes" class="table-wrapper">
+                <div class="loading-row">Cargando...</div>
+            </div>
+        </div>
+    </div>
+    <script src="js/auth.js"></script>
+    <script src="js/dashboard.js"></script>
+    <script>initDashboard('rrhh');</script>
+</body>
+
+</html>

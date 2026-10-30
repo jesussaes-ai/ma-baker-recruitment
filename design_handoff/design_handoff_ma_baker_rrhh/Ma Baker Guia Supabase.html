@@ -1,0 +1,828 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Ma Baker — Guía Configuración Supabase</title>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    * { margin:0; padding:0; box-sizing:border-box; }
+    body { font-family:'Montserrat',sans-serif; background:#F0F2F5; color:#1A1A1A; }
+    :root {
+      --primary: #D7282F;
+      --secondary: #0071BC;
+      --success: #4CAF50;
+      --border: #E0E0E0;
+      --text-light: #666;
+    }
+
+    /* HEADER */
+    .header {
+      background: linear-gradient(135deg, var(--primary), var(--secondary));
+      padding: 32px 40px;
+      display: flex;
+      align-items: center;
+      gap: 20px;
+      color: white;
+    }
+    .header img { width: 80px; border-radius: 10px; }
+    .header h1 { font-size: 24px; font-weight: 700; margin-bottom: 4px; }
+    .header p  { font-size: 13px; opacity: .9; }
+
+    /* PROGRESS BAR */
+    .progress-bar {
+      background: white;
+      padding: 20px 40px;
+      display: flex;
+      align-items: center;
+      gap: 0;
+      border-bottom: 1px solid var(--border);
+      overflow-x: auto;
+    }
+    .prog-step {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      cursor: pointer;
+      flex-shrink: 0;
+    }
+    .prog-num {
+      width: 32px; height: 32px;
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-weight: 700; font-size: 13px;
+      background: #eee; color: var(--text-light);
+      transition: all .3s;
+    }
+    .prog-step.active .prog-num  { background: var(--primary); color: white; }
+    .prog-step.done .prog-num    { background: var(--success); color: white; }
+    .prog-label { font-size: 12px; font-weight: 600; color: var(--text-light); white-space: nowrap; }
+    .prog-step.active .prog-label { color: var(--primary); }
+    .prog-step.done .prog-label   { color: var(--success); }
+    .prog-line { width: 40px; height: 2px; background: #eee; flex-shrink: 0; margin: 0 4px; }
+    .prog-line.done { background: var(--success); }
+
+    /* MAIN */
+    .main { max-width: 800px; margin: 0 auto; padding: 40px 20px; }
+
+    /* STEP CARD */
+    .step-card {
+      background: white;
+      border-radius: 16px;
+      overflow: hidden;
+      box-shadow: 0 4px 24px rgba(0,0,0,.08);
+      display: none;
+      animation: fadeIn .3s ease;
+    }
+    .step-card.active { display: block; }
+    @keyframes fadeIn { from { opacity:0; transform:translateY(8px); } to { opacity:1; transform:translateY(0); } }
+
+    .step-header {
+      background: linear-gradient(135deg, rgba(215,40,47,.08), rgba(0,113,188,.06));
+      padding: 28px 32px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+    .step-icon {
+      width: 56px; height: 56px;
+      border-radius: 14px;
+      background: var(--primary);
+      color: white;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 26px;
+      flex-shrink: 0;
+    }
+    .step-header h2 { font-size: 20px; font-weight: 700; margin-bottom: 4px; }
+    .step-header p  { font-size: 13px; color: var(--text-light); }
+
+    .step-body { padding: 32px; }
+
+    /* INSTRUCCIONES */
+    .instruccion {
+      display: flex;
+      gap: 16px;
+      margin-bottom: 20px;
+      align-items: flex-start;
+    }
+    .instruccion-num {
+      width: 28px; height: 28px;
+      border-radius: 50%;
+      background: var(--primary);
+      color: white;
+      font-weight: 700;
+      font-size: 13px;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+      margin-top: 2px;
+    }
+    .instruccion-text h3 { font-size: 14px; font-weight: 700; margin-bottom: 4px; }
+    .instruccion-text p  { font-size: 13px; color: var(--text-light); line-height: 1.6; }
+
+    /* PANTALLA SIMULADA */
+    .screen-sim {
+      background: #1e1e2e;
+      border-radius: 10px;
+      overflow: hidden;
+      margin: 20px 0;
+      box-shadow: 0 8px 32px rgba(0,0,0,.2);
+    }
+    .screen-bar {
+      background: #313244;
+      padding: 10px 14px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .dot { width: 10px; height: 10px; border-radius: 50%; }
+    .dot-r { background: #f38ba8; }
+    .dot-y { background: #f9e2af; }
+    .dot-g { background: #a6e3a1; }
+    .screen-url {
+      flex: 1;
+      background: #45475a;
+      border-radius: 4px;
+      padding: 4px 12px;
+      color: #cdd6f4;
+      font-size: 11px;
+      font-family: monospace;
+    }
+    .screen-content { padding: 20px; }
+
+    /* SIDEBAR SUPABASE */
+    .sb-layout { display: flex; gap: 0; height: 320px; }
+    .sb-sidebar {
+      width: 56px;
+      background: #0f0f17;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 12px 0;
+      gap: 4px;
+    }
+    .sb-icon {
+      width: 40px; height: 40px;
+      border-radius: 8px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 18px;
+      cursor: pointer;
+      color: #585b70;
+    }
+    .sb-icon.active { background: rgba(215,40,47,.2); color: #D7282F; }
+    .sb-main {
+      flex: 1;
+      background: #1e1e2e;
+      padding: 16px;
+      overflow: auto;
+    }
+    .sb-nav-item {
+      padding: 8px 12px;
+      border-radius: 6px;
+      font-size: 12px;
+      color: #585b70;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      cursor: pointer;
+      margin-bottom: 2px;
+    }
+    .sb-nav-item.active { background: rgba(215,40,47,.15); color: #D7282F; font-weight: 700; }
+    .sb-nav-item:hover { background: rgba(255,255,255,.05); color: #cdd6f4; }
+
+    /* SQL EDITOR */
+    .sql-editor {
+      background: #181825;
+      border-radius: 8px;
+      overflow: hidden;
+    }
+    .sql-toolbar {
+      background: #313244;
+      padding: 8px 12px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .sql-code {
+      padding: 14px;
+      font-family: monospace;
+      font-size: 11px;
+      color: #cdd6f4;
+      line-height: 1.8;
+      min-height: 140px;
+    }
+    .kw { color: #cba6f7; }
+    .fn { color: #89b4fa; }
+    .str { color: #a6e3a1; }
+    .run-btn {
+      background: #a6e3a1;
+      color: #1e1e2e;
+      border: none;
+      padding: 6px 16px;
+      border-radius: 6px;
+      font-weight: 700;
+      font-size: 12px;
+      cursor: pointer;
+      font-family: monospace;
+    }
+
+    /* ALERT */
+    .alert {
+      padding: 14px 16px;
+      border-radius: 8px;
+      font-size: 13px;
+      font-weight: 600;
+      margin: 16px 0;
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+    }
+    .alert-info    { background: rgba(0,113,188,.08); border: 2px solid var(--secondary); color: var(--secondary); }
+    .alert-success { background: rgba(76,175,80,.08); border: 2px solid var(--success); color: var(--success); }
+    .alert-warning { background: rgba(255,193,7,.1);  border: 2px solid #FFC107; color: #E65100; }
+
+    /* SQL BOX COPIABLE */
+    .sql-box {
+      background: #1e1e2e;
+      border-radius: 8px;
+      padding: 16px;
+      position: relative;
+      margin: 16px 0;
+    }
+    .sql-box pre {
+      color: #cdd6f4;
+      font-size: 11px;
+      font-family: monospace;
+      white-space: pre-wrap;
+      line-height: 1.8;
+    }
+    .copy-btn {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      background: rgba(255,255,255,.15);
+      border: none;
+      color: white;
+      padding: 5px 12px;
+      border-radius: 5px;
+      font-size: 11px;
+      cursor: pointer;
+      font-family: 'Montserrat', sans-serif;
+      font-weight: 600;
+    }
+    .copy-btn:hover { background: rgba(255,255,255,.25); }
+    .copy-btn.copied { background: #a6e3a1; color: #1e1e2e; }
+
+    /* BOTONES NAV */
+    .nav-btns {
+      display: flex;
+      gap: 12px;
+      margin-top: 28px;
+      padding-top: 24px;
+      border-top: 1px solid var(--border);
+    }
+    .btn {
+      padding: 12px 24px;
+      border-radius: 8px;
+      font-family: 'Montserrat', sans-serif;
+      font-weight: 700;
+      font-size: 14px;
+      cursor: pointer;
+      border: none;
+      transition: all .2s;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .btn-primary  { background: var(--primary); color: white; flex: 1; justify-content: center; }
+    .btn-secondary{ background: white; color: var(--primary); border: 2px solid var(--primary); flex: 1; justify-content: center; }
+    .btn-success  { background: var(--success); color: white; flex: 1; justify-content: center; }
+    .btn:hover { transform: translateY(-2px); opacity: .9; }
+
+    /* HIGHLIGHT */
+    .highlight {
+      display: inline-block;
+      background: var(--primary);
+      color: white;
+      padding: 2px 8px;
+      border-radius: 4px;
+      font-weight: 700;
+      font-size: 12px;
+    }
+    .highlight-blue {
+      background: var(--secondary);
+    }
+    .highlight-green {
+      background: var(--success);
+    }
+
+    /* ARROW */
+    .arrow {
+      font-size: 24px;
+      color: var(--primary);
+      text-align: center;
+      margin: 8px 0;
+    }
+  </style>
+</head>
+<body>
+
+<!-- HEADER -->
+<div class="header">
+  <img src="chef-logo.jpg" alt="Ma Baker" />
+  <div>
+    <h1>Guía de Configuración Supabase</h1>
+    <p>Sigue estos 5 pasos para dejar el sistema 100% funcional</p>
+  </div>
+</div>
+
+<!-- BARRA DE PROGRESO -->
+<div class="progress-bar">
+  <div class="prog-step active" id="prog-1" onclick="goToStep(1)">
+    <div class="prog-num">1</div>
+    <div class="prog-label">Entrar a Supabase</div>
+  </div>
+  <div class="prog-line" id="line-1"></div>
+  <div class="prog-step" id="prog-2" onclick="goToStep(2)">
+    <div class="prog-num">2</div>
+    <div class="prog-label">SQL Editor</div>
+  </div>
+  <div class="prog-line" id="line-2"></div>
+  <div class="prog-step" id="prog-3" onclick="goToStep(3)">
+    <div class="prog-num">3</div>
+    <div class="prog-label">Crear Tabla</div>
+  </div>
+  <div class="prog-line" id="line-3"></div>
+  <div class="prog-step" id="prog-4" onclick="goToStep(4)">
+    <div class="prog-num">4</div>
+    <div class="prog-label">Verificar</div>
+  </div>
+  <div class="prog-line" id="line-4"></div>
+  <div class="prog-step" id="prog-5" onclick="goToStep(5)">
+    <div class="prog-num">5</div>
+    <div class="prog-label">¡Listo!</div>
+  </div>
+</div>
+
+<div class="main">
+
+  <!-- ═══ PASO 1 ═══ -->
+  <div class="step-card active" id="step-1">
+    <div class="step-header">
+      <div class="step-icon">🌐</div>
+      <div>
+        <h2>Paso 1 — Entra a Supabase</h2>
+        <p>Abre el panel de administración de tu proyecto</p>
+      </div>
+    </div>
+    <div class="step-body">
+
+      <div class="instruccion">
+        <div class="instruccion-num">1</div>
+        <div class="instruccion-text">
+          <h3>Abre una nueva pestaña del navegador</h3>
+          <p>Puedes presionar <span class="highlight">Ctrl + T</span> o hacer click en el botón "+" del navegador.</p>
+        </div>
+      </div>
+
+      <div class="instruccion">
+        <div class="instruccion-num">2</div>
+        <div class="instruccion-text">
+          <h3>Ve a esta dirección</h3>
+          <p>Escribe o pega esta URL en la barra de dirección:</p>
+          <div class="sql-box" style="margin-top:8px;">
+            <pre>https://supabase.com/dashboard</pre>
+            <button class="copy-btn" onclick="copyText('https://supabase.com/dashboard', this)">📋 Copiar</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="instruccion">
+        <div class="instruccion-num">3</div>
+        <div class="instruccion-text">
+          <h3>Inicia sesión con tu cuenta</h3>
+          <p>Usa el mismo correo y contraseña con que creaste Supabase.</p>
+        </div>
+      </div>
+
+      <div class="instruccion">
+        <div class="instruccion-num">4</div>
+        <div class="instruccion-text">
+          <h3>Selecciona tu proyecto</h3>
+          <p>Verás una lista de proyectos. Busca el que dice <span class="highlight">xdtxfpvxoxqaadgyvzap</span> o el nombre que le pusiste y haz click en él.</p>
+        </div>
+      </div>
+
+      <div class="alert alert-info">
+        💡 Si no recuerdas tu contraseña de Supabase, haz click en "Forgot password" en la pantalla de login.
+      </div>
+
+      <!-- SIMULACIÓN DE PANTALLA -->
+      <div class="screen-sim">
+        <div class="screen-bar">
+          <div class="dot dot-r"></div>
+          <div class="dot dot-y"></div>
+          <div class="dot dot-g"></div>
+          <div class="screen-url">https://supabase.com/dashboard</div>
+        </div>
+        <div style="background:#0f0f17; padding:20px; text-align:center; color:#cdd6f4;">
+          <div style="font-size:13px; color:#6c7086; margin-bottom:16px;">Tus proyectos</div>
+          <div style="background:#1e1e2e; border-radius:10px; padding:16px; border:2px solid var(--primary); display:inline-block; min-width:200px;">
+            <div style="font-size:12px; color:#cba6f7; margin-bottom:4px;">Tu Proyecto ←</div>
+            <div style="font-size:10px; color:#585b70;">xdtxfpvxoxqaadgy...</div>
+            <div style="margin-top:10px; background:var(--primary); color:white; padding:6px 14px; border-radius:5px; font-size:11px; font-weight:700;">
+              Click aquí
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="nav-btns">
+        <button class="btn btn-primary" onclick="nextStep(1)">
+          Siguiente: Abrir SQL Editor →
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══ PASO 2 ═══ -->
+  <div class="step-card" id="step-2">
+    <div class="step-header">
+      <div class="step-icon" style="background:var(--secondary)">⚡</div>
+      <div>
+        <h2>Paso 2 — Abre el SQL Editor</h2>
+        <p>Aquí es donde ejecutarás el comando para crear la tabla</p>
+      </div>
+    </div>
+    <div class="step-body">
+
+      <div class="instruccion">
+        <div class="instruccion-num">1</div>
+        <div class="instruccion-text">
+          <h3>Mira el menú de la izquierda</h3>
+          <p>Verás una barra vertical con íconos. Busca el que parece un rayo ⚡ o dice <span class="highlight highlight-blue">SQL Editor</span>.</p>
+        </div>
+      </div>
+
+      <div class="instruccion">
+        <div class="instruccion-num">2</div>
+        <div class="instruccion-text">
+          <h3>Haz click en SQL Editor</h3>
+          <p>Se abrirá una pantalla oscura con un editor de texto.</p>
+        </div>
+      </div>
+
+      <div class="instruccion">
+        <div class="instruccion-num">3</div>
+        <div class="instruccion-text">
+          <h3>Haz click en "New query"</h3>
+          <p>Está arriba a la izquierda del editor. Haz click para abrir una consulta nueva en blanco.</p>
+        </div>
+      </div>
+
+      <!-- SIMULACIÓN SQL EDITOR -->
+      <div class="screen-sim">
+        <div class="screen-bar">
+          <div class="dot dot-r"></div>
+          <div class="dot dot-y"></div>
+          <div class="dot dot-g"></div>
+          <div class="screen-url">supabase.com/dashboard/project/xdtxfpv.../sql/new</div>
+        </div>
+        <div class="sb-layout">
+          <div class="sb-sidebar">
+            <div class="sb-icon">🏠</div>
+            <div class="sb-icon">🗃️</div>
+            <div class="sb-icon">🔑</div>
+            <div class="sb-icon active">⚡</div>
+            <div class="sb-icon">📦</div>
+            <div class="sb-icon">⚙️</div>
+          </div>
+          <div class="sb-main">
+            <div style="color:#6c7086; font-size:10px; margin-bottom:10px; font-family:monospace;">SQL Editor</div>
+            <div class="sb-nav-item active">⚡ New query ← Haz click aquí</div>
+            <div class="sb-nav-item">📄 Mis queries guardadas</div>
+            <div style="margin-top:16px;">
+              <div class="sql-editor">
+                <div class="sql-toolbar">
+                  <span style="color:#585b70; font-size:11px; font-family:monospace;">query sin título</span>
+                  <button class="run-btn">▶ Run</button>
+                </div>
+                <div class="sql-code" style="color:#585b70; font-style:italic;">
+                  -- Escribe aquí tu SQL...
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="alert alert-info">
+        💡 También puedes hacer click directo aquí:
+        <a href="https://supabase.com/dashboard/project/xdtxfpvxoxqaadgyvzap/sql/new" target="_blank"
+          style="color:var(--secondary); font-weight:700; margin-left:8px;">
+          🔗 Abrir SQL Editor directo
+        </a>
+      </div>
+
+      <div class="nav-btns">
+        <button class="btn btn-secondary" onclick="goToStep(1)">← Anterior</button>
+        <button class="btn btn-primary" onclick="nextStep(2)">Siguiente: Crear Tabla →</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══ PASO 3 ═══ -->
+  <div class="step-card" id="step-3">
+    <div class="step-header">
+      <div class="step-icon" style="background:#7B1FA2">🗄️</div>
+      <div>
+        <h2>Paso 3 — Crea la Tabla</h2>
+        <p>Copia y pega el SQL en el editor, luego ejecútalo</p>
+      </div>
+    </div>
+    <div class="step-body">
+
+      <div class="instruccion">
+        <div class="instruccion-num">1</div>
+        <div class="instruccion-text">
+          <h3>Copia el siguiente SQL completo</h3>
+          <p>Haz click en el botón <span class="highlight">📋 Copiar SQL</span> de abajo:</p>
+        </div>
+      </div>
+
+      <div class="sql-box">
+        <pre id="sql-text">CREATE TABLE IF NOT EXISTS candidatos (
+  id                         BIGSERIAL PRIMARY KEY,
+  nombre                     TEXT,
+  edad                       INTEGER,
+  estatura                   NUMERIC,
+  peso                       NUMERIC,
+  genero                     TEXT,
+  puesto_aplicado            TEXT,
+  documentos                 JSONB DEFAULT '{}',
+  requisitos_salud           JSONB DEFAULT '[]',
+  respuestas_psicometricas   JSONB DEFAULT '{}',
+  respuestas_tecnicas        JSONB DEFAULT '{}',
+  puntaje_evaluacion_tecnica INTEGER,
+  veredicto_final            TEXT,
+  timestamp                  TIMESTAMPTZ,
+  created_at                 TIMESTAMPTZ DEFAULT NOW()
+);
+ALTER TABLE candidatos ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS "allow_all" ON candidatos;
+CREATE POLICY "allow_all" ON candidatos
+  FOR ALL USING (true) WITH CHECK (true);</pre>
+        <button class="copy-btn" id="sqlCopyBtn" onclick="copySql()">📋 Copiar SQL</button>
+      </div>
+
+      <div class="instruccion">
+        <div class="instruccion-num">2</div>
+        <div class="instruccion-text">
+          <h3>Pégalo en el editor de Supabase</h3>
+          <p>Haz click dentro del editor de texto y presiona <span class="highlight">Ctrl + V</span> (Windows) o <span class="highlight">Cmd + V</span> (Mac).</p>
+        </div>
+      </div>
+
+      <div class="instruccion">
+        <div class="instruccion-num">3</div>
+        <div class="instruccion-text">
+          <h3>Haz click en el botón verde "RUN ▶"</h3>
+          <p>Está arriba a la derecha del editor. Al ejecutar verás el mensaje <span class="highlight highlight-green">Success</span>.</p>
+        </div>
+      </div>
+
+      <!-- SIMULACIÓN -->
+      <div class="screen-sim">
+        <div class="screen-bar">
+          <div class="dot dot-r"></div>
+          <div class="dot dot-y"></div>
+          <div class="dot dot-g"></div>
+          <div class="screen-url">supabase.com — SQL Editor</div>
+        </div>
+        <div style="padding:16px; background:#1e1e2e;">
+          <div class="sql-editor">
+            <div class="sql-toolbar">
+              <span style="color:#cdd6f4; font-size:11px; font-family:monospace;">nueva consulta</span>
+              <button class="run-btn">▶ RUN ← Click aquí</button>
+            </div>
+            <div class="sql-code">
+              <span class="kw">CREATE TABLE IF NOT EXISTS</span> <span class="fn">candidatos</span> (<br>
+              &nbsp;&nbsp;id &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="kw">BIGSERIAL PRIMARY KEY</span>,<br>
+              &nbsp;&nbsp;nombre &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="kw">TEXT</span>,<br>
+              &nbsp;&nbsp;edad &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="kw">INTEGER</span>,<br>
+              &nbsp;&nbsp;<span style="color:#585b70;">... (resto del SQL)</span><br>
+              );<br>
+              <span class="kw">ALTER TABLE</span> <span class="fn">candidatos</span> <span class="kw">ENABLE ROW LEVEL SECURITY</span>;
+            </div>
+          </div>
+          <div style="margin-top:12px; background:#a6e3a1; color:#1e1e2e; padding:8px 14px; border-radius:6px; font-size:11px; font-weight:700; font-family:monospace;">
+            ✓ Success. No rows returned
+          </div>
+        </div>
+      </div>
+
+      <div class="alert alert-success">
+        ✅ Si ves "Success" en verde, ¡la tabla fue creada correctamente! Continúa al siguiente paso.
+      </div>
+
+      <div class="alert alert-warning">
+        ⚠️ Si ves un error en rojo, probablemente la tabla ya existe — eso también está bien, continúa igual.
+      </div>
+
+      <div class="nav-btns">
+        <button class="btn btn-secondary" onclick="goToStep(2)">← Anterior</button>
+        <button class="btn btn-primary" onclick="nextStep(3)">Siguiente: Verificar →</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══ PASO 4 ═══ -->
+  <div class="step-card" id="step-4">
+    <div class="step-header">
+      <div class="step-icon" style="background:var(--success)">✅</div>
+      <div>
+        <h2>Paso 4 — Verifica que todo funcione</h2>
+        <p>Regresa al configurador para confirmar que la tabla existe</p>
+      </div>
+    </div>
+    <div class="step-body">
+
+      <div class="instruccion">
+        <div class="instruccion-num">1</div>
+        <div class="instruccion-text">
+          <h3>Regresa a esta ventana (ya estás aquí)</h3>
+          <p>Bien, ya terminaste en Supabase. Ahora vamos a verificar.</p>
+        </div>
+      </div>
+
+      <div class="instruccion">
+        <div class="instruccion-num">2</div>
+        <div class="instruccion-text">
+          <h3>Haz click en el botón de verificación</h3>
+          <p>El botón de abajo se conectará directamente a Supabase y confirmará que la tabla <span class="highlight">candidatos</span> existe y el bucket <span class="highlight highlight-blue">documentos</span> está listo.</p>
+        </div>
+      </div>
+
+      <div id="check-result" style="display:none;"></div>
+
+      <button class="btn btn-primary" id="checkBtn" onclick="verificar()" style="width:100%; margin:16px 0; justify-content:center;">
+        🔍 Verificar Conexión a Supabase
+      </button>
+
+      <div class="nav-btns">
+        <button class="btn btn-secondary" onclick="goToStep(3)">← Anterior</button>
+        <button class="btn btn-primary" id="btnSiguiente4" onclick="nextStep(4)" style="display:none;">
+          Siguiente: ¡Listo! →
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══ PASO 5 ═══ -->
+  <div class="step-card" id="step-5">
+    <div class="step-header">
+      <div class="step-icon" style="background:var(--success)">🎉</div>
+      <div>
+        <h2>¡Sistema Configurado al 100%!</h2>
+        <p>Todo está listo para recibir candidatos</p>
+      </div>
+    </div>
+    <div class="step-body">
+      <div style="text-align:center; padding:20px 0;">
+        <div style="font-size:64px; margin-bottom:16px;">🎊</div>
+        <h3 style="font-size:22px; margin-bottom:8px; color:var(--success)">¡Felicidades!</h3>
+        <p style="color:var(--text-light); font-size:14px; max-width:400px; margin:0 auto 32px;">
+          El sistema Ma Baker RRHH v4.1 está completamente configurado y conectado a Supabase.
+        </p>
+      </div>
+
+      <div style="display:grid; gap:12px; margin-bottom:32px;">
+        <div style="background:rgba(76,175,80,.08); border:2px solid var(--success); border-radius:10px; padding:16px; display:flex; gap:12px; align-items:center;">
+          <span style="font-size:28px;">✅</span>
+          <div>
+            <p style="font-weight:700; font-size:13px;">Tabla candidatos</p>
+            <p style="font-size:12px; color:var(--text-light);">Guarda toda la información de los candidatos</p>
+          </div>
+        </div>
+        <div style="background:rgba(76,175,80,.08); border:2px solid var(--success); border-radius:10px; padding:16px; display:flex; gap:12px; align-items:center;">
+          <span style="font-size:28px;">✅</span>
+          <div>
+            <p style="font-weight:700; font-size:13px;">Bucket documentos</p>
+            <p style="font-size:12px; color:var(--text-light);">Almacena INE, comprobantes, CV y más</p>
+          </div>
+        </div>
+      </div>
+
+      <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px;">
+        <a href="Ma Baker Sistema v4.1 - Supabase Integrado.html"
+          style="display:block; padding:20px; background:var(--primary); color:white; border-radius:12px; text-decoration:none; text-align:center;">
+          <div style="font-size:32px; margin-bottom:8px;">📋</div>
+          <p style="font-weight:700; font-size:14px;">Formulario de Candidatos</p>
+          <p style="font-size:11px; opacity:.85; margin-top:4px;">Para que los prospectos llenen sus datos</p>
+        </a>
+        <a href="Ma Baker Dashboard RH.html"
+          style="display:block; padding:20px; background:var(--secondary); color:white; border-radius:12px; text-decoration:none; text-align:center;">
+          <div style="font-size:32px; margin-bottom:8px;">📊</div>
+          <p style="font-weight:700; font-size:14px;">Dashboard RH</p>
+          <p style="font-size:11px; opacity:.85; margin-top:4px;">Para consultar candidatos y evaluaciones</p>
+        </a>
+      </div>
+    </div>
+  </div>
+
+</div><!-- /main -->
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+  const SUPABASE_URL = 'https://xdtxfpvxoxqaadgyvzap.supabase.co';
+  const SERVICE_KEY  = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhkdHhmcHZ4b3hxYWFkZ3l2emFwIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc3MTk3OTk5OCwiZXhwIjoyMDg3NTU1OTk4fQ.vDHVgod3x67o40FfMupkm_qr5fQ56ngn5mb4QYUGJHE';
+  const db = supabase.createClient(SUPABASE_URL, SERVICE_KEY);
+
+  let currentStep = 1;
+
+  function goToStep(n) {
+    document.querySelectorAll('.step-card').forEach(c => c.classList.remove('active'));
+    document.getElementById('step-' + n).classList.add('active');
+    document.querySelectorAll('.prog-step').forEach((el, i) => {
+      el.classList.remove('active');
+      if (i + 1 < n) el.classList.add('done');
+      else el.classList.remove('done');
+    });
+    document.querySelectorAll('.prog-line').forEach((el, i) => {
+      el.classList.toggle('done', i + 1 < n);
+    });
+    if (n <= currentStep || n === currentStep + 1) {
+      document.getElementById('prog-' + n).classList.add('active');
+    }
+    currentStep = n;
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  function nextStep(from) {
+    const next = from + 1;
+    document.getElementById('prog-' + from).classList.remove('active');
+    document.getElementById('prog-' + from).classList.add('done');
+    if (from < 5) document.getElementById('line-' + from).classList.add('done');
+    goToStep(next);
+    document.getElementById('prog-' + next).classList.add('active');
+  }
+
+  function copyText(text, btn) {
+    navigator.clipboard.writeText(text).then(() => {
+      btn.textContent = '✓ Copiado';
+      btn.classList.add('copied');
+      setTimeout(() => { btn.textContent = '📋 Copiar'; btn.classList.remove('copied'); }, 2000);
+    });
+  }
+
+  function copySql() {
+    const sql = document.getElementById('sql-text').textContent;
+    navigator.clipboard.writeText(sql).then(() => {
+      const btn = document.getElementById('sqlCopyBtn');
+      btn.textContent = '✓ SQL Copiado!';
+      btn.classList.add('copied');
+      setTimeout(() => { btn.textContent = '📋 Copiar SQL'; btn.classList.remove('copied'); }, 3000);
+    });
+  }
+
+  async function verificar() {
+    const btn = document.getElementById('checkBtn');
+    const result = document.getElementById('check-result');
+    btn.textContent = '⏳ Verificando...';
+    btn.disabled = true;
+    result.style.display = 'none';
+
+    const { error: tableErr } = await db.from('Formulario de Candidatos').select('id').limit(1);
+    const { data: buckets }   = await db.storage.listBuckets();
+    const bucketOk = buckets?.some(b => b.name === 'documentos');
+    const tableOk  = !tableErr;
+
+    result.style.display = 'block';
+
+    if (tableOk && bucketOk) {
+      result.innerHTML = `
+        <div style="background:rgba(76,175,80,.08);border:2px solid #4CAF50;border-radius:10px;padding:20px;margin-bottom:16px;">
+          <p style="font-weight:700;color:#4CAF50;font-size:15px;margin-bottom:12px;">✅ ¡Todo está perfecto!</p>
+          <p style="font-size:13px;margin-bottom:6px;">✓ Tabla <strong>candidatos</strong> — conectada y lista</p>
+          <p style="font-size:13px;">✓ Bucket <strong>documentos</strong> — activo y funcionando</p>
+        </div>`;
+      document.getElementById('btnSiguiente4').style.display = 'flex';
+      btn.textContent = '✅ Verificado';
+      btn.style.background = '#4CAF50';
+    } else {
+      let msg = '';
+      if (!tableOk) msg += `<p style="font-size:13px;margin-bottom:6px;">❌ Tabla <strong>candidatos</strong>: ${tableErr?.message || 'no encontrada'}</p>`;
+      if (!bucketOk) msg += `<p style="font-size:13px;">❌ Bucket <strong>documentos</strong>: no encontrado</p>`;
+      result.innerHTML = `
+        <div style="background:rgba(211,47,47,.08);border:2px solid #D32F2F;border-radius:10px;padding:20px;margin-bottom:16px;">
+          <p style="font-weight:700;color:#D32F2F;font-size:15px;margin-bottom:12px;">⚠️ Aún hay elementos pendientes</p>
+          ${msg}
+          <p style="font-size:12px;color:#666;margin-top:10px;">Regresa al Paso 3 y ejecuta el SQL de nuevo.</p>
+        </div>`;
+      btn.textContent = '🔍 Verificar de nuevo';
+      btn.disabled = false;
+    }
+  }
+</script>
+</body>
+</html>

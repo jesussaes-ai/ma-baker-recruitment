@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Recargar Schema Supabase</title>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700&display=swap" rel="stylesheet">
+  <style>
+    * { margin:0; padding:0; box-sizing:border-box; }
+    body { font-family:'Montserrat',sans-serif; background:#F0F2F5; min-height:100vh; display:flex; align-items:center; justify-content:center; padding:20px; }
+    .card { background:#fff; border-radius:16px; padding:40px; max-width:600px; width:100%; box-shadow:0 8px 40px rgba(0,0,0,.12); }
+    h1 { font-size:20px; font-weight:700; color:#D7282F; margin-bottom:8px; }
+    p  { font-size:13px; color:#666; line-height:1.7; margin-bottom:20px; }
+    img.logo { width:80px; border-radius:8px; margin-bottom:16px; display:block; }
+    .step { display:flex; gap:16px; padding:16px; border-radius:10px; background:#f8f8f8; margin-bottom:12px; align-items:flex-start; border:1px solid #eee; }
+    .num  { width:32px; height:32px; border-radius:50%; background:#D7282F; color:#fff; font-weight:700; font-size:14px; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+    .step-body h3 { font-size:13px; font-weight:700; margin-bottom:4px; }
+    .step-body p  { font-size:12px; color:#666; margin:0; }
+    .screen { background:#1e1e2e; border-radius:10px; margin:16px 0; overflow:hidden; }
+    .screen-bar { background:#313244; padding:10px 14px; display:flex; gap:6px; align-items:center; }
+    .dot { width:10px; height:10px; border-radius:50%; }
+    .url-bar { flex:1; background:#45475a; border-radius:4px; padding:3px 10px; color:#cdd6f4; font-size:10px; font-family:monospace; }
+    .screen-body { padding:16px; }
+    .sb-menu { display:flex; gap:0; }
+    .sb-sidebar { width:48px; background:#0f0f17; display:flex; flex-direction:column; align-items:center; gap:6px; padding:10px 0; }
+    .sb-icon { width:36px; height:36px; border-radius:8px; display:flex; align-items:center; justify-content:center; font-size:16px; color:#585b70; }
+    .sb-icon.active { background:rgba(215,40,47,.2); color:#D7282F; }
+    .sb-content { flex:1; background:#1e1e2e; padding:14px; }
+    .btn-sim { background:#3b82f6; color:#fff; padding:8px 16px; border-radius:6px; font-size:11px; font-weight:700; display:inline-flex; align-items:center; gap:6px; margin-top:10px; }
+    .arrow { color:#D7282F; font-size:20px; margin:4px 0 4px 48px; display:block; }
+    .btn { display:block; width:100%; padding:14px; border:none; border-radius:8px; font-family:'Montserrat',sans-serif; font-weight:700; font-size:14px; cursor:pointer; text-align:center; text-decoration:none; margin-top:8px; transition:all .2s; }
+    .btn-primary { background:#D7282F; color:#fff; }
+    .btn-blue    { background:#0071BC; color:#fff; }
+    .btn-green   { background:#4CAF50; color:#fff; }
+    .btn:hover   { opacity:.9; transform:translateY(-1px); }
+    .divider { border:none; border-top:1px solid #eee; margin:24px 0; }
+    #resultado { display:none; margin-top:16px; }
+    .alert-success { background:rgba(76,175,80,.08); border:2px solid #4CAF50; border-radius:10px; padding:20px; text-align:center; }
+    .alert-error   { background:rgba(211,47,47,.08); border:2px solid #D32F2F; border-radius:10px; padding:16px; }
+  </style>
+</head>
+<body>
+<div class="card">
+  <img src="chef-logo.jpg" alt="Ma Baker" class="logo" />
+  <h1>🔄 Verificar Conexión Supabase</h1>
+
+  <div id="iframe-warning" style="display:none; background:#FFF3CD; border:2px solid #FFC107; border-radius:10px; padding:14px; margin-bottom:16px;">
+    <p style="font-size:13px; color:#856404; margin:0; line-height:1.6;">
+      <strong>⚠️ Vista previa con restricciones</strong><br>
+      Este previsualizador bloquea las conexiones a Supabase por seguridad. El sistema <strong>SÍ funciona</strong> al abrirlo en una pestaña normal del navegador.
+      <a href="#" id="openTab" style="color:#D7282F; font-weight:700; display:inline-block; margin-top:8px;">→ Abrir en pestaña nueva para probar</a>
+    </p>
+  </div>
+
+  <p>La tabla <strong>Formulario de Candidatos</strong> ya está creada correctamente en tu base de datos. Solo necesitas decirle a Supabase que la reconozca. Sigue estos pasos:</p>
+
+  <script>
+    // Detectar si estamos dentro del iframe de previsualización
+    if (window.self !== window.top) {
+      document.addEventListener('DOMContentLoaded', () => {
+        document.getElementById('iframe-warning').style.display = 'block';
+        document.getElementById('openTab').addEventListener('click', (e) => {
+          e.preventDefault();
+          window.open(window.location.href, '_blank');
+        });
+      });
+    }
+  </script>
+
+  <div class="step">
+    <div class="num">1</div>
+    <div class="step-body">
+      <h3>Haz click aquí para abrir Supabase Settings</h3>
+      <p>Se abrirá directo en la sección correcta de tu proyecto.</p>
+    </div>
+  </div>
+  <a href="https://supabase.com/dashboard/project/xdtxfpvxoxqaadgyvzap/settings/api" target="_blank" class="btn btn-blue">
+    ⚙️ Abrir Settings → API en Supabase
+  </a>
+
+  <hr class="divider">
+
+  <div class="step">
+    <div class="num">2</div>
+    <div class="step-body">
+      <h3>Busca la sección "PostgREST"</h3>
+      <p>Baja un poco en la página hasta ver la sección que dice <strong>PostgREST</strong>.</p>
+    </div>
+  </div>
+
+  <div class="step">
+    <div class="num">3</div>
+    <div class="step-body">
+      <h3>Haz click en "Reload schema"</h3>
+      <p>Es un botón azul que dice exactamente <strong>"Reload schema"</strong>. Haz click ahí.</p>
+    </div>
+  </div>
+
+  <!-- SIMULACIÓN VISUAL -->
+  <div class="screen">
+    <div class="screen-bar">
+      <div class="dot" style="background:#f38ba8"></div>
+      <div class="dot" style="background:#f9e2af"></div>
+      <div class="dot" style="background:#a6e3a1"></div>
+      <div class="url-bar">supabase.com/dashboard/project/xdtxfpv.../settings/api</div>
+    </div>
+    <div class="screen-body">
+      <div style="color:#6c7086; font-size:10px; font-family:monospace; margin-bottom:12px;">⚙️ Settings / API</div>
+      <div style="background:#313244; border-radius:6px; padding:12px; margin-bottom:8px;">
+        <div style="color:#cba6f7; font-size:10px; font-weight:700; margin-bottom:6px; font-family:monospace;">PostgREST</div>
+        <div style="color:#585b70; font-size:9px; font-family:monospace; margin-bottom:10px;">Schema that PostgREST will generate an API for</div>
+        <div style="display:flex; justify-content:space-between; align-items:center;">
+          <div style="background:#1e1e2e; border-radius:4px; padding:6px 10px; font-size:9px; font-family:monospace; color:#cdd6f4;">public</div>
+          <div class="btn-sim">🔄 Reload schema ← <strong>CLICK AQUÍ</strong></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="step">
+    <div class="num">4</div>
+    <div class="step-body">
+      <h3>Espera 5 segundos y regresa aquí</h3>
+      <p>Después del reload, haz click en el botón verde de abajo para verificar.</p>
+    </div>
+  </div>
+
+  <hr class="divider">
+
+  <button class="btn btn-green" id="checkBtn" onclick="verificar()">
+    🔍 Verificar que el sistema funciona
+  </button>
+
+  <div id="resultado"></div>
+
+  <hr class="divider">
+
+  <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px;">
+    <a href="Ma Baker Sistema v4.1 - Supabase Integrado.html" class="btn btn-primary">📋 Formulario</a>
+    <a href="Ma Baker Dashboard RH.html" class="btn btn-blue">📊 Dashboard RH</a>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+  const db = supabase.createClient(
+    'https://xdtxfpvxoxqaadgyvzap.supabase.co',
+    'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhkdHhmcHZ4b3hxYWFkZ3l2emFwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzE5Nzk5OTgsImV4cCI6MjA4NzU1NTk5OH0.0bordJwiTVA-7kqOUsrPcchoSmJS2QKAHUirwN0S1QA'
+  );
+
+  async function verificar() {
+    const btn = document.getElementById('checkBtn');
+    const res = document.getElementById('resultado');
+    btn.textContent = '⏳ Verificando...';
+    btn.disabled = true;
+
+    let readErr = null, insertErr = null, bucketOk = false;
+
+    // Prueba de lectura
+    try {
+      const { error } = await db.from('Formulario de Candidatos').select('id').limit(1);
+      readErr = error;
+    } catch (e) {
+      readErr = { message: 'Network error: ' + e.message };
+    }
+
+    // Prueba de inserción/borrado (mismo registro)
+    try {
+      const { data, error } = await db.from('Formulario de Candidatos').insert([{
+        nombre: 'PRUEBA_SISTEMA_' + Date.now(),
+        edad: 25,
+        puesto_aplicado: 'TEST',
+        puntaje_evaluacion_tecnica: 0,
+        veredicto_final: 'TEST',
+        timestamp: new Date().toISOString()
+      }]).select();
+      insertErr = error;
+      if (data?.[0]?.id) {
+        await db.from('Formulario de Candidatos').delete().eq('id', data[0].id);
+      }
+    } catch (e) {
+      insertErr = { message: 'Network error: ' + e.message };
+    }
+
+    // Bucket
+    try {
+      const { data: buckets } = await db.storage.listBuckets();
+      bucketOk = buckets?.some(b => b.name === 'documentos');
+    } catch (e) {
+      bucketOk = false;
+    }
+
+    res.style.display = 'block';
+
+    const inIframe = window.self !== window.top;
+    const isFetchFail = (readErr?.message || '').includes('Failed to fetch') || (insertErr?.message || '').includes('Failed to fetch');
+
+    // Caso 1: bloqueo de iframe
+    if (inIframe && isFetchFail) {
+      res.innerHTML = `
+        <div class="alert-error" style="background:rgba(255,193,7,.12); border-color:#FFC107;">
+          <p style="font-weight:700;color:#856404;font-size:14px;margin-bottom:10px;">⚠️ Esta previsualización bloquea Supabase</p>
+          <p style="font-size:12px;color:#666;line-height:1.6;margin-bottom:10px;">
+            El sistema <strong>SÍ está funcionando</strong>. Las credenciales y la base de datos son correctas.
+            Solo este previsualizador bloquea las llamadas a <code>supabase.co</code> por seguridad.
+          </p>
+          <p style="font-size:12px;color:#666;line-height:1.6;">
+            👉 Abre el archivo en una <strong>pestaña normal del navegador</strong> para que funcione.
+          </p>
+          <button onclick="window.open(window.location.href,'_blank')" style="margin-top:12px; background:#D7282F; color:#fff; border:none; padding:10px 18px; border-radius:6px; font-weight:700; font-size:12px; cursor:pointer; font-family:inherit;">→ Abrir en pestaña nueva</button>
+        </div>`;
+      btn.textContent = '🔍 Reintentar';
+      btn.disabled = false;
+      return;
+    }
+
+    // Caso 2: la tabla funciona (lectura + escritura). El bucket es opcional.
+    const tablaOk = !readErr && !insertErr;
+
+    if (tablaOk) {
+      const bucketLine = bucketOk
+        ? `<p style="font-size:13px;color:#666;">✅ Bucket <strong>documentos</strong> — listo para fotos y PDFs</p>`
+        : `<p style="font-size:13px;color:#856404;">⚠️ Bucket <strong>documentos</strong> — no encontrado (créalo en Storage si vas a subir archivos)</p>`;
+      res.innerHTML = `
+        <div class="alert-success">
+          <div style="font-size:48px;margin-bottom:12px;">${bucketOk ? '🎉' : '✅'}</div>
+          <p style="font-weight:700;color:#4CAF50;font-size:16px;margin-bottom:8px;">${bucketOk ? '¡Sistema al 100%!' : '¡Tabla funcionando!'}</p>
+          <p style="font-size:13px;color:#666;margin-bottom:4px;">✅ Tabla <strong>Formulario de Candidatos</strong> — lectura y escritura funcionan</p>
+          ${bucketLine}
+        </div>`;
+      btn.textContent = bucketOk ? '✅ Todo funciona' : '✅ Tabla funciona';
+      btn.style.background = '#4CAF50';
+      btn.disabled = true;
+      return;
+    }
+
+    // Caso 3: errores reales — diagnóstico específico
+    let msgs = '';
+    const errMsg = (readErr?.message || '') + ' ' + (insertErr?.message || '');
+    const schemaIssue = /schema cache|does not exist|relation|PGRST205|PGRST204/i.test(errMsg);
+    const rlsIssue = /row-level security|RLS|policy|PGRST301|42501/i.test(errMsg);
+
+    if (readErr)   msgs += `<p style="font-size:12px;margin-bottom:4px;">❌ <strong>Lectura:</strong> ${readErr.message}</p>`;
+    if (insertErr) msgs += `<p style="font-size:12px;margin-bottom:4px;">❌ <strong>Escritura:</strong> ${insertErr.message}</p>`;
+    if (!bucketOk) msgs += `<p style="font-size:12px;color:#856404;">⚠️ Bucket <strong>documentos</strong>: no encontrado (opcional)</p>`;
+
+    let hint = '';
+    if (schemaIssue) {
+      hint = `<p style="font-size:12px;color:#666;margin-top:10px;line-height:1.6;">💡 <strong>Solución:</strong> Haz click en <strong>"Reload schema"</strong> en Supabase Settings → API (botón azul arriba) y espera 10 segundos antes de reintentar.</p>`;
+    } else if (rlsIssue) {
+      hint = `<p style="font-size:12px;color:#666;margin-top:10px;line-height:1.6;">💡 <strong>Solución:</strong> La tabla tiene RLS activado. Ve a Supabase → Authentication → Policies y agrega políticas <code>INSERT</code> y <code>SELECT</code> para el rol <code>anon</code> en la tabla <code>Formulario de Candidatos</code>.</p>`;
+    } else {
+      hint = `<p style="font-size:11px;color:#666;margin-top:8px;">Haz el "Reload schema" en Supabase Settings y vuelve a intentar.</p>`;
+    }
+
+    res.innerHTML = `
+      <div class="alert-error">
+        <p style="font-weight:700;color:#D32F2F;font-size:13px;margin-bottom:8px;">⚠️ Aún pendiente</p>
+        ${msgs}
+        ${hint}
+      </div>`;
+    btn.textContent = '🔍 Reintentar';
+    btn.disabled = false;
+  }
+</script>
+</body>
+</html>

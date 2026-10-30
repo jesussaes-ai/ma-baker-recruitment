@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Fix Storage Policy - Ma Baker</title>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    * { margin:0; padding:0; box-sizing:border-box; }
+    body { font-family:'Montserrat',sans-serif; background:#F0F2F5; min-height:100vh; padding:24px; }
+    .card { background:#fff; border-radius:16px; padding:32px; max-width:720px; margin:0 auto; box-shadow:0 8px 40px rgba(0,0,0,.08); }
+    img.logo { width:64px; border-radius:8px; margin-bottom:14px; display:block; }
+    h1 { font-size:22px; font-weight:800; color:#D7282F; margin-bottom:6px; }
+    .lead { font-size:13px; color:#666; line-height:1.7; margin-bottom:20px; }
+    .lead strong { color:#000; }
+    .err-box { background:rgba(211,47,47,.08); border-left:4px solid #D32F2F; border-radius:6px; padding:14px; margin-bottom:20px; }
+    .err-box code { background:#fff; padding:2px 8px; border-radius:4px; font-size:11px; color:#D32F2F; }
+    pre { background:#1e1e2e; color:#cdd6f4; padding:18px; border-radius:10px; font-size:11px; overflow-x:auto; line-height:1.6; max-height:300px; }
+    pre .kw { color:#f38ba8; font-weight:700; }
+    pre .str { color:#a6e3a1; }
+    pre .com { color:#6c7086; font-style:italic; }
+    .step { display:flex; gap:14px; padding:14px; border-radius:10px; background:#f8f8f8; margin-bottom:8px; align-items:flex-start; border:1px solid #eee; }
+    .num { width:30px; height:30px; border-radius:50%; background:#D7282F; color:#fff; font-weight:700; font-size:13px; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+    .step-body h3 { font-size:13px; font-weight:700; margin-bottom:3px; }
+    .step-body p { font-size:12px; color:#666; }
+    .btn { display:block; width:100%; padding:13px; border:none; border-radius:8px; font-family:'Montserrat',sans-serif; font-weight:700; font-size:13px; cursor:pointer; text-align:center; text-decoration:none; margin-top:8px; transition:all .2s; }
+    .btn-primary { background:#D7282F; color:#fff; }
+    .btn-blue    { background:#0071BC; color:#fff; }
+    .btn-green   { background:#4CAF50; color:#fff; }
+    .btn:hover   { opacity:.9; transform:translateY(-1px); }
+    .btn:disabled { opacity:.5; cursor:wait; }
+    .divider { border:none; border-top:1px solid #eee; margin:20px 0; }
+    #resultado { display:none; margin-top:14px; }
+    .alert-success { background:rgba(76,175,80,.08); border:2px solid #4CAF50; border-radius:10px; padding:20px; text-align:center; }
+    .alert-error   { background:rgba(211,47,47,.08); border:2px solid #D32F2F; border-radius:10px; padding:14px; }
+    .row { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+  </style>
+</head>
+<body>
+<div class="card">
+  <img src="chef-logo.jpg" class="logo" alt="">
+  <h1>🔐 Fix: Permitir Subir Documentos</h1>
+
+  <div class="err-box">
+    <p style="font-size:12px; color:#D32F2F; font-weight:700; margin-bottom:4px;">Error detectado:</p>
+    <p style="font-size:11px; color:#666;"><code>new row violates row-level security policy</code></p>
+    <p style="font-size:11px; color:#666; margin-top:6px;">Esto significa que el bucket <strong>documentos</strong> no permite uploads desde el navegador. Hay que agregar políticas de acceso público.</p>
+  </div>
+
+  <div class="step">
+    <div class="num">1</div>
+    <div class="step-body">
+      <h3>Copia el SQL</h3>
+      <p>Click en "Copiar SQL". Es el SQL que arregla las políticas del bucket.</p>
+    </div>
+  </div>
+
+  <pre id="sql"><span class="com">-- ═══════════════════════════════════════════════</span>
+<span class="com">-- Permitir uploads/lecturas públicas en bucket "documentos"</span>
+<span class="com">-- ═══════════════════════════════════════════════</span>
+
+<span class="com">-- Hacer el bucket PÚBLICO (lectura)</span>
+<span class="kw">UPDATE</span> storage.buckets
+<span class="kw">SET</span> public = <span class="kw">true</span>
+<span class="kw">WHERE</span> id = <span class="str">'documentos'</span>;
+
+<span class="com">-- Eliminar políticas viejas (por si existen)</span>
+<span class="kw">DROP POLICY IF EXISTS</span> <span class="str">"public_upload"</span> <span class="kw">ON</span> storage.objects;
+<span class="kw">DROP POLICY IF EXISTS</span> <span class="str">"public_read"</span> <span class="kw">ON</span> storage.objects;
+<span class="kw">DROP POLICY IF EXISTS</span> <span class="str">"public_update"</span> <span class="kw">ON</span> storage.objects;
+<span class="kw">DROP POLICY IF EXISTS</span> <span class="str">"public_delete"</span> <span class="kw">ON</span> storage.objects;
+
+<span class="com">-- Política: cualquiera puede SUBIR a "documentos"</span>
+<span class="kw">CREATE POLICY</span> <span class="str">"public_upload"</span> <span class="kw">ON</span> storage.objects
+  <span class="kw">FOR INSERT</span>
+  <span class="kw">WITH CHECK</span> (bucket_id = <span class="str">'documentos'</span>);
+
+<span class="com">-- Política: cualquiera puede LEER de "documentos"</span>
+<span class="kw">CREATE POLICY</span> <span class="str">"public_read"</span> <span class="kw">ON</span> storage.objects
+  <span class="kw">FOR SELECT</span>
+  <span class="kw">USING</span> (bucket_id = <span class="str">'documentos'</span>);
+
+<span class="com">-- Política: cualquiera puede ACTUALIZAR (upsert)</span>
+<span class="kw">CREATE POLICY</span> <span class="str">"public_update"</span> <span class="kw">ON</span> storage.objects
+  <span class="kw">FOR UPDATE</span>
+  <span class="kw">USING</span> (bucket_id = <span class="str">'documentos'</span>);
+
+<span class="com">-- Política: cualquiera puede ELIMINAR (cleanup)</span>
+<span class="kw">CREATE POLICY</span> <span class="str">"public_delete"</span> <span class="kw">ON</span> storage.objects
+  <span class="kw">FOR DELETE</span>
+  <span class="kw">USING</span> (bucket_id = <span class="str">'documentos'</span>);
+
+<span class="com">-- Verificar políticas creadas</span>
+<span class="kw">SELECT</span> policyname, cmd
+<span class="kw">FROM</span> pg_policies
+<span class="kw">WHERE</span> tablename = <span class="str">'objects'</span> <span class="kw">AND</span> schemaname = <span class="str">'storage'</span>;</pre>
+
+  <button class="btn btn-primary" onclick="copiar()">📋 Copiar SQL</button>
+
+  <hr class="divider">
+
+  <div class="step">
+    <div class="num">2</div>
+    <div class="step-body">
+      <h3>Ejecuta en Supabase</h3>
+      <p>SQL Editor → New Query → Ctrl+V → RUN ▶</p>
+    </div>
+  </div>
+
+  <a href="https://supabase.com/dashboard/project/xdtxfpvxoxqaadgyvzap/sql/new" target="_blank" class="btn btn-blue">
+    🔗 Abrir SQL Editor
+  </a>
+
+  <hr class="divider">
+
+  <div class="step">
+    <div class="num">3</div>
+    <div class="step-body">
+      <h3>Verifica que funciona</h3>
+      <p>Sube un archivo de prueba directamente desde aquí:</p>
+    </div>
+  </div>
+
+  <button class="btn btn-green" id="checkBtn" onclick="verificar()">
+    🔍 Probar subida de archivo de prueba
+  </button>
+
+  <div id="resultado"></div>
+
+  <hr class="divider">
+
+  <div class="row">
+    <a href="Ma Baker Sistema v4.1 - Supabase Integrado.html" class="btn btn-primary">📋 Formulario</a>
+    <a href="Ma Baker Dashboard RH.html" class="btn btn-blue">📊 Dashboard RH</a>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+  const SQL_RAW = `-- Permitir uploads/lecturas públicas en bucket "documentos"
+
+UPDATE storage.buckets SET public = true WHERE id = 'documentos';
+
+DROP POLICY IF EXISTS "public_upload" ON storage.objects;
+DROP POLICY IF EXISTS "public_read" ON storage.objects;
+DROP POLICY IF EXISTS "public_update" ON storage.objects;
+DROP POLICY IF EXISTS "public_delete" ON storage.objects;
+
+CREATE POLICY "public_upload" ON storage.objects
+  FOR INSERT WITH CHECK (bucket_id = 'documentos');
+
+CREATE POLICY "public_read" ON storage.objects
+  FOR SELECT USING (bucket_id = 'documentos');
+
+CREATE POLICY "public_update" ON storage.objects
+  FOR UPDATE USING (bucket_id = 'documentos');
+
+CREATE POLICY "public_delete" ON storage.objects
+  FOR DELETE USING (bucket_id = 'documentos');
+
+SELECT policyname, cmd
+FROM pg_policies
+WHERE tablename = 'objects' AND schemaname = 'storage';`;
+
+  function copiar() {
+    navigator.clipboard.writeText(SQL_RAW).then(()=>{
+      const btn = document.querySelectorAll('.btn-primary')[0];
+      const old = btn.innerHTML;
+      btn.innerHTML = '✅ Copiado — pégalo en Supabase';
+      btn.style.background = '#4CAF50';
+      setTimeout(()=>{ btn.innerHTML = old; btn.style.background='#D7282F'; }, 2200);
+    });
+  }
+
+  const db = supabase.createClient(
+    'https://xdtxfpvxoxqaadgyvzap.supabase.co',
+    'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhkdHhmcHZ4b3hxYWFkZ3l2emFwIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc3MTk3OTk5OCwiZXhwIjoyMDg3NTU1OTk4fQ.vDHVgod3x67o40FfMupkm_qr5fQ56ngn5mb4QYUGJHE'
+  );
+
+  async function verificar() {
+    const btn = document.getElementById('checkBtn');
+    const res = document.getElementById('resultado');
+    btn.textContent = '⏳ Subiendo archivo de prueba...';
+    btn.disabled = true;
+
+    // Crear PNG real (1x1 pixel) — el bucket solo acepta image/* y application/pdf
+    const png = new Uint8Array([0x89,0x50,0x4E,0x47,0x0D,0x0A,0x1A,0x0A,0x00,0x00,0x00,0x0D,0x49,0x48,0x44,0x52,0x00,0x00,0x00,0x01,0x00,0x00,0x00,0x01,0x08,0x06,0x00,0x00,0x00,0x1F,0x15,0xC4,0x89,0x00,0x00,0x00,0x0D,0x49,0x44,0x41,0x54,0x78,0x9C,0x62,0x00,0x01,0x00,0x00,0x05,0x00,0x01,0x0D,0x0A,0x2D,0xB4,0x00,0x00,0x00,0x00,0x49,0x45,0x4E,0x44,0xAE,0x42,0x60,0x82]);
+    const blob = new Blob([png], { type: 'image/png' });
+    const path = `test/test-${Date.now()}.png`;
+
+    const { data, error } = await db.storage
+      .from('documentos')
+      .upload(path, blob, { upsert: true, contentType: 'image/png' });
+
+    res.style.display = 'block';
+
+    if (!error) {
+      // Limpiar archivo de prueba
+      await db.storage.from('documentos').remove([path]);
+
+      res.innerHTML = `
+        <div class="alert-success">
+          <div style="font-size:48px;margin-bottom:12px;">🎉</div>
+          <p style="font-weight:700;color:#4CAF50;font-size:16px;margin-bottom:8px;">¡Storage funcionando!</p>
+          <p style="font-size:13px;color:#666;">✅ Las políticas del bucket están correctas</p>
+          <p style="font-size:13px;color:#666;">✅ Ya puedes subir documentos desde el formulario</p>
+        </div>`;
+      btn.textContent = '✅ Storage verificado';
+      btn.style.background = '#4CAF50';
+    } else {
+      res.innerHTML = `
+        <div class="alert-error">
+          <p style="font-weight:700;color:#D32F2F;font-size:13px;margin-bottom:6px;">⚠️ Aún no funciona</p>
+          <p style="font-size:11px;color:#666;">Error: ${error.message}</p>
+          <p style="font-size:11px;color:#666;margin-top:6px;">Asegúrate de haber ejecutado el SQL primero.</p>
+        </div>`;
+      btn.textContent = '🔍 Reintentar';
+      btn.disabled = false;
+    }
+  }
+</script>
+</body>
+</html>

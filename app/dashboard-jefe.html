@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ma Baker — Jefe de Área</title>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Playfair+Display:wght@700&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="styles/main.css">
+    <link rel="stylesheet" href="styles/dashboard.css">
+</head>
+
+<body class="dashboard-body">
+    <nav class="sidebar" id="sidebar">
+        <div class="sidebar-brand"><span class="brand-emoji">🧁</span>
+            <div>
+                <div class="brand-name">Ma Baker</div>
+                <div class="brand-sub">Jefe de Área</div>
+            </div>
+        </div>
+        <nav class="sidebar-nav">
+            <a href="#" class="nav-item active" data-panel="pendientes"><span>🕐</span> Por Evaluar</a>
+            <a href="#" class="nav-item" data-panel="evaluados"><span>✅</span> Evaluados</a>
+        </nav>
+        <div class="sidebar-footer">
+            <div class="user-info" id="userInfo"></div><button class="btn-logout" onclick="logout()">Cerrar
+                sesión</button>
+        </div>
+    </nav>
+    <div class="dashboard-main">
+        <header class="dash-header">
+            <button class="menu-toggle" onclick="toggleSidebar()">☰</button>
+            <div class="dash-header-title" id="panelTitle">🕐 Candidatos Por Evaluar</div>
+            <div class="rol-badge jefe">🏢 Jefe de Área</div>
+        </header>
+
+        <div class="panel active" id="panel-pendientes">
+            <div class="dept-banner" id="deptBanner">
+                <span>🏢</span> <span>Tu área: <strong id="deptName">Cargando...</strong></span>
+            </div>
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-icon">🕐</div>
+                    <div class="stat-num" id="statPendientes">—</div>
+                    <div class="stat-label">Por Evaluar</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon">✅</div>
+                    <div class="stat-num" id="statAprobados">—</div>
+                    <div class="stat-label">Aprobados</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon">❌</div>
+                    <div class="stat-num" id="statRechazadosJefe">—</div>
+                    <div class="stat-label">Rechazados</div>
+                </div>
+            </div>
+            <div class="panel-section">
+                <h3 class="section-title">Candidatos en Espera de tu Evaluación Técnica</h3>
+                <p class="panel-hint">Revisa el perfil de cada candidato y registra tu veredicto (Aprobado / Rechazado).
+                </p>
+                <div id="tablaJefe" class="table-wrapper">
+                    <div class="loading-row">Cargando...</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="panel" id="panel-evaluados">
+            <div class="panel-toolbar">
+                <h2>✅ Candidatos Ya Evaluados</h2>
+            </div>
+            <div id="tablaEvaluados" class="table-wrapper">
+                <div class="loading-row">Cargando...</div>
+            </div>
+        </div>
+    </div>
+    <script src="js/auth.js"></script>
+    <script src="js/dashboard.js"></script>
+    <script>initDashboard('jefe');</script>
+</body>
+
+</html>

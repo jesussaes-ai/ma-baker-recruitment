@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8" />
+<title>📋 Arquitectura Técnica — Ma Baker</title>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<style>
+  :root {
+    --primary: #d7282f;
+    --bg: #f8fafc;
+    --surface: #ffffff;
+    --border: #e2e8f0;
+    --text: #0f172a;
+    --text-light: #64748b;
+    --code-bg: #1e293b;
+    --code-text: #e2e8f0;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.6;
+    padding: 32px 20px;
+  }
+  .container { max-width: 900px; margin: 0 auto; }
+  .header { display:flex; align-items:center; gap: 18px; margin-bottom: 32px; padding-bottom: 24px; border-bottom: 2px solid var(--primary); }
+  .logo { width: 56px; height: 56px; border-radius: 12px; background: var(--primary); color: white; display: flex; align-items: center; justify-content: center; font-size: 28px; }
+  h1 { font-size: 28px; font-weight: 800; }
+  .subtitle { font-size: 14px; color: var(--text-light); margin-top:4px; }
+  h2 { font-size: 22px; margin: 36px 0 16px; color: var(--primary); border-left: 4px solid var(--primary); padding-left: 12px; }
+  h3 { font-size: 17px; margin: 24px 0 10px; }
+  p, li { font-size: 14px; }
+  ul, ol { margin-left: 24px; margin-bottom: 14px; }
+  li { margin-bottom: 4px; }
+  code { background: #f1f5f9; padding: 2px 6px; border-radius: 4px; font-size: 12px; font-family: monospace; color: var(--primary); }
+  pre { background: var(--code-bg); color: var(--code-text); padding: 16px; border-radius: 8px; overflow-x: auto; margin: 12px 0; font-size: 12px; line-height: 1.5; }
+  pre code { background: transparent; color: inherit; padding: 0; }
+  table { width: 100%; border-collapse: collapse; margin: 16px 0; font-size: 13px; background: var(--surface); border-radius: 8px; overflow: hidden; }
+  th, td { padding: 10px 12px; text-align: left; border-bottom: 1px solid var(--border); }
+  th { background: #f1f5f9; font-weight: 700; }
+  .card { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 18px; margin: 14px 0; }
+  .badge { display:inline-block; padding:3px 10px; border-radius:99px; font-size:11px; font-weight:600; }
+  .badge-blue { background:#dbeafe; color:#1e40af; }
+  .badge-green { background:#dcfce7; color:#166534; }
+  .badge-amber { background:#fef3c7; color:#92400e; }
+  .toc { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 18px; margin-bottom: 28px; }
+  .toc a { color: var(--primary); text-decoration: none; font-size: 13px; }
+  .toc a:hover { text-decoration: underline; }
+  .flow { display: grid; gap: 8px; margin: 14px 0; }
+  .flow-step { display: grid; grid-template-columns: 32px 1fr; gap: 12px; padding: 10px 14px; background: var(--surface); border: 1px solid var(--border); border-radius: 8px; align-items: center; font-size: 13px; }
+  .flow-num { width:24px; height:24px; border-radius:50%; background:var(--primary); color:white; display:flex;align-items:center;justify-content:center; font-size:12px; font-weight:700; }
+</style>
+</head>
+<body>
+<div class="container">
+  <div class="header">
+    <div class="logo">📋</div>
+    <div>
+      <h1>Arquitectura Técnica</h1>
+      <div class="subtitle">Ma Baker — Sistema de Reclutamiento · Documentación de referencia</div>
+    </div>
+  </div>
+
+  <div class="toc">
+    <strong>📑 Contenido</strong>
+    <ul style="margin-top:8px;list-style:none">
+      <li><a href="#stack">1. Stack tecnológico</a></li>
+      <li><a href="#components">2. Componentes del sistema</a></li>
+      <li><a href="#flow">3. Flujo de datos</a></li>
+      <li><a href="#schema">4. Esquema de base de datos</a></li>
+      <li><a href="#storage">5. Almacenamiento de archivos</a></li>
+      <li><a href="#security">6. Seguridad y validaciones</a></li>
+      <li><a href="#deploy">7. Despliegue y mantenimiento</a></li>
+      <li><a href="#troubleshooting">8. Solución de problemas</a></li>
+    </ul>
+  </div>
+
+  <h2 id="stack">1. Stack tecnológico</h2>
+  <table>
+    <tr><th>Capa</th><th>Tecnología</th><th>Propósito</th></tr>
+    <tr><td>Frontend</td><td>HTML + React 18 (Babel)</td><td>UI del formulario y dashboard</td></tr>
+    <tr><td>Estilos</td><td>CSS variables + flex/grid</td><td>Diseño responsivo sin frameworks</td></tr>
+    <tr><td>Backend</td><td>Supabase (PostgREST + PostgreSQL)</td><td>API REST autogenerada + BD</td></tr>
+    <tr><td>Storage</td><td>Supabase Storage</td><td>Archivos INE/CV con URLs públicas</td></tr>
+    <tr><td>Auth</td><td>Anon key (RLS pública)</td><td>Sin login para candidatos</td></tr>
+  </table>
+
+  <h2 id="components">2. Componentes del sistema</h2>
+  <div class="card">
+    <h3>📋 Formulario de Candidatos</h3>
+    <p><code>Ma Baker Sistema v4.1 - Supabase Integrado.html</code></p>
+    <p>Aplicación React de pantalla completa que guía al candidato a través de 6 etapas: bienvenida → selección de puesto → datos personales → documentos → checklist de salud → evaluación psicométrica (12 preguntas, 90s c/u) → evaluación técnica → reporte final. Al finalizar, persiste todo en Supabase.</p>
+  </div>
+  <div class="card">
+    <h3>👥 Dashboard RH</h3>
+    <p><code>Ma Baker Dashboard RH.html</code></p>
+    <p>Vista de administración con tabla de candidatos, filtros (puesto/veredicto/fecha), buscador, vista detalle con expediente completo, descarga de documentos y exportación CSV.</p>
+  </div>
+  <div class="card">
+    <h3>🧪 Suite de Pruebas</h3>
+    <p><code>Ma Baker - Suite de Pruebas.html</code> · <span class="badge badge-blue">Diagnóstico</span></p>
+    <p>Verifica conectividad, esquema de BD, storage, validaciones y lógica de evaluación. Ejecuta al desplegar o cuando algo falla.</p>
+  </div>
+  <div class="card">
+    <h3>📊 Panel de Salud</h3>
+    <p><code>Ma Baker - Panel de Salud.html</code> · <span class="badge badge-green">Monitoreo</span></p>
+    <p>Métricas en tiempo real, latencias de servicios, distribución por puesto y últimas aplicaciones. Auto-refresh cada 30s.</p>
+  </div>
+  <div class="card">
+    <h3>🔄 Sistema de Backups</h3>
+    <p><code>Ma Baker - Backups.html</code> · <span class="badge badge-amber">Operación</span></p>
+    <p>Exporta a CSV, JSON, reporte HTML imprimible y backup completo. Mantiene historial local de descargas.</p>
+  </div>
+  <div class="card">
+    <h3>🧰 Módulos JS reutilizables</h3>
+    <p><code>ma-baker-validators.js</code> · <code>ma-baker-logger.js</code></p>
+    <p>Funciones puras de validación/sanitización y logger centralizado con captura de errores globales y persistencia local.</p>
+  </div>
+
+  <h2 id="flow">3. Flujo de datos</h2>
+  <div class="flow">
+    <div class="flow-step"><div class="flow-num">1</div><div>Candidato llena formulario y sube INE + CV</div></div>
+    <div class="flow-step"><div class="flow-num">2</div><div>Frontend sube archivos a buckets <code>ines</code> y <code>cvs</code> (storage)</div></div>
+    <div class="flow-step"><div class="flow-num">3</div><div>Storage devuelve URLs públicas</div></div>
+    <div class="flow-step"><div class="flow-num">4</div><div>Candidato responde 12 preguntas psicométricas (90s c/u, autoavance)</div></div>
+    <div class="flow-step"><div class="flow-num">5</div><div>Candidato responde evaluación técnica del puesto</div></div>
+    <div class="flow-step"><div class="flow-num">6</div><div>Sistema calcula puntaje y veredicto: ≥70% Apto · 50-69% Adicional · &lt;50% No cumple</div></div>
+    <div class="flow-step"><div class="flow-num">7</div><div>INSERT en tabla <code>"Formulario de Candidatos"</code> con todo: datos, URLs, respuestas, puntaje</div></div>
+    <div class="flow-step"><div class="flow-num">8</div><div>Dashboard RH lee la tabla y muestra el expediente completo</div></div>
+  </div>
+
+  <h2 id="schema">4. Esquema de base de datos</h2>
+  <p>Tabla: <code>"Formulario de Candidatos"</code> (con espacios y mayúsculas — usar comillas dobles en SQL).</p>
+  <table>
+    <tr><th>Columna</th><th>Tipo</th><th>Descripción</th></tr>
+    <tr><td>id</td><td>bigint (PK)</td><td>Auto-increment</td></tr>
+    <tr><td>created_at</td><td>timestamptz</td><td>Fecha de aplicación</td></tr>
+    <tr><td>nombre</td><td>text</td><td>Nombre completo</td></tr>
+    <tr><td>edad</td><td>integer</td><td>18-65</td></tr>
+    <tr><td>estatura</td><td>numeric</td><td>1.40-2.20 (metros)</td></tr>
+    <tr><td>peso</td><td>numeric</td><td>40-200 (kg)</td></tr>
+    <tr><td>genero</td><td>text</td><td>Masculino/Femenino/Otro</td></tr>
+    <tr><td>puesto_aplicado</td><td>text</td><td>almacen/cocinero/mesero/cajero</td></tr>
+    <tr><td>documento_ine</td><td>text</td><td>URL pública en bucket ines</td></tr>
+    <tr><td>documento_cv</td><td>text</td><td>URL pública en bucket cvs</td></tr>
+    <tr><td>requisitos_salud</td><td>jsonb</td><td>Array de booleans</td></tr>
+    <tr><td>respuestas_psicometricas</td><td>jsonb</td><td>{"0":1,"1":2,...}</td></tr>
+    <tr><td>respuestas_tecnicas</td><td>jsonb</td><td>{"0":0,"1":3,...}</td></tr>
+    <tr><td>puntaje_evaluacion_tecnica</td><td>integer</td><td>0-100</td></tr>
+    <tr><td>veredicto_final</td><td>text</td><td>Apto · Adicional · No cumple</td></tr>
+  </table>
+
+  <h3>Política RLS (acceso público)</h3>
+<pre><code>ALTER TABLE "Formulario de Candidatos" ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "public_insert" ON "Formulario de Candidatos"
+  FOR INSERT WITH CHECK (true);
+
+CREATE POLICY "public_select" ON "Formulario de Candidatos"
+  FOR SELECT USING (true);</code></pre>
+
+  <h2 id="storage">5. Almacenamiento de archivos</h2>
+  <p>Dos buckets públicos: <code>ines</code> (jpg/png) y <code>cvs</code> (jpg/png/pdf). Límite 10 MB por archivo.</p>
+  <h3>Convención de nombres</h3>
+  <p><code>{nombre_slugificado}_{timestamp}.{ext}</code> — ej: <code>juan_perez_1730000000000.png</code></p>
+
+  <h2 id="security">6. Seguridad y validaciones</h2>
+  <ul>
+    <li><strong>Anon key</strong>: solo permite las operaciones permitidas por RLS — no es un secreto.</li>
+    <li><strong>Sanitización</strong>: nombres se filtran de <code>&lt;&gt;"'`\</code> antes de guardar (ver <code>ma-baker-validators.js</code>).</li>
+    <li><strong>Rangos numéricos</strong>: edad 18-65, estatura 1.40-2.20, peso 40-200, archivo ≤10MB.</li>
+    <li><strong>Tipos MIME</strong>: solo imágenes y PDF en uploads.</li>
+    <li><strong>Mejoras futuras</strong>: agregar auth para Dashboard RH, restringir SELECT con RLS por rol.</li>
+  </ul>
+
+  <h2 id="deploy">7. Despliegue y mantenimiento</h2>
+  <h3>Distribución</h3>
+  <ul>
+    <li><strong>Formulario candidatos</strong>: hospedar el HTML en cualquier servidor estático (Netlify, Vercel, GitHub Pages) y compartir el link.</li>
+    <li><strong>Dashboard RH</strong>: solo para uso interno; subir a un sitio protegido o abrir como archivo local.</li>
+  </ul>
+  <h3>Tareas periódicas recomendadas</h3>
+  <ul>
+    <li>📅 <strong>Semanal</strong>: ejecutar Suite de Pruebas para verificar que todo sigue funcionando.</li>
+    <li>📅 <strong>Mensual</strong>: descargar Backup completo desde el Sistema de Backups.</li>
+    <li>📅 <strong>Trimestral</strong>: revisar logs (<code>MaBakerLogger.export()</code>) y limpiar datos antiguos si es necesario.</li>
+  </ul>
+
+  <h2 id="troubleshooting">8. Solución de problemas</h2>
+  <table>
+    <tr><th>Síntoma</th><th>Causa probable</th><th>Solución</th></tr>
+    <tr><td>"Could not find table"</td><td>Schema cache desactualizado</td><td>Settings → API → Reload schema</td></tr>
+    <tr><td>Error al subir archivo</td><td>Bucket privado o tipo MIME bloqueado</td><td>Hacer bucket público + permitir image/* y application/pdf</td></tr>
+    <tr><td>Dashboard vacío</td><td>RLS sin política SELECT</td><td>Ejecutar SQL de políticas RLS</td></tr>
+    <tr><td>Psicométrico se atora</td><td>Componente recreándose</td><td>Estado debe vivir en componente padre</td></tr>
+    <tr><td>"row violates RLS"</td><td>Falta política INSERT</td><td>Crear policy <code>FOR INSERT WITH CHECK (true)</code></td></tr>
+  </table>
+
+  <div style="margin-top:48px;padding-top:20px;border-top:1px solid var(--border);font-size:11px;color:var(--text-light);text-align:center">
+    Documento técnico · Ma Baker Sistema v4.1 · Generado el <span id="today"></span>
+  </div>
+</div>
+<script>
+  document.getElementById('today').textContent = new Date().toLocaleDateString('es-MX', { dateStyle: 'long' });
+</script>
+</body>
+</html>
