@@ -12,8 +12,20 @@ export default defineConfig({
     headless: true,
     launchOptions: {
       executablePath: '/opt/pw-browsers/chromium',
-      args: ['--no-sandbox', '--disable-setuid-sandbox'],
+      args: [
+        '--no-sandbox',
+        '--disable-setuid-sandbox',
+        ...(process.env.HTTPS_PROXY ? [
+          `--proxy-server=${process.env.HTTPS_PROXY}`,
+          '--proxy-bypass-list=localhost,127.0.0.1,::1',
+          '--ignore-certificate-errors',
+        ] : []),
+      ],
     },
+    ...(process.env.HTTPS_PROXY ? {
+      proxy: { server: process.env.HTTPS_PROXY, bypass: 'localhost,127.0.0.1' },
+      ignoreHTTPSErrors: true,
+    } : {}),
   },
   projects: [
     {

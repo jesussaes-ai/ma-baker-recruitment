@@ -1,5 +1,6 @@
 'use client';
 import { create } from 'zustand';
+import { persist } from 'zustand/middleware';
 
 export type CandidateProfile = {
   nombre: string;
@@ -52,16 +53,21 @@ const initialState = {
   savedId: null,
 };
 
-export const useCandidateStore = create<CandidateStore>((set) => ({
-  ...initialState,
-  setRole: (role) => set({ role }),
-  setProfile: (profile) => set((s) => ({ profile: { ...s.profile, ...profile } })),
-  setDocument: (id, doc) => set((s) => ({ documents: { ...s.documents, [id]: doc } })),
-  setHealthCheck: (id, val) => set((s) => ({ healthChecks: { ...s.healthChecks, [id]: val } })),
-  setPsychResponse: (idx, val) => set((s) => ({ psychResponses: { ...s.psychResponses, [idx]: val } })),
-  setTechResponse: (idx, val) => set((s) => ({ techResponses: { ...s.techResponses, [idx]: val } })),
-  setTechScore: (techScore) => set({ techScore }),
-  setVerdict: (verdict) => set({ verdict }),
-  setSavedId: (savedId) => set({ savedId }),
-  reset: () => set(initialState),
-}));
+export const useCandidateStore = create<CandidateStore>()(
+  persist(
+    (set) => ({
+      ...initialState,
+      setRole: (role) => set({ role }),
+      setProfile: (profile) => set((s) => ({ profile: { ...s.profile, ...profile } })),
+      setDocument: (id, doc) => set((s) => ({ documents: { ...s.documents, [id]: doc } })),
+      setHealthCheck: (id, val) => set((s) => ({ healthChecks: { ...s.healthChecks, [id]: val } })),
+      setPsychResponse: (idx, val) => set((s) => ({ psychResponses: { ...s.psychResponses, [idx]: val } })),
+      setTechResponse: (idx, val) => set((s) => ({ techResponses: { ...s.techResponses, [idx]: val } })),
+      setTechScore: (techScore) => set({ techScore }),
+      setVerdict: (verdict) => set({ verdict }),
+      setSavedId: (savedId) => set({ savedId }),
+      reset: () => set(initialState),
+    }),
+    { name: 'candidate-store' }
+  )
+);

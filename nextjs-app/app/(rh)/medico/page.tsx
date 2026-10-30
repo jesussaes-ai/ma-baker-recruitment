@@ -88,6 +88,7 @@ export default function MedicoPage() {
 
   return (
     <div style={{ minHeight: '100vh', background: '#F5F5F5' }}>
+      {/* Header */}
       <div style={{ background: 'linear-gradient(135deg, #D7282F 0%, #0071BC 100%)', padding: '20px 24px' }}>
         <div style={{ maxWidth: 900, margin: '0 auto', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <div>
@@ -170,6 +171,7 @@ export default function MedicoPage() {
         )}
       </div>
 
+      {/* Modal */}
       {selected && (
         <div
           onClick={() => setSelected(null)}
