@@ -1,0 +1,132 @@
+name: Integration Tests
+
+on:
+  push:
+    branches: [claude/continue-hr-project-ou2m2, main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+env:
+  SUPABASE_URL: https://znskpdixdyxdbvpapqrg.supabase.co
+  SUPABASE_ANON_KEY: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inpuc2twZGl4ZHl4ZGJ2cGFwcXJnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI4NTg4MDgsImV4cCI6MjA4ODQzNDgwOH0.MvOASVc-0XkqtfeKp_FBZ4hcE_jFSsGB53KQTTgFRCQ
+
+jobs:
+  # ── Playwright E2E (proxy-aware mocks) ─────────────────────────────────────
+  playwright:
+    name: Playwright E2E
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: nextjs-app
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: nextjs-app/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Install Playwright browsers
+        run: npx playwright install --with-deps chromium
+
+      - name: Run Playwright tests
+        env:
+          NEXT_PUBLIC_SUPABASE_URL: ${{ env.SUPABASE_URL }}
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ env.SUPABASE_ANON_KEY }}
+        run: npx playwright test
+
+      - name: Upload test results
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: playwright-results
+          path: nextjs-app/playwright-report/
+
+  # ── Real Supabase Integration (no proxy in GHA) ────────────────────────────
+  notify-integration:
+    name: notify-candidate real DB integration
+    runs-on: ubuntu-latest
+    needs: playwright
+
+    steps:
+      - name: Call notify-candidate edge function
+        id: call_fn
+        run: |
+          RESPONSE=$(curl -s -w "\n%{http_code}" -X POST \
+            "${{ env.SUPABASE_URL }}/functions/v1/notify-candidate" \
+            -H "Content-Type: application/json" \
+            -d '{"nombre":"GHA Integration Test","correo":null,"puesto":"Auxiliar de Almacen","veredicto":"Apto para Entrevista","puntaje":90,"id":-1}')
+          HTTP_CODE=$(echo "$RESPONSE" | tail -1)
+          BODY=$(echo "$RESPONSE" | head -1)
+          echo "http_code=$HTTP_CODE" >> "$GITHUB_OUTPUT"
+          echo "body=$BODY" >> "$GITHUB_OUTPUT"
+          echo "Response: $BODY (HTTP $HTTP_CODE)"
+
+      - name: Assert edge function returned 200
+        run: |
+          CODE="${{ steps.call_fn.outputs.http_code }}"
+          if [ "$CODE" != "200" ]; then
+            echo "❌ Expected HTTP 200, got $CODE"
+            exit 1
+          fi
+          echo "✅ Edge function returned HTTP 200"
+
+      - name: Assert response contains ok:true and notificaciones_ids
+        run: |
+          BODY='${{ steps.call_fn.outputs.body }}'
+          echo "Body: $BODY"
+          echo "$BODY" | python3 -c "
+          import sys, json
+          d = json.load(sys.stdin)
+          assert d.get('ok') is True, f'ok is not true: {d}'
+          assert isinstance(d.get('results'), list), f'results not a list: {d}'
+          assert len(d.get('results', [])) == 2, f'expected 2 results: {d}'
+          assert isinstance(d.get('notificaciones_ids'), list), f'notificaciones_ids missing: {d}'
+          assert len(d.get('notificaciones_ids', [])) == 2, f'expected 2 notificaciones_ids: {d}'
+          print('✅ Response contract verified: ok=true, 2 results, 2 notificaciones_ids')
+          "
+
+      - name: Verify notificaciones rows were written to DB
+        run: |
+          IDS='${{ steps.call_fn.outputs.body }}'
+          ROW1=$(echo "$IDS" | python3 -c "import sys,json; d=json.load(sys.stdin); print(d['notificaciones_ids'][0])")
+          ROW2=$(echo "$IDS" | python3 -c "import sys,json; d=json.load(sys.stdin); print(d['notificaciones_ids'][1])")
+          echo "Checking notificaciones row $ROW1 (candidato)..."
+          R1=$(curl -s "${{ env.SUPABASE_URL }}/rest/v1/notificaciones?id=eq.$ROW1&select=id,tipo,veredicto,puntaje,enviado" \
+            -H "apikey: ${{ env.SUPABASE_ANON_KEY }}" \
+            -H "Authorization: Bearer ${{ env.SUPABASE_ANON_KEY }}")
+          echo "Row 1: $R1"
+          echo "$R1" | python3 -c "
+          import sys, json
+          rows = json.load(sys.stdin)
+          assert len(rows) == 1, f'expected 1 row, got {rows}'
+          r = rows[0]
+          assert r['tipo'] == 'candidato', f'tipo wrong: {r}'
+          assert r['veredicto'] == 'Apto para Entrevista', f'veredicto wrong: {r}'
+          assert r['puntaje'] == 90, f'puntaje wrong: {r}'
+          print(f'✅ candidato row verified: tipo={r[\"tipo\"]}, veredicto={r[\"veredicto\"]}, puntaje={r[\"puntaje\"]}')
+          "
+          echo "Checking notificaciones row $ROW2 (rrhh)..."
+          R2=$(curl -s "${{ env.SUPABASE_URL }}/rest/v1/notificaciones?id=eq.$ROW2&select=id,tipo,destinatario,veredicto,enviado" \
+            -H "apikey: ${{ env.SUPABASE_ANON_KEY }}" \
+            -H "Authorization: Bearer ${{ env.SUPABASE_ANON_KEY }}")
+          echo "Row 2: $R2"
+          echo "$R2" | python3 -c "
+          import sys, json
+          rows = json.load(sys.stdin)
+          assert len(rows) == 1, f'expected 1 row, got {rows}'
+          r = rows[0]
+          assert r['tipo'] == 'rrhh', f'tipo wrong: {r}'
+          assert r['destinatario'] == 'rrhh@mabaker.mx', f'destinatario wrong: {r}'
+          print(f'✅ rrhh row verified: tipo={r[\"tipo\"]}, destinatario={r[\"destinatario\"]}')
+          "
+          echo "✅ Both notificaciones rows confirmed in live Supabase database"
