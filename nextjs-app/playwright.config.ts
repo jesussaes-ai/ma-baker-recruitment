@@ -1,4 +1,7 @@
 import { defineConfig, devices } from '@playwright/test';
+import { existsSync } from 'fs';
+
+const CCR_CHROMIUM = '/opt/pw-browsers/chromium';
 
 export default defineConfig({
   testDir: './tests',
@@ -11,7 +14,7 @@ export default defineConfig({
     baseURL: process.env.BASE_URL || 'http://localhost:3000',
     headless: true,
     launchOptions: {
-      executablePath: '/opt/pw-browsers/chromium',
+      executablePath: existsSync(CCR_CHROMIUM) ? CCR_CHROMIUM : undefined,
       args: [
         '--no-sandbox',
         '--disable-setuid-sandbox',
