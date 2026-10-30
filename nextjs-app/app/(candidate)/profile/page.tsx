@@ -13,6 +13,7 @@ export default function ProfilePage() {
   const ageWarning = profile.edad && (edad < roleInfo.ageMin || edad > roleInfo.ageMax);
 
   const isValid = profile.nombre.trim() && profile.edad && profile.estatura && profile.peso && profile.genero;
+  const correoValid = !profile.correo || /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(profile.correo);
 
   return (
     <PageShell>
@@ -68,6 +69,19 @@ export default function ProfilePage() {
           />
         </div>
 
+        <InputField
+          label="CORREO ELECTRÓNICO (opcional)"
+          type="email"
+          value={profile.correo}
+          onChange={(v) => setProfile({ correo: v })}
+          placeholder="tu@correo.com"
+        />
+        {profile.correo && !correoValid && (
+          <div style={{ color: '#D32F2F', fontSize: 12, marginTop: -16, marginBottom: 12 }}>
+            Correo inválido
+          </div>
+        )}
+
         <div style={{ marginBottom: 24 }}>
           <label style={{ display: 'block', fontSize: 11, fontWeight: 600, color: '#666', marginBottom: 6 }}>
             GÉNERO <span style={{ color: '#D7282F' }}>*</span>
@@ -98,7 +112,7 @@ export default function ProfilePage() {
         <Button
           variant="primary"
           onClick={() => router.push('/documents')}
-          disabled={!isValid}
+          disabled={!isValid || !correoValid}
           style={{ width: '100%' }}
         >
           Continuar →

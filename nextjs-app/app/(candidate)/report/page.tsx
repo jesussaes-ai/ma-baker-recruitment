@@ -35,6 +35,7 @@ export default function ReportPage() {
       estatura: parseFloat(store.profile.estatura),
       peso: parseFloat(store.profile.peso),
       genero: store.profile.genero,
+      correo: store.profile.correo || null,
       puesto_aplicado: roleInfo.label,
       documentos: cleanDocs,
       requisitos_salud: Object.entries(store.healthChecks).filter(([, v]) => v).map(([k]) => k),
@@ -49,6 +50,17 @@ export default function ReportPage() {
       const { data, error } = await supabase.from('candidatos').insert(payload).select('id').single();
       if (error) throw error;
       store.setSavedId(data.id);
+      // Fire-and-forget notification (non-blocking)
+      supabase.functions.invoke('notify-candidate', {
+        body: {
+          nombre: payload.nombre,
+          correo: payload.correo,
+          puesto: payload.puesto_aplicado,
+          veredicto: payload.veredicto_final,
+          puntaje: payload.puntaje_evaluacion_tecnica,
+          id: data.id,
+        },
+      }).catch(() => { /* notifications are best-effort */ });
       router.push('/success');
     } catch (err: unknown) {
       // retry with minimal payload
@@ -64,6 +76,16 @@ export default function ReportPage() {
         const { data, error: err2 } = await supabase.from('candidatos').insert(minimal).select('id').single();
         if (err2) throw err2;
         store.setSavedId(data.id);
+        supabase.functions.invoke('notify-candidate', {
+          body: {
+            nombre: minimal.nombre,
+            correo: payload.correo,
+            puesto: minimal.puesto_aplicado,
+            veredicto: minimal.veredicto_final,
+            puntaje: minimal.puntaje_evaluacion_tecnica,
+            id: data.id,
+          },
+        }).catch(() => { /* notifications are best-effort */ });
         router.push('/success');
       } catch (err2: unknown) {
         setSaveError(err2 instanceof Error ? err2.message : 'Error al guardar. Verifica tu conexión.');

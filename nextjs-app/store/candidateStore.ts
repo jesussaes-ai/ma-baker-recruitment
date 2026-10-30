@@ -7,6 +7,7 @@ export type CandidateProfile = {
   estatura: string;
   peso: string;
   genero: string;
+  correo: string;
 };
 
 export type DocumentRecord = {
@@ -41,7 +42,7 @@ type CandidateStore = {
 
 const initialState = {
   role: 'almacen',
-  profile: { nombre: '', edad: '', estatura: '', peso: '', genero: '' },
+  profile: { nombre: '', edad: '', estatura: '', peso: '', genero: '', correo: '' },
   documents: {},
   healthChecks: {},
   psychResponses: {},

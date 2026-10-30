@@ -24,4 +24,5 @@ export type Candidato = {
   evaluacion_medica?: Record<string, string> | null;
   estado_medico?: string | null;
   fecha_evaluacion_medica?: string | null;
+  correo?: string | null;
 };
