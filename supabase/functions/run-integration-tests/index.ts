@@ -20,7 +20,7 @@ Deno.serve(async () => {
   const results: TestResult[] = [];
   const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_KEY);
 
-  // ── Test 1: notify-candidate HTTP 200 + response contract ──────────────────
+  // ── Test 1: notify-candidate without correo (no candidate email attempt) ──────
   let notifResponse: { ok: boolean; results: string[]; notificaciones_ids: number[] } | null = null;
 
   results.push(await runTest('notify-candidate returns HTTP 200', async () => {
@@ -55,6 +55,11 @@ Deno.serve(async () => {
   results.push(await runTest('notificaciones_ids array has 2 items', async () => {
     if (!Array.isArray(notifResponse?.notificaciones_ids)) throw new Error('notificaciones_ids is not an array');
     if (notifResponse!.notificaciones_ids.length !== 2) throw new Error(`expected 2 ids, got ${notifResponse!.notificaciones_ids.length}`);
+  }));
+
+  results.push(await runTest('candidate result is skipped when correo is null', async () => {
+    const r0 = notifResponse?.results[0] ?? '';
+    if (r0 !== 'candidate_email_skipped') throw new Error(`expected candidate_email_skipped, got ${r0}`);
   }));
 
   // ── Test 2: verify DB rows ──────────────────────────────────────────────────
@@ -92,6 +97,54 @@ Deno.serve(async () => {
       .eq('id', id1);
     if (error) throw new Error(error.message);
     if (!data || data.length !== 1) throw new Error(`expected 1 row, got ${data?.length ?? 0}`);
+  }));
+
+  // ── Test 4: email path executes when correo is provided ─────────────────────
+  // This proves the Resend send attempt is made. With a valid RESEND_API_KEY the
+  // result is candidate_email_sent; with an invalid key it is candidate_email_error_NNN.
+  // Either way it must NOT be candidate_email_skipped or candidate_email_pending.
+  let emailPathResponse: { ok: boolean; results: string[]; notificaciones_ids: number[] } | null = null;
+
+  results.push(await runTest('email path: notify-candidate with correo returns HTTP 200', async () => {
+    const res = await fetch(`${SUPABASE_URL}/functions/v1/notify-candidate`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+      },
+      body: JSON.stringify({
+        nombre: 'Email Path Test',
+        correo: 'test-ci@mabaker.mx',
+        puesto: 'Auxiliar de Almacen',
+        veredicto: 'Apto para Entrevista',
+        puntaje: 75,
+        id: -98,
+      }),
+    });
+    if (res.status !== 200) throw new Error(`Expected 200, got ${res.status}`);
+    emailPathResponse = await res.json() as typeof emailPathResponse;
+  }));
+
+  results.push(await runTest('email path: candidate result is _sent or _error_NNN (not _skipped)', async () => {
+    const r0 = emailPathResponse?.results[0] ?? '';
+    // _skipped means correo was ignored; _pending means email code was never reached.
+    // Both indicate the email path was not exercised.
+    if (r0 === 'candidate_email_skipped' || r0 === 'candidate_email_pending') {
+      throw new Error(`email path not exercised: result was ${r0}`);
+    }
+    if (!r0.startsWith('candidate_email_')) {
+      throw new Error(`unexpected result format: ${r0}`);
+    }
+  }));
+
+  results.push(await runTest('email path: rrhh result is _sent or _error_NNN (not _pending)', async () => {
+    const r1 = emailPathResponse?.results[1] ?? '';
+    if (r1 === 'rrhh_email_pending') {
+      throw new Error(`rrhh email path not exercised: result was ${r1}`);
+    }
+    if (!r1.startsWith('rrhh_email_')) {
+      throw new Error(`unexpected result format: ${r1}`);
+    }
   }));
 
   const passed = results.filter(r => r.passed).length;

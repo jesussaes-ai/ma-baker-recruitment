@@ -64,7 +64,7 @@ jobs:
           RESPONSE=$(curl -s -w "\n%{http_code}" -X POST \
             "${{ env.SUPABASE_URL }}/functions/v1/notify-candidate" \
             -H "Content-Type: application/json" \
-            -d '{"nombre":"GHA Integration Test","correo":null,"puesto":"Auxiliar de Almacen","veredicto":"Apto para Entrevista","puntaje":90,"id":-1}')
+            -d '{"nombre":"GHA Integration Test","correo":"gha-test@mabaker.mx","puesto":"Auxiliar de Almacen","veredicto":"Apto para Entrevista","puntaje":90,"id":-1}')
           HTTP_CODE=$(echo "$RESPONSE" | tail -1)
           BODY=$(echo "$RESPONSE" | head -1)
           echo "http_code=$HTTP_CODE" >> "$GITHUB_OUTPUT"
@@ -92,7 +92,12 @@ jobs:
           assert len(d.get('results', [])) == 2, f'expected 2 results: {d}'
           assert isinstance(d.get('notificaciones_ids'), list), f'notificaciones_ids missing: {d}'
           assert len(d.get('notificaciones_ids', [])) == 2, f'expected 2 notificaciones_ids: {d}'
-          print('✅ Response contract verified: ok=true, 2 results, 2 notificaciones_ids')
+          # Verify email path was exercised: result must be _sent or _error_NNN, not _skipped/_pending
+          r0 = d['results'][0]
+          assert r0 not in ('candidate_email_skipped', 'candidate_email_pending'), f'email path not exercised for candidato: {r0}'
+          r1 = d['results'][1]
+          assert r1 != 'rrhh_email_pending', f'email path not exercised for rrhh: {r1}'
+          print(f'✅ Response contract verified: ok=true, 2 results, 2 notificaciones_ids, email paths exercised ({r0}, {r1})')
           "
 
       - name: Verify notificaciones rows were written to DB
