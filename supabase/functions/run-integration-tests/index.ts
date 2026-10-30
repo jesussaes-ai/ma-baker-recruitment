@@ -125,41 +125,35 @@ Deno.serve(async () => {
     emailPathResponse = await res.json() as typeof emailPathResponse;
   }));
 
-  results.push(await runTest('email path: candidate result is _sent, _notification_logged, or _error_NNN (not _skipped/_pending)', async () => {
+  results.push(await runTest('email path: candidate result is _sent', async () => {
     const r0 = emailPathResponse?.results[0] ?? '';
-    // _skipped means correo was ignored; _pending means email code was never reached.
-    if (r0 === 'candidate_email_skipped' || r0 === 'candidate_email_pending') {
-      throw new Error(`email path not exercised: result was ${r0}`);
+    if (r0 !== 'candidate_email_sent') {
+      throw new Error(`expected candidate_email_sent, got: ${r0}`);
     }
-    // Accept: candidate_email_sent, candidate_notification_logged, candidate_email_error_NNN
-    const valid = r0.startsWith('candidate_email_') || r0 === 'candidate_notification_logged';
-    if (!valid) throw new Error(`unexpected result format: ${r0}`);
   }));
 
-  results.push(await runTest('email path: rrhh result is _sent or _notification_logged (not _pending/_skipped)', async () => {
+  results.push(await runTest('email path: rrhh result is _sent', async () => {
     const r1 = emailPathResponse?.results[1] ?? '';
-    if (r1 === 'rrhh_email_pending' || r1 === 'rrhh_email_skipped') {
-      throw new Error(`rrhh email path not exercised: result was ${r1}`);
+    if (r1 !== 'rrhh_email_sent') {
+      throw new Error(`expected rrhh_email_sent, got: ${r1}`);
     }
-    const valid = r1 === 'rrhh_email_sent' || r1 === 'rrhh_notification_logged' || r1.startsWith('rrhh_email_error_');
-    if (!valid) throw new Error(`unexpected rrhh result: ${r1}`);
   }));
 
-  // Verify email-path DB rows exist (enviado may be false if Resend key is unconfigured)
+  // Verify enviado=true in DB for the email-path rows
   const [epId1, epId2] = emailPathResponse?.notificaciones_ids ?? [0, 0];
 
-  results.push(await runTest('email path: candidato row written to DB', async () => {
+  results.push(await runTest('email path: candidato row enviado=true in DB', async () => {
     const { data, error } = await supabase
-      .from('notificaciones').select('id,tipo,enviado').eq('id', epId1).single();
+      .from('notificaciones').select('enviado,tipo').eq('id', epId1).single();
     if (error) throw new Error(error.message);
-    if (data.tipo !== 'candidato') throw new Error(`tipo wrong: ${data.tipo}`);
+    if (!data.enviado) throw new Error('candidato enviado is false — Resend rejected the email');
   }));
 
-  results.push(await runTest('email path: rrhh row written to DB', async () => {
+  results.push(await runTest('email path: rrhh row enviado=true in DB', async () => {
     const { data, error } = await supabase
-      .from('notificaciones').select('id,tipo,enviado').eq('id', epId2).single();
+      .from('notificaciones').select('enviado,tipo').eq('id', epId2).single();
     if (error) throw new Error(error.message);
-    if (data.tipo !== 'rrhh') throw new Error(`tipo wrong: ${data.tipo}`);
+    if (!data.enviado) throw new Error('rrhh enviado is false — Resend rejected the email');
   }));
 
   const passed = results.filter(r => r.passed).length;
