@@ -130,3 +130,29 @@ jobs:
           print(f'✅ rrhh row verified: tipo={r[\"tipo\"]}, destinatario={r[\"destinatario\"]}')
           "
           echo "✅ Both notificaciones rows confirmed in live Supabase database"
+
+  # ── Serverless integration test runner (no runner minutes) ────────────────
+  serverless-integration:
+    name: Serverless integration tests (edge function)
+    runs-on: ubuntu-latest
+    needs: playwright
+
+    steps:
+      - name: Call run-integration-tests edge function
+        run: |
+          RESULT=$(curl -s -w "\n%{http_code}" \
+            -H "Authorization: Bearer ${{ env.SUPABASE_ANON_KEY }}" \
+            "${{ env.SUPABASE_URL }}/functions/v1/run-integration-tests")
+          HTTP_CODE=$(echo "$RESULT" | tail -1)
+          BODY=$(echo "$RESULT" | head -1)
+          echo "HTTP $HTTP_CODE: $BODY"
+          echo "$BODY" | python3 -c "
+          import sys, json
+          d = json.load(sys.stdin)
+          for r in d.get('results', []):
+              status = '✅' if r['passed'] else '❌'
+              err = f\" — {r['error']}\" if not r['passed'] else ''
+              print(f\"{status} {r['name']}{err}\")
+          assert d.get('ok') is True, f'Tests failed: {d[\"failed\"]}/{d[\"total\"]} — see above'
+          print(f'\\n✅ All {d[\"passed\"]}/{d[\"total\"]} serverless integration tests passed')
+          "
