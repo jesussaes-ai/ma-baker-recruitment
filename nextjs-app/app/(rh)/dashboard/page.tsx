@@ -75,13 +75,21 @@ export default function DashboardPage() {
               </div>
             )}
           </div>
-          <div style={{ display: 'flex', gap: 10 }}>
+          <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
             <button
               onClick={() => router.push('/welcome')}
               style={{ background: 'rgba(255,255,255,0.2)', border: '1.5px solid rgba(255,255,255,0.4)', color: '#fff', borderRadius: 8, padding: '8px 16px', fontSize: 13, fontWeight: 600, cursor: 'pointer' }}
             >
               Nueva Evaluación
             </button>
+            {(rhUser?.rol === 'medico' || rhUser?.rol === 'admin' || rhUser?.rol === 'rrhh') && (
+              <button
+                onClick={() => router.push('/medico')}
+                style={{ background: 'rgba(255,255,255,0.2)', border: '1.5px solid rgba(255,255,255,0.4)', color: '#fff', borderRadius: 8, padding: '8px 16px', fontSize: 13, fontWeight: 600, cursor: 'pointer' }}
+              >
+                Eval. Médica
+              </button>
+            )}
             <button
               onClick={handleLogout}
               style={{ background: 'rgba(255,255,255,0.1)', border: '1.5px solid rgba(255,255,255,0.3)', color: 'rgba(255,255,255,0.8)', borderRadius: 8, padding: '8px 16px', fontSize: 13, fontWeight: 600, cursor: 'pointer' }}
@@ -213,6 +221,7 @@ export default function DashboardPage() {
               'Género': selected.genero || '—',
               'Estatura': selected.estatura ? `${selected.estatura} cm` : '—',
               'Peso': selected.peso ? `${selected.peso} kg` : '—',
+              'Estado Médico': selected.estado_medico || 'pendiente',
               'Fecha': selected.created_at ? new Date(selected.created_at).toLocaleString('es-MX') : '—',
               'ID': `#${selected.id}`,
             }} />
