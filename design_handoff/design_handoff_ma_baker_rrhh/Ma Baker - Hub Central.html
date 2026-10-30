@@ -1,0 +1,354 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8" />
+<title>Ma Baker — Centro de Control</title>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+  :root {
+    --primary: #d7282f;
+    --primary-soft: #fef2f2;
+    --success: #16a34a;
+    --warning: #f59e0b;
+    --danger: #dc2626;
+    --bg: #fafaf9;
+    --surface: #ffffff;
+    --border: #e7e5e4;
+    --text: #1c1917;
+    --text-light: #78716c;
+    --shadow-sm: 0 1px 2px rgba(0,0,0,0.04);
+    --shadow: 0 4px 12px rgba(0,0,0,0.06);
+    --shadow-lg: 0 12px 32px rgba(0,0,0,0.08);
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    padding: 40px 20px;
+  }
+  .container { max-width: 1180px; margin: 0 auto; }
+
+  .hero {
+    display: flex;
+    align-items: center;
+    gap: 24px;
+    padding: 32px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    box-shadow: var(--shadow);
+    margin-bottom: 28px;
+  }
+  .hero-logo {
+    width: 88px; height: 88px;
+    border-radius: 16px;
+    object-fit: cover;
+    flex-shrink: 0;
+    box-shadow: var(--shadow);
+  }
+  .hero-text h1 {
+    font-size: 32px;
+    font-weight: 800;
+    letter-spacing: -0.5px;
+    margin-bottom: 4px;
+  }
+  .hero-text .tagline {
+    font-size: 15px;
+    color: var(--text-light);
+    margin-bottom: 14px;
+  }
+  .status-pills {
+    display: flex; gap: 10px; flex-wrap: wrap;
+  }
+  .pill {
+    display: inline-flex; align-items: center; gap: 8px;
+    padding: 6px 14px;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 99px;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text-light);
+  }
+  .dot {
+    width: 8px; height: 8px; border-radius: 50%;
+    background: var(--success);
+    box-shadow: 0 0 0 0 rgba(22, 163, 74, 0.5);
+    animation: pulse 2.2s infinite;
+  }
+  .dot.down { background: var(--danger); animation: none; }
+  @keyframes pulse {
+    0% { box-shadow: 0 0 0 0 rgba(22, 163, 74, 0.5); }
+    70% { box-shadow: 0 0 0 8px rgba(22, 163, 74, 0); }
+  }
+
+  .stats {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 14px;
+    margin-bottom: 32px;
+  }
+  .stat {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 20px 22px;
+    box-shadow: var(--shadow-sm);
+    position: relative;
+    overflow: hidden;
+  }
+  .stat::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 3px;
+    background: var(--primary);
+  }
+  .stat-icon {
+    font-size: 22px;
+    margin-bottom: 6px;
+    opacity: 0.85;
+  }
+  .stat-val {
+    font-size: 30px;
+    font-weight: 800;
+    font-variant-numeric: tabular-nums;
+    letter-spacing: -0.5px;
+  }
+  .stat-lbl {
+    font-size: 12px;
+    color: var(--text-light);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    font-weight: 600;
+    margin-top: 2px;
+  }
+
+  .section-label {
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 1.2px;
+    color: var(--text-light);
+    margin: 28px 0 14px;
+    font-weight: 700;
+  }
+
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 16px;
+  }
+
+  .module {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 22px;
+    text-decoration: none;
+    color: inherit;
+    transition: all 0.2s ease;
+    position: relative;
+    display: block;
+    box-shadow: var(--shadow-sm);
+  }
+  .module:hover {
+    transform: translateY(-3px);
+    border-color: var(--primary);
+    box-shadow: var(--shadow-lg);
+  }
+  .module-icon {
+    width: 48px; height: 48px;
+    border-radius: 12px;
+    background: var(--primary-soft);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 24px;
+    margin-bottom: 14px;
+  }
+  .module.featured .module-icon {
+    background: var(--primary);
+    color: white;
+  }
+  .module-title {
+    font-size: 16px;
+    font-weight: 700;
+    margin-bottom: 6px;
+    letter-spacing: -0.2px;
+  }
+  .module-desc {
+    font-size: 13px;
+    color: var(--text-light);
+    line-height: 1.5;
+    margin-bottom: 14px;
+    min-height: 38px;
+  }
+  .module-tag {
+    display: inline-block;
+    padding: 3px 10px;
+    border-radius: 99px;
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    background: var(--bg);
+    color: var(--text-light);
+    border: 1px solid var(--border);
+  }
+  .module.featured .module-tag {
+    background: var(--primary);
+    color: white;
+    border-color: var(--primary);
+  }
+
+  footer {
+    margin-top: 48px;
+    text-align: center;
+    color: var(--text-light);
+    font-size: 12px;
+    padding-top: 24px;
+    border-top: 1px solid var(--border);
+  }
+</style>
+</head>
+<body>
+<div class="container">
+
+  <div class="hero">
+    <img src="chef-logo.jpg" alt="Ma Baker" class="hero-logo" onerror="this.style.display='none'" />
+    <div class="hero-text">
+      <h1>Ma Baker</h1>
+      <div class="tagline">Sistema de Reclutamiento — Centro de Control</div>
+      <div class="status-pills">
+        <span class="pill"><span class="dot" id="dotDb"></span> Base de datos</span>
+        <span class="pill"><span class="dot" id="dotStorage"></span> Almacenamiento</span>
+        <span class="pill" id="lastCheck">Verificando...</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="stats">
+    <div class="stat">
+      <div class="stat-icon">👥</div>
+      <div class="stat-val" id="sTotal">—</div>
+      <div class="stat-lbl">Candidatos totales</div>
+    </div>
+    <div class="stat">
+      <div class="stat-icon">📅</div>
+      <div class="stat-val" id="sHoy">—</div>
+      <div class="stat-lbl">Aplicaciones hoy</div>
+    </div>
+    <div class="stat">
+      <div class="stat-icon">✅</div>
+      <div class="stat-val" id="sAptos">—</div>
+      <div class="stat-lbl">Aptos para entrevista</div>
+    </div>
+    <div class="stat">
+      <div class="stat-icon">📊</div>
+      <div class="stat-val" id="sAvg">—</div>
+      <div class="stat-lbl">Promedio puntaje</div>
+    </div>
+  </div>
+
+  <div class="section-label">Producción</div>
+  <div class="grid">
+    <a class="module featured" href="Ma Baker Sistema v4.1 - Supabase Integrado.html" target="_blank">
+      <div class="module-icon">📋</div>
+      <div class="module-title">Formulario de Candidatos</div>
+      <div class="module-desc">Aplicación que llenan los candidatos. Comparte este link.</div>
+      <span class="module-tag">Para candidatos</span>
+    </a>
+    <a class="module featured" href="Ma Baker Dashboard RH.html" target="_blank">
+      <div class="module-icon">👔</div>
+      <div class="module-title">Dashboard RH</div>
+      <div class="module-desc">Tabla de candidatos, filtros, expedientes y exportación.</div>
+      <span class="module-tag">Para Recursos Humanos</span>
+    </a>
+    <a class="module featured" href="Ma Baker - Evaluacion Medica.html" target="_blank" style="background:linear-gradient(135deg,#0071BC,#005a96);color:#fff;">
+      <div class="module-icon">🏥</div>
+      <div class="module-title" style="color:#fff;">Evaluación Médica</div>
+      <div class="module-desc" style="color:rgba(255,255,255,.9);">Búnker médico · Signos vitales, antidoping, HAM-A, HAM-D, 5 D's. Privacidad RLS.</div>
+      <span class="module-tag" style="background:rgba(255,255,255,.2);color:#fff;">Solo médicos · Fase 3</span>
+    </a>
+  </div>
+
+  <div class="section-label">Operación y monitoreo</div>
+  <div class="grid">
+    <a class="module" href="Ma Baker - Panel de Salud.html" target="_blank">
+      <div class="module-icon">📊</div>
+      <div class="module-title">Panel de Salud</div>
+      <div class="module-desc">Estado en vivo de servicios, métricas y candidatos recientes.</div>
+      <span class="module-tag">Monitoreo</span>
+    </a>
+    <a class="module" href="Ma Baker - Suite de Pruebas.html" target="_blank">
+      <div class="module-icon">🧪</div>
+      <div class="module-title">Suite de Pruebas</div>
+      <div class="module-desc">Verifica conectividad, BD, storage y validaciones.</div>
+      <span class="module-tag">Diagnóstico</span>
+    </a>
+    <a class="module" href="Ma Baker - Backups.html" target="_blank">
+      <div class="module-icon">🔄</div>
+      <div class="module-title">Backups</div>
+      <div class="module-desc">Exporta a CSV, JSON, reporte HTML o backup completo.</div>
+      <span class="module-tag">Respaldo</span>
+    </a>
+  </div>
+
+  <div class="section-label">Documentación</div>
+  <div class="grid">
+    <a class="module" href="Ma Baker - Manual de Usuario.html" target="_blank">
+      <div class="module-icon">📖</div>
+      <div class="module-title">Manual de Usuario</div>
+      <div class="module-desc">Guías paso a paso para candidatos, RH y administradores.</div>
+      <span class="module-tag">Guías</span>
+    </a>
+    <a class="module" href="Ma Baker - Arquitectura Tecnica.html" target="_blank">
+      <div class="module-icon">📋</div>
+      <div class="module-title">Arquitectura Técnica</div>
+      <div class="module-desc">Stack, esquema BD, flujo de datos, seguridad y mantenimiento.</div>
+      <span class="module-tag">Referencia técnica</span>
+    </a>
+  </div>
+
+  <footer>
+    Ma Baker · Sistema de Reclutamiento v4.1 · Powered by Supabase
+  </footer>
+</div>
+
+<script>
+  const SUPABASE_URL = 'https://xdtxfpvxoxqaadgyvzap.supabase.co';
+  const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhkdHhmcHZ4b3hxYWFkZ3l2emFwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzE5Nzk5OTgsImV4cCI6MjA4NzU1NTk5OH0.0bordJwiTVA-7kqOUsrPcchoSmJS2QKAHUirwN0S1QA';
+  const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+  async function checkHealth() {
+    try {
+      const { data, error } = await sb.from('Formulario de Candidatos').select('*').order('created_at', { ascending: false });
+      if (error) throw error;
+      document.getElementById('dotDb').className = 'dot';
+      const today = new Date().toISOString().slice(0,10);
+      const hoy = data.filter(c => (c.created_at||'').slice(0,10) === today).length;
+      const aptos = data.filter(c => c.veredicto_final === 'Apto para Entrevista').length;
+      const conP = data.filter(c => typeof c.puntaje_evaluacion_tecnica === 'number');
+      const avg = conP.length > 0 ? Math.round(conP.reduce((s,c) => s+c.puntaje_evaluacion_tecnica, 0)/conP.length) : 0;
+      document.getElementById('sTotal').textContent = data.length;
+      document.getElementById('sHoy').textContent = hoy;
+      document.getElementById('sAptos').textContent = aptos;
+      document.getElementById('sAvg').textContent = conP.length > 0 ? avg + '%' : '—';
+    } catch (e) {
+      document.getElementById('dotDb').className = 'dot down';
+    }
+    try {
+      const { error } = await sb.storage.from('documentos').list('', { limit: 1 });
+      if (error) throw error;
+      document.getElementById('dotStorage').className = 'dot';
+    } catch (e) {
+      document.getElementById('dotStorage').className = 'dot down';
+    }
+    document.getElementById('lastCheck').textContent = '🕐 ' + new Date().toLocaleTimeString('es-MX');
+  }
+  checkHealth();
+  setInterval(checkHealth, 60000);
+</script>
+</body>
+</html>

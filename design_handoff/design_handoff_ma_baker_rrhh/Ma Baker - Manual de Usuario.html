@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8" />
+<title>📖 Manual de Usuario — Ma Baker</title>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<style>
+  :root {
+    --primary: #d7282f;
+    --bg: #f8fafc;
+    --surface: #ffffff;
+    --border: #e2e8f0;
+    --text: #0f172a;
+    --text-light: #64748b;
+    --tip-bg: #fffbeb;
+    --tip-border: #fbbf24;
+    --warn-bg: #fee2e2;
+    --warn-border: #ef4444;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    background: var(--bg); color: var(--text); line-height: 1.6;
+    padding: 32px 20px;
+  }
+  .container { max-width: 880px; margin: 0 auto; }
+  .header { display:flex; align-items:center; gap:18px; margin-bottom:32px; padding-bottom:24px; border-bottom:2px solid var(--primary); }
+  .logo { width:56px; height:56px; border-radius:12px; background:var(--primary); color:white; display:flex; align-items:center; justify-content:center; font-size:28px; }
+  h1 { font-size:28px; font-weight:800; }
+  .subtitle { font-size:14px; color:var(--text-light); margin-top:4px; }
+
+  .tabs { display:flex; gap:8px; margin-bottom:24px; flex-wrap:wrap; }
+  .tab { padding:12px 20px; border-radius:8px; border:1px solid var(--border); background:var(--surface); cursor:pointer; font-weight:600; font-size:14px; transition:all 0.15s; }
+  .tab.active { background:var(--primary); color:white; border-color:var(--primary); }
+  .tab:hover:not(.active) { background:var(--bg); }
+
+  .panel { display:none; }
+  .panel.active { display:block; }
+
+  h2 { font-size:22px; margin:32px 0 14px; color:var(--primary); border-left:4px solid var(--primary); padding-left:12px; }
+  h3 { font-size:17px; margin:22px 0 10px; }
+  p { font-size:14px; margin-bottom:10px; }
+  ul, ol { margin-left:24px; margin-bottom:14px; font-size:14px; }
+  li { margin-bottom:6px; }
+
+  .step { background:var(--surface); border:1px solid var(--border); border-radius:10px; padding:18px; margin:14px 0; display:grid; grid-template-columns:40px 1fr; gap:14px; align-items:start; }
+  .step-num { width:32px; height:32px; border-radius:50%; background:var(--primary); color:white; display:flex; align-items:center; justify-content:center; font-weight:700; font-size:14px; }
+  .step strong { font-size:15px; display:block; margin-bottom:4px; }
+
+  .tip { background:var(--tip-bg); border-left:4px solid var(--tip-border); padding:12px 16px; border-radius:6px; margin:14px 0; font-size:13px; }
+  .tip strong { color:#92400e; }
+
+  .warn { background:var(--warn-bg); border-left:4px solid var(--warn-border); padding:12px 16px; border-radius:6px; margin:14px 0; font-size:13px; }
+  .warn strong { color:#991b1b; }
+
+  .faq { background:var(--surface); border:1px solid var(--border); border-radius:10px; padding:16px 18px; margin-bottom:10px; }
+  .faq summary { font-weight:600; cursor:pointer; font-size:14px; }
+  .faq[open] summary { color:var(--primary); margin-bottom:8px; }
+  .faq p { font-size:13px; margin-top:8px; }
+
+  code { background:#f1f5f9; padding:2px 6px; border-radius:4px; font-size:12px; color:var(--primary); }
+</style>
+</head>
+<body>
+<div class="container">
+  <div class="header">
+    <div class="logo">📖</div>
+    <div>
+      <h1>Manual de Usuario</h1>
+      <div class="subtitle">Guía rápida para candidatos y equipo de Recursos Humanos</div>
+    </div>
+  </div>
+
+  <div class="tabs">
+    <button class="tab active" data-target="candidato">👤 Para Candidatos</button>
+    <button class="tab" data-target="rh">👔 Para Recursos Humanos</button>
+    <button class="tab" data-target="admin">⚙️ Para Administradores</button>
+  </div>
+
+  <!-- ─── CANDIDATO ──────────────────────────────────────── -->
+  <div class="panel active" id="candidato">
+    <h2>Cómo aplicar al puesto</h2>
+    <p>Aplicar a Ma Baker es rápido y se hace 100% en línea. Solo necesitas:</p>
+    <ul>
+      <li>📱 Un teléfono o computadora con cámara</li>
+      <li>📋 Tu identificación oficial (INE)</li>
+      <li>📄 Tu CV en PDF (opcional pero recomendado)</li>
+      <li>⏱ Aproximadamente 20-30 minutos</li>
+    </ul>
+
+    <div class="step"><div class="step-num">1</div><div>
+      <strong>Abre el formulario</strong>
+      Tu reclutador te enviará un link. Ábrelo en tu navegador (Chrome, Safari, Edge).
+    </div></div>
+
+    <div class="step"><div class="step-num">2</div><div>
+      <strong>Selecciona el puesto al que aplicas</strong>
+      Almacén, Cocinero, Mesero o Cajero. Cada puesto tiene preguntas específicas.
+    </div></div>
+
+    <div class="step"><div class="step-num">3</div><div>
+      <strong>Llena tus datos personales</strong>
+      Nombre completo, edad, estatura (en metros: 1.75), peso (en kilos) y género. Verifica que estén correctos.
+    </div></div>
+
+    <div class="step"><div class="step-num">4</div><div>
+      <strong>Sube tus documentos</strong>
+      Foto de tu INE (frontal) y tu CV. Tamaño máximo 10 MB cada uno. Acepta JPG, PNG y PDF.
+    </div></div>
+
+    <div class="step"><div class="step-num">5</div><div>
+      <strong>Confirma requisitos de salud</strong>
+      Marca todas las casillas que apliquen a tu situación.
+    </div></div>
+
+    <div class="step"><div class="step-num">6</div><div>
+      <strong>Evaluación psicométrica</strong>
+      12 preguntas. Tienes <strong>90 segundos por pregunta</strong>. Responde con honestidad.
+    </div></div>
+
+    <div class="step"><div class="step-num">7</div><div>
+      <strong>Evaluación técnica</strong>
+      Preguntas relacionadas al puesto que elegiste.
+    </div></div>
+
+    <div class="step"><div class="step-num">8</div><div>
+      <strong>¡Listo!</strong>
+      Verás tu resultado y el sistema lo enviará automáticamente al equipo de RH.
+    </div></div>
+
+    <div class="tip">
+      <strong>💡 Consejos:</strong>
+      <ul style="margin-top:6px">
+        <li>Usa una conexión estable (Wi-Fi de preferencia)</li>
+        <li>No cierres la pestaña a media evaluación — perderás tu avance</li>
+        <li>Si tu foto sale borrosa, vuelve a tomarla con buena luz</li>
+      </ul>
+    </div>
+
+    <div class="warn">
+      <strong>⚠️ Importante:</strong> Solo puedes hacer la evaluación una vez. Sé honesto en tus respuestas — el equipo de RH revisará tus resultados.
+    </div>
+  </div>
+
+  <!-- ─── RH ─────────────────────────────────────────────── -->
+  <div class="panel" id="rh">
+    <h2>Dashboard de Recursos Humanos</h2>
+    <p>Tu panel de control para revisar todos los candidatos que aplicaron.</p>
+
+    <h3>Acceso</h3>
+    <p>Abre <code>Ma Baker Dashboard RH.html</code>. Verás todos los candidatos en tiempo real.</p>
+
+    <h3>Funciones principales</h3>
+    <div class="step"><div class="step-num">📊</div><div>
+      <strong>Tabla de candidatos</strong>
+      Listado completo con nombre, puesto, puntaje y veredicto. Click en cualquier fila para ver el expediente completo.
+    </div></div>
+
+    <div class="step"><div class="step-num">🔍</div><div>
+      <strong>Buscador y filtros</strong>
+      Busca por nombre. Filtra por puesto (Almacén/Cocinero/Mesero/Cajero), veredicto (Apto/Adicional/No cumple) o rango de fechas.
+    </div></div>
+
+    <div class="step"><div class="step-num">📋</div><div>
+      <strong>Vista detalle del candidato</strong>
+      Datos completos, foto de INE, CV descargable, respuestas psicométricas y técnicas con desglose, puntaje final y veredicto.
+    </div></div>
+
+    <div class="step"><div class="step-num">📥</div><div>
+      <strong>Descargar documentos</strong>
+      Click en INE o CV para abrir/descargar el archivo.
+    </div></div>
+
+    <div class="step"><div class="step-num">📊</div><div>
+      <strong>Exportar a CSV</strong>
+      Botón "Exportar CSV" descarga todos los candidatos filtrados para abrir en Excel.
+    </div></div>
+
+    <h3>Interpretación de veredictos</h3>
+    <ul>
+      <li><strong>✅ Apto para Entrevista (≥70%)</strong> — Llamar para entrevista presencial</li>
+      <li><strong>⚠️ Evaluación Adicional (50-69%)</strong> — Considerar entrevista o segunda evaluación</li>
+      <li><strong>❌ No cumple perfil (&lt;50%)</strong> — Archivar; no continuar proceso</li>
+    </ul>
+
+    <div class="tip">
+      <strong>💡 Flujo de trabajo recomendado:</strong>
+      <ol style="margin-top:6px">
+        <li>Cada mañana revisa los candidatos nuevos del día anterior</li>
+        <li>Filtra por "Apto" para priorizar entrevistas</li>
+        <li>Descarga CV y revisa antes de llamar</li>
+        <li>Exporta CSV semanal para reportes a dirección</li>
+      </ol>
+    </div>
+
+    <h2>Preguntas frecuentes</h2>
+    <details class="faq"><summary>¿Cómo veo solo los candidatos de hoy?</summary>
+      <p>Usa el filtro de fecha y selecciona la fecha de hoy en ambos campos (desde y hasta).</p>
+    </details>
+    <details class="faq"><summary>Un candidato dice que no aparece en el sistema</summary>
+      <p>Verifica que terminó la evaluación completa. Si la cerró antes del reporte final, no se guarda. Pídele que aplique de nuevo.</p>
+    </details>
+    <details class="faq"><summary>¿Puedo editar un candidato?</summary>
+      <p>Esta versión es solo lectura desde el dashboard. Para modificaciones, contacta al administrador.</p>
+    </details>
+    <details class="faq"><summary>El INE no se ve / no abre</summary>
+      <p>Click derecho → "Abrir en pestaña nueva". Si tampoco abre, el archivo puede estar dañado; pide al candidato que lo suba de nuevo.</p>
+    </details>
+  </div>
+
+  <!-- ─── ADMIN ──────────────────────────────────────────── -->
+  <div class="panel" id="admin">
+    <h2>Herramientas de administración</h2>
+
+    <h3>Componentes del sistema</h3>
+    <ul>
+      <li><code>Ma Baker Sistema v4.1 - Supabase Integrado.html</code> — Formulario candidatos</li>
+      <li><code>Ma Baker Dashboard RH.html</code> — Panel para RH</li>
+      <li><code>Ma Baker - Suite de Pruebas.html</code> — Verificación automática</li>
+      <li><code>Ma Baker - Panel de Salud.html</code> — Monitoreo en vivo</li>
+      <li><code>Ma Baker - Backups.html</code> — Exportación de datos</li>
+      <li><code>Ma Baker - Arquitectura Tecnica.html</code> — Documentación técnica</li>
+    </ul>
+
+    <h3>Tareas periódicas</h3>
+    <div class="step"><div class="step-num">📅</div><div>
+      <strong>Diario</strong>
+      Abre el Panel de Salud para confirmar que todos los servicios están operativos (verde).
+    </div></div>
+    <div class="step"><div class="step-num">📅</div><div>
+      <strong>Semanal</strong>
+      Ejecuta la Suite de Pruebas. Todas deben pasar en verde.
+    </div></div>
+    <div class="step"><div class="step-num">📅</div><div>
+      <strong>Mensual</strong>
+      Genera Backup Completo desde el módulo de Backups. Guarda el archivo JSON en lugar seguro.
+    </div></div>
+
+    <h3>Solución de problemas comunes</h3>
+    <details class="faq"><summary>Suite de Pruebas falla "Could not find table"</summary>
+      <p>Ve a Supabase → Settings → API → Reload Schema Cache. Espera 5 segundos y vuelve a probar.</p>
+    </details>
+    <details class="faq"><summary>Candidatos reportan que no pueden subir archivos</summary>
+      <p>Verifica que los buckets <code>ines</code> y <code>cvs</code> sigan siendo públicos. Verifica también que los tipos MIME permitidos incluyan image/* y application/pdf.</p>
+    </details>
+    <details class="faq"><summary>Dashboard RH muestra tabla vacía pero hay candidatos</summary>
+      <p>Falta política RLS de SELECT. Ejecuta: <code>CREATE POLICY "public_select" ON "Formulario de Candidatos" FOR SELECT USING (true);</code></p>
+    </details>
+    <details class="faq"><summary>Necesito proteger el Dashboard RH con login</summary>
+      <p>Esa funcionalidad requiere implementar Supabase Auth. Es una mejora futura — actualmente el dashboard solo se debe alojar internamente.</p>
+    </details>
+
+    <div class="warn">
+      <strong>🔒 Seguridad:</strong> No compartas el Dashboard RH públicamente. Solo distribuye el link del <strong>Formulario de Candidatos</strong>.
+    </div>
+  </div>
+</div>
+
+<script>
+  document.querySelectorAll('.tab').forEach(t => {
+    t.addEventListener('click', () => {
+      document.querySelectorAll('.tab').forEach(x => x.classList.remove('active'));
+      document.querySelectorAll('.panel').forEach(x => x.classList.remove('active'));
+      t.classList.add('active');
+      document.getElementById(t.dataset.target).classList.add('active');
+    });
+  });
+</script>
+</body>
+</html>

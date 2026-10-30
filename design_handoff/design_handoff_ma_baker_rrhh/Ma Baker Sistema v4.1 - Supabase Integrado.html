@@ -1,0 +1,1382 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Ma Baker RRHH v4.1 — Supabase Integrado</title>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+  <script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+  <script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    html, body, #root { height: 100%; width: 100%; }
+    body { 
+      font-family: 'Montserrat', sans-serif; 
+      background: #F5F5F5; 
+      color: #1A1A1A;
+      -webkit-font-smoothing: antialiased;
+    }
+    /* Forzar mayúsculas en TODOS los inputs/selects/textareas */
+    input, select, textarea, option {
+      text-transform: uppercase !important;
+    }
+    input::placeholder, textarea::placeholder {
+      text-transform: uppercase !important;
+    }
+    :root {
+      --primary: #D7282F;
+      --brand: #D7282F;
+      --secondary: #0071BC;
+      --bg-light: #FFFFFF;
+      --bg-gray: #F5F5F5;
+      --text-dark: #1A1A1A;
+      --text-light: #666666;
+      --border: #E0E0E0;
+      --success: #4CAF50;
+      --warning: #FFC107;
+      --danger: #D32F2F;
+    }
+    @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
+    @keyframes slideIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+    @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+    input, textarea, select { font-family: 'Montserrat', sans-serif; }
+    input:focus, textarea:focus, select:focus { outline: 2px solid var(--primary); outline-offset: 2px; }
+    button { font-family: 'Montserrat', sans-serif; }
+    .loading { display: inline-block; animation: pulse 1.5s ease-in-out infinite; }
+  </style>
+</head>
+<body>
+  <div id="root"></div>
+
+  <script type="text/babel">
+    const { useState, useEffect, useRef } = React;
+
+    // ═══════════════════════════════════════════════════════════════
+    // SUPABASE CONFIG
+    // ═══════════════════════════════════════════════════════════════
+    const SUPABASE_URL = 'https://xdtxfpvxoxqaadgyvzap.supabase.co';
+    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhkdHhmcHZ4b3hxYWFkZ3l2emFwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzE5Nzk5OTgsImV4cCI6MjA4NzU1NTk5OH0.0bordJwiTVA-7kqOUsrPcchoSmJS2QKAHUirwN0S1QA';
+
+    const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+    // ═══════════════════════════════════════════════════════════════
+    // BANCO DE PREGUNTAS
+    // ═══════════════════════════════════════════════════════════════
+
+    const TECHNICAL_QUESTIONS = {
+      almacen: [
+        { text: '¿Cuál es tu responsabilidad principal en recepción?', options: ['A) Guardar rápido', 'B) Verificar coincidencia', 'C) Firmar sin revisar', 'D) Avisar supervisor'], correct: 1 },
+        { text: '¿Requisito físico indispensable?', options: ['A) Correr largas distancias', 'B) Esfuerzo físico prolongado', 'C) Operar maquinaria', 'D) Ninguno'], correct: 1 },
+        { text: '¿Qué aseguras al distribuir?', options: ['A) Vehículo limpio', 'B) Ruta trazada', 'C) Material correcto', 'D) <10 minutos'], correct: 2 },
+        { text: '¿Qué haces si quedan 10 min antes de salir pero hay urgencia?', options: ['A) Me retiro', 'B) Apago equipos', 'C) Extiendo jornada', 'D) Pido ayuda'], correct: 2 },
+        { text: '¿Competencia ante alta demanda?', options: ['A) Sentido urgencia', 'B) Tolerancia', 'C) Creatividad', 'D) Liderazgo'], correct: 0 },
+        { text: '¿Qué aseguras al empaquetar?', options: ['A) Cajas pequeñas', 'B) Integridad calidad', 'C) Pesar', 'D) Etiquetas color'], correct: 1 },
+        { text: '¿Tu rol con inventarios?', options: ['A) Diseñar software', 'B) Apoyar inventarios físicos', 'C) Decidir compras', 'D) Auditar mermas'], correct: 1 },
+        { text: '¿Por qué puntualidad?', options: ['A) Bonos', 'B) Desayunar', 'C) Flujo operativo', 'D) Evitar penales'], correct: 2 },
+        { text: '¿En qué basarse al organizar?', options: ['A) Espacio vacío', 'B) Llegada camiones', 'C) Procedimientos empresa', 'D) Criterio chofer'], correct: 2 },
+        { text: '¿Atención al detalle en?', options: ['A) Revisión conteo materiales', 'B) Limpieza personal', 'C) Químicos', 'D) Reportes financieros'], correct: 0 },
+      ],
+      mezclador: [
+        { text: '¿Tolerancia máxima error pesajes?', options: ['A) 1.5%', 'B) 0.50%', 'C) 0.05%', 'D) 0.01%'], correct: 2 },
+        { text: '¿Si mezclas cerca de caducidad?', options: ['A) Desechar inmediatamente', 'B) Colaborar Desarrollo', 'C) Usar rápido', 'D) Cambiar fecha'], correct: 1 },
+        { text: '¿Cometes error pesaje?', options: ['A) Ocultarlo <1%', 'B) Reportar colaborar', 'C) Desechar sin avisar', 'D) Dejar a un lado'], correct: 1 },
+        { text: '¿Herramientas a manejar?', options: ['A) Montacargas patines', 'B) Básculas analíticas', 'C) Medidores volumen', 'D) Básculas tonelaje'], correct: 1 },
+        { text: '¿Calidad pide ajuste?', options: ['A) Implementar documentar', 'B) Discutir inspector', 'C) Ignorar', 'D) Enviar nota'], correct: 0 },
+        { text: '¿Orientación químicos aromáticos?', options: ['A) Jefe Almacén', 'B) Proveedor', 'C) Desarrollo', 'D) Gerente Ventas'], correct: 2 },
+        { text: '¿Error pesaje causa?', options: ['A) Retraso 5 minutos', 'B) Afecta producción reputación', 'C) Nada grave', 'D) Cambio turno'], correct: 1 },
+        { text: '¿Mezcla física garantizar?', options: ['A) Enfriamiento <0°C', 'B) Empaquetado final', 'C) Homogeneización dispersión', 'D) Cambio color'], correct: 2 },
+        { text: '¿Quién determina vida anaquel?', options: ['A) Mezclador', 'B) Auxiliar', 'C) Desarrollo', 'D) Jefe almacén'], correct: 2 },
+        { text: '¿A quién reportas?', options: ['A) Supervisor almacén', 'B) Jefe almacén materia prima', 'C) Gerente general', 'D) Director calidad'], correct: 1 },
+      ],
+    };
+
+    // Preguntas psicométricas con respuesta correcta (idx) para puntuar
+    const PSICOMETRIC_QUESTIONS = [
+      { text: '1. Cuando tengo un problema en el trabajo, prefiero:', options: ['A. Actuar rápido sin pensar', 'B. Analizar la situación antes de actuar', 'C. Pedir ayuda a un compañero', 'D. Evitarlo y esperar que se resuelva solo'], correct: 1 },
+      { text: '2. ¿Cuál es tu mayor fortaleza personal?', options: ['A. Liderazgo y toma de decisiones', 'B. Atención al detalle y precisión', 'C. Creatividad e innovación', 'D. Confiabilidad y puntualidad'], correct: 3 },
+      { text: '3. Prefieres trabajar:', options: ['A. En equipo, colaborando', 'B. Solo, a mi propio ritmo', 'C. Mixto, según la tarea', 'D. No tengo preferencia'], correct: 2 },
+      { text: '4. Ante un cambio repentino en mi rutina laboral:', options: ['A. Me adapto fácilmente', 'B. Me cuesta y cuestiono el cambio', 'C. Me preocupa y genera estrés', 'D. Me entusiasma y motiva'], correct: 0 },
+      { text: '5. ¿Cómo manejas el estrés bajo presión?', options: ['A. Muy bien, mantengo la calma', 'B. Mal, me bloqueo', 'C. Regular, depende del día', 'D. Depende del tipo de presión'], correct: 0 },
+      { text: '6. Si un compañero comete un error que afecta tu trabajo:', options: ['A. Le grito y reclamo de inmediato', 'B. Hablo con él para entender qué pasó', 'C. Lo reporto a mi jefe sin avisarle', 'D. Lo ignoro y arreglo solo'], correct: 1 },
+      { text: '7. Para mí la puntualidad es:', options: ['A. Muy importante, llego siempre antes', 'B. Importante, pero a veces se me complica', 'C. Relativa, lo importante es cumplir', 'D. No le doy mucha importancia'], correct: 0 },
+      { text: '8. Cuando recibo instrucciones de mi jefe:', options: ['A. Las cuestiono si no estoy de acuerdo', 'B. Las sigo aunque no esté de acuerdo', 'C. Pregunto si tengo dudas y luego las ejecuto', 'D. Hago las cosas a mi manera'], correct: 2 },
+      { text: '9. Si encuentro $500 olvidados en mi área de trabajo:', options: ['A. Los guardo para mí, nadie me vio', 'B. Los entrego a mi jefe inmediatamente', 'C. Pregunto a mis compañeros de quién son', 'D. Los dejo donde están'], correct: 1 },
+      { text: '10. Mi capacidad para seguir procedimientos repetitivos es:', options: ['A. Excelente, me concentro fácilmente', 'B. Buena, pero me aburro a veces', 'C. Regular, prefiero variedad', 'D. Mala, me distraigo'], correct: 0 },
+      { text: '11. Si tengo problemas personales que afectan mi desempeño:', options: ['A. Los oculto y trato de cumplir', 'B. Hablo con mi jefe para buscar solución', 'C. Falto al trabajo hasta resolverlo', 'D. Me desahogo con compañeros'], correct: 1 },
+      { text: '12. ¿Qué es más importante para ti en un empleo?', options: ['A. El sueldo', 'B. El ambiente laboral y respeto', 'C. La estabilidad y crecimiento', 'D. La cercanía con mi casa'], correct: 2 },
+    ];
+
+    const DOCUMENTS = [
+      { id: 'ine', name: 'Identificación Oficial (INE)', required: true },
+      { id: 'domicilio', name: 'Comprobante de Domicilio', required: true },
+      { id: 'estudios', name: 'Certificado de Estudios', required: true },
+      { id: 'medico', name: 'Certificado Médico', required: true },
+      { id: 'cv', name: 'Currículum Vitae', required: true },
+    ];
+
+    // ═══════════════════════════════════════════════════════════════
+    // MAIN APP
+    // ═══════════════════════════════════════════════════════════════
+
+    function App() {
+      const [view, setView] = useState('welcome');
+      const [selectedRole, setSelectedRole] = useState('almacen');
+      const [saving, setSaving] = useState(false);
+      const [saveStatus, setSaveStatus] = useState(null);
+
+      const roleData = {
+        almacen: { ageMin: 25, ageMax: 40, phyReq: 'Alto esfuerzo físico (Carga/Descarga)', healthChecks: ['Confirmo que no tengo lesiones lumbares', 'Aptitud para esfuerzo físico prolongado'] },
+        mezclador: { ageMin: 22, ageMax: 50, phyReq: 'Levantar 25kg ocasionalmente', healthChecks: ['Confirmo que no tengo lesiones lumbares', 'Aptitud para precisión', 'Capacidad para levantar 25kg ocasionalmente'] },
+      };
+
+      const [candidateProfile, setCandidateProfile] = useState({
+        nombre: '',
+        edad: '',
+        estatura: '',
+        peso: '',
+        genero: '',
+        documentos: {},
+        healthChecks: {},
+        techResponses: {},
+        psyResponses: {},
+      });
+
+      const [finalScore, setFinalScore] = useState(null);
+      const [finalVerdict, setFinalVerdict] = useState(null);
+
+      // Estado de evaluaciones (vive en padre para que no se reinicie en re-renders)
+      const [psyQIdx, setPsyQIdx] = useState(0);
+      const [psyTimeLeft, setPsyTimeLeft] = useState(90);
+      const [techQIdx, setTechQIdx] = useState(0);
+      const [techShowResults, setTechShowResults] = useState(false);
+
+      // ═══ COMPONENTES REUTILIZABLES ═══
+      const Button = ({ children, variant = 'primary', onClick, disabled = false, style = {} }) => {
+        const variants = {
+          primary: { background: 'var(--primary)', color: '#fff', border: 'none' },
+          secondary: { background: 'var(--bg-gray)', color: 'var(--text-dark)', border: '2px solid var(--primary)' },
+          success: { background: 'var(--success)', color: '#fff', border: 'none' },
+          warning: { background: 'var(--warning)', color: '#000', border: 'none' },
+          danger: { background: 'var(--danger)', color: '#fff', border: 'none' },
+        };
+        return (
+          <button
+            onClick={onClick}
+            disabled={disabled}
+            style={{
+              padding: '12px 24px',
+              borderRadius: '8px',
+              fontWeight: 600,
+              fontSize: '14px',
+              cursor: disabled ? 'not-allowed' : 'pointer',
+              opacity: disabled ? 0.5 : 1,
+              transition: 'all 0.3s ease',
+              ...variants[variant],
+              ...style,
+            }}
+            onMouseEnter={(e) => !disabled && (e.target.style.transform = 'translateY(-2px)')}
+            onMouseLeave={(e) => (e.target.style.transform = 'translateY(0)')}
+          >
+            {children}
+          </button>
+        );
+      };
+
+      const Alert = ({ type = 'info', children, style = {} }) => {
+        const colors = {
+          success: { bg: 'rgba(76, 175, 80, 0.1)', border: '2px solid var(--success)', text: 'var(--success)' },
+          warning: { bg: 'rgba(255, 193, 7, 0.1)', border: '2px solid var(--warning)', text: 'var(--warning)' },
+          danger: { bg: 'rgba(211, 47, 47, 0.1)', border: '2px solid var(--danger)', text: 'var(--danger)' },
+          info: { bg: 'rgba(0, 113, 188, 0.1)', border: '2px solid var(--secondary)', text: 'var(--secondary)' },
+        };
+        return (
+          <div style={{ padding: '12px 16px', borderRadius: '8px', ...colors[type], ...style }}>
+            <div style={{ color: colors[type].text, fontWeight: 600, fontSize: '13px' }}>{children}</div>
+          </div>
+        );
+      };
+
+      const Modal = ({ title, children, onClose, onConfirm, confirmText = 'Confirmar' }) => (
+        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.7)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000 }}>
+          <div style={{ background: 'white', borderRadius: '12px', padding: '30px', maxWidth: '400px', width: '90%', boxShadow: '0 20px 60px rgba(0,0,0,0.3)' }}>
+            <h2 style={{ marginBottom: '16px', color: 'var(--primary)' }}>{title}</h2>
+            <div style={{ marginBottom: '24px', fontSize: '14px', color: 'var(--text-light)' }}>{children}</div>
+            <div style={{ display: 'flex', gap: '12px' }}>
+              {onClose && <Button variant="secondary" onClick={onClose} style={{ flex: 1 }}>Cancelar</Button>}
+              {onConfirm && <Button variant="primary" onClick={onConfirm} style={{ flex: 1 }}>{confirmText}</Button>}
+            </div>
+          </div>
+        </div>
+      );
+
+      // ═══ FUNCIÓN: GUARDAR EN SUPABASE ═══
+      // Aplana el reporte al esquema de la tabla y reintenta con sólo columnas básicas si falla.
+      const buildPayloads = (finalData) => {
+        const clean = JSON.parse(JSON.stringify(finalData));
+        // Sanear documentos locales (base64) — no enviar el data URL a la DB
+        if (clean.documentos) {
+          Object.keys(clean.documentos).forEach(k => {
+            const d = clean.documentos[k];
+            if (d && d.url && typeof d.url === 'string' && d.url.startsWith('data:')) {
+              clean.documentos[k] = { ...d, url: null, localOnly: true, note: 'Pendiente de sincronizar' };
+            }
+          });
+        }
+        const c = clean.candidato || {};
+        // Payload completo: campos planos + JSONB para las partes ricas
+        const full = {
+          nombre: c.nombre || null,
+          edad: Number.isFinite(c.edad) ? c.edad : (parseInt(c.edad) || null),
+          estatura: c.estatura ?? null,
+          peso: c.peso ?? null,
+          genero: c.genero || null,
+          puesto_aplicado: c.puesto_aplicado || null,
+          documentos: clean.documentos || {},
+          requisitos_salud: clean.requisitos_salud || [],
+          respuestas_psicometricas: clean.respuestas_psicometricas || {},
+          respuestas_tecnicas: clean.respuestas_tecnicas || {},
+          puntaje_evaluacion_tecnica: clean.puntaje_evaluacion_tecnica ?? 0,
+          veredicto_final: clean.veredicto_final || '—',
+          timestamp: clean.timestamp || new Date().toISOString(),
+        };
+        // Payload mínimo de respaldo (sólo columnas que sabemos existen)
+        const minimal = {
+          nombre: full.nombre,
+          edad: full.edad,
+          puesto_aplicado: full.puesto_aplicado,
+          puntaje_evaluacion_tecnica: full.puntaje_evaluacion_tecnica,
+          veredicto_final: full.veredicto_final,
+          timestamp: full.timestamp,
+        };
+        return { full, minimal };
+      };
+
+      const saveCandidateToSupabase = async (finalData) => {
+        setSaving(true);
+        setSaveStatus(null);
+        const { full, minimal } = buildPayloads(finalData);
+
+        const attempt = async (payload) => {
+          try {
+            const { data, error } = await supabase
+              .from('Formulario de Candidatos')
+              .insert([payload])
+              .select();
+            return { data, error };
+          } catch (err) {
+            return { data: null, error: { message: err.message || String(err), thrown: true } };
+          }
+        };
+
+        // Intento 1: payload completo
+        let { data, error } = await attempt(full);
+        let usedMinimal = false;
+
+        // Si falla por columna inexistente o cache de schema, reintentar con payload mínimo
+        if (error) {
+          const msg = (error.message || '').toLowerCase();
+          const isColumnIssue = /column|schema cache|pgrst204|pgrst205|could not find/.test(msg);
+          if (isColumnIssue) {
+            console.warn('Reintentando con payload mínimo:', error.message);
+            const retry = await attempt(minimal);
+            data = retry.data;
+            error = retry.error;
+            usedMinimal = true;
+          }
+        }
+
+        if (error) {
+          const inIframe = window.self !== window.top;
+          const isFetchFail = /failed to fetch|network|fetch/i.test(error.message || '');
+          if (inIframe && isFetchFail) {
+            setSaveStatus({
+              type: 'warning',
+              message: 'Esta vista previa bloquea Supabase. Abre el formulario en una pestaña nueva del navegador para que el guardado funcione.',
+              kind: 'iframe',
+            });
+          } else {
+            setSaveStatus({
+              type: 'error',
+              message: error.message || 'Error desconocido al guardar',
+              kind: 'error',
+              raw: error,
+            });
+          }
+          console.error('Supabase save error:', error);
+          setSaving(false);
+          return;
+        }
+
+        // Éxito: navegar a vista de confirmación
+        setSaveStatus({
+          type: 'success',
+          message: usedMinimal
+            ? '✅ Guardado (modo básico). Para guardar respuestas completas, agrega columnas JSONB en la tabla.'
+            : '✅ Datos guardados en Supabase correctamente',
+          savedRow: data?.[0] || null,
+          usedMinimal,
+        });
+        setSaving(false);
+        setView('success');
+      };
+
+      // ═══ VISTAS ═══
+      const Welcome = () => (
+        <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%)', padding: '20px' }}>
+          <div style={{ textAlign: 'center', color: 'white' }}>
+            <img src="chef-logo.jpg" alt="Ma Baker and Chef" style={{ width: '280px', marginBottom: '32px', animation: 'slideIn 0.6s ease-out' }} />
+            <h2 style={{ fontSize: '24px', marginBottom: '32px', fontWeight: 400, opacity: 0.95 }}>Sistema Cloud de Reclutamiento v4.1</h2>
+            <p style={{ fontSize: '13px', marginBottom: '32px', opacity: 0.9 }}>Con integración Supabase en tiempo real</p>
+            <Button onClick={() => setView('roleSelect')} style={{ padding: '16px 40px', fontSize: '16px' }}>
+              Iniciar Evaluación →
+            </Button>
+          </div>
+        </div>
+      );
+
+      const RoleSelect = () => (
+        <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px', background: 'var(--bg-gray)' }}>
+          <div style={{ maxWidth: '700px', width: '100%' }}>
+            <div style={{ textAlign: 'center', marginBottom: '40px' }}>
+              <img src="chef-logo.jpg" alt="Ma Baker and Chef" style={{ width: '140px', marginBottom: '24px' }} />
+              <h1 style={{ fontSize: '32px', marginBottom: '8px', color: 'var(--text-dark)' }}>¿Qué puesto te interesa?</h1>
+            </div>
+            <div style={{ display: 'grid', gap: '16px', marginBottom: '32px' }}>
+              {[
+                { id: 'almacen', name: '📦 Auxiliar de Almacén', desc: 'Gestión de inventarios, recepción y distribución' },
+                { id: 'mezclador', name: '🧪 Mezclador de Formulaciones', desc: 'Precisión en pesajes, manejo de químicos' },
+              ].map((role) => (
+                <div
+                  key={role.id}
+                  onClick={() => setSelectedRole(role.id)}
+                  style={{
+                    padding: '20px',
+                    borderRadius: '12px',
+                    background: selectedRole === role.id ? 'var(--primary)' : 'var(--bg-light)',
+                    color: selectedRole === role.id ? 'white' : 'var(--text-dark)',
+                    cursor: 'pointer',
+                    border: '2px solid ' + (selectedRole === role.id ? 'var(--primary)' : 'var(--border)'),
+                    transition: 'all 0.3s ease',
+                  }}
+                >
+                  <h3 style={{ fontSize: '18px', fontWeight: 700, marginBottom: '4px' }}>{role.name}</h3>
+                  <p style={{ fontSize: '13px', opacity: 0.8 }}>{role.desc}</p>
+                </div>
+              ))}
+            </div>
+            <Button
+              variant="primary"
+              onClick={() => setView('profile')}
+              style={{ width: '100%', padding: '16px', fontSize: '16px' }}
+            >
+              Continuar →
+            </Button>
+          </div>
+        </div>
+      );
+
+      const ProfileForm = () => {
+        const [localForm, setLocalForm] = useState(candidateProfile);
+        const roleInfo = roleData[selectedRole];
+        const ageOk = localForm.edad >= roleInfo.ageMin && localForm.edad <= roleInfo.ageMax;
+        const ageWarning = localForm.edad && !ageOk;
+
+        const handleChange = (field, value) => {
+          setLocalForm({ ...localForm, [field]: value });
+        };
+
+        const handleContinue = () => {
+          setCandidateProfile(localForm);
+          setView('documents');
+        };
+
+        return (
+          <div style={{ minHeight: '100vh', padding: '40px 20px', background: 'var(--bg-gray)' }}>
+            <div style={{ maxWidth: '700px', margin: '0 auto', background: 'white', padding: '40px', borderRadius: '12px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '16px', marginBottom: '32px' }}>
+                <img src="chef-logo.jpg" alt="Ma Baker" style={{ width: '80px', height: '80px', objectFit: 'cover', borderRadius: '8px' }} />
+                <div>
+                  <h1 style={{ fontSize: '28px', marginBottom: '4px' }}>📋 Tu Perfil</h1>
+                  <p style={{ fontSize: '13px', color: 'var(--text-light)' }}>Puesto: <strong>{selectedRole === 'almacen' ? 'Auxiliar de Almacén' : 'Mezclador'}</strong></p>
+                </div>
+              </div>
+
+              <div style={{ display: 'grid', gap: '16px', marginBottom: '24px' }}>
+                <div>
+                  <label style={{ fontSize: '12px', fontWeight: 600, display: 'block', marginBottom: '4px' }}>Nombre Completo *</label>
+                  <input
+                    type="text"
+                    value={localForm.nombre}
+                    onChange={(e) => handleChange('nombre', e.target.value.toUpperCase())}
+                    style={{ width: '100%', padding: '10px', border: '1px solid var(--border)', borderRadius: '8px', textTransform: 'uppercase' }}
+                  />
+                </div>
+
+                <div>
+                  <label style={{ fontSize: '12px', fontWeight: 600, display: 'block', marginBottom: '4px' }}>Edad *</label>
+                  <select
+                    value={localForm.edad}
+                    onChange={(e) => handleChange('edad', parseInt(e.target.value) || '')}
+                    style={{ width: '100%', padding: '10px', border: ageWarning ? '2px solid var(--danger)' : '1px solid var(--border)', borderRadius: '8px', background: 'white' }}
+                  >
+                    <option value=""></option>
+                    {Array.from({ length: 53 }, (_, i) => 18 + i).map(age => (
+                      <option key={age} value={age}>{age} años</option>
+                    ))}
+                  </select>
+                  {ageWarning && (
+                    <Alert type="danger" style={{ marginTop: '8px' }}>
+                      ⚠️ Rango esperado: {roleInfo.ageMin}-{roleInfo.ageMax} años
+                    </Alert>
+                  )}
+                </div>
+
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+                  <div>
+                    <label style={{ fontSize: '12px', fontWeight: 600, display: 'block', marginBottom: '4px' }}>Estatura (cm) *</label>
+                    <select
+                      value={localForm.estatura}
+                      onChange={(e) => handleChange('estatura', e.target.value)}
+                      style={{ width: '100%', padding: '10px', border: '1px solid var(--border)', borderRadius: '8px', background: 'white' }}
+                    >
+                      <option value=""></option>
+                      {Array.from({ length: 121 }, (_, i) => 120 + i).map(cm => (
+                        <option key={cm} value={cm}>{cm} cm</option>
+                      ))}
+                    </select>
+                  </div>
+                  <div>
+                    <label style={{ fontSize: '12px', fontWeight: 600, display: 'block', marginBottom: '4px' }}>Peso (kg) *</label>
+                    <select
+                      value={localForm.peso}
+                      onChange={(e) => handleChange('peso', e.target.value)}
+                      style={{ width: '100%', padding: '10px', border: '1px solid var(--border)', borderRadius: '8px', background: 'white' }}
+                    >
+                      <option value=""></option>
+                      {Array.from({ length: 121 }, (_, i) => 30 + i).map(kg => (
+                        <option key={kg} value={kg}>{kg} kg</option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
+
+                <div>
+                  <label style={{ fontSize: '12px', fontWeight: 600, display: 'block', marginBottom: '4px' }}>Género *</label>
+                  <select
+                    value={localForm.genero}
+                    onChange={(e) => handleChange('genero', e.target.value)}
+                    style={{ width: '100%', padding: '10px', border: '1px solid var(--border)', borderRadius: '8px', background: 'white' }}
+                  >
+                    <option value=""></option>
+                    <option value="M">Masculino</option>
+                    <option value="F">Femenino</option>
+                  </select>
+                </div>
+              </div>
+
+              <Alert type="info" style={{ marginBottom: '24px' }}>
+                <strong>Requisito físico:</strong> {roleInfo.phyReq}
+              </Alert>
+
+              <h3 style={{ fontSize: '16px', fontWeight: 700, marginBottom: '16px' }}>✓ Requisitos de Salud</h3>
+              <div style={{ display: 'grid', gap: '12px', marginBottom: '32px' }}>
+                {roleInfo.healthChecks.map((check, i) => (
+                  <label key={i} style={{ display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer' }}>
+                    <input
+                      type="checkbox"
+                      checked={localForm.healthChecks[i] || false}
+                      onChange={(e) => {
+                        const newChecks = { ...localForm.healthChecks };
+                        newChecks[i] = e.target.checked;
+                        setLocalForm({ ...localForm, healthChecks: newChecks });
+                      }}
+                      style={{ cursor: 'pointer', width: '18px', height: '18px' }}
+                    />
+                    <span style={{ fontSize: '14px' }}>{check}</span>
+                  </label>
+                ))}
+              </div>
+
+              {(() => {
+                const faltantes = [];
+                if (!localForm.nombre) faltantes.push('Nombre');
+                if (!localForm.edad) faltantes.push('Edad');
+                if (!localForm.estatura) faltantes.push('Estatura');
+                if (!localForm.peso) faltantes.push('Peso');
+                const checksFaltantes = roleInfo.healthChecks.filter((_, i) => !localForm.healthChecks[i]).length;
+                if (checksFaltantes > 0) faltantes.push(`${checksFaltantes} requisito${checksFaltantes>1?'s':''} de salud`);
+
+                return faltantes.length > 0 ? (
+                  <Alert type="danger" style={{ marginBottom: '12px' }}>
+                    <strong>⚠️ Falta completar:</strong> {faltantes.join(', ')}
+                  </Alert>
+                ) : null;
+              })()}
+
+              <Button
+                variant="primary"
+                onClick={handleContinue}
+                disabled={
+                  !localForm.nombre ||
+                  !localForm.edad ||
+                  !localForm.estatura ||
+                  !localForm.peso ||
+                  roleInfo.healthChecks.some((_, i) => !localForm.healthChecks[i])
+                }
+                style={{ width: '100%', padding: '14px' }}
+              >
+                Continuar a Documentos →
+              </Button>
+            </div>
+          </div>
+        );
+      };
+
+      const DocumentUpload = () => {
+        const [uploading, setUploading] = useState({});
+        const [docErrors, setDocErrors] = useState({});
+        const [previewDoc, setPreviewDoc] = useState(null);
+        const fileInputRefs = useRef({});
+
+        const allUploaded = DOCUMENTS.every(doc => candidateProfile.documentos[doc.id]?.url);
+
+        const uploadToSupabase = async (docId, file) => {
+          setUploading(u => ({ ...u, [docId]: true }));
+          setDocErrors(e => ({ ...e, [docId]: null }));
+
+          const ext = file.name.split('.').pop();
+          const fileName = `${(candidateProfile.nombre || 'sin_nombre').replace(/\s+/g, '_')}_${docId}_${Date.now()}.${ext}`;
+          const filePath = `candidatos/${fileName}`;
+
+          // Fallback: guardar localmente como base64 (data URL)
+          const saveLocally = async (warning) => {
+            const dataUrl = await new Promise((resolve, reject) => {
+              const reader = new FileReader();
+              reader.onload = () => resolve(reader.result);
+              reader.onerror = reject;
+              reader.readAsDataURL(file);
+            });
+            const docInfo = {
+              name: DOCUMENTS.find(d => d.id === docId)?.name,
+              fileName,
+              filePath,
+              url: dataUrl,
+              size: file.size,
+              type: file.type,
+              uploadedAt: new Date().toISOString(),
+              localOnly: true,
+              warning,
+            };
+            setCandidateProfile(prev => ({
+              ...prev,
+              documentos: { ...prev.documentos, [docId]: docInfo },
+            }));
+          };
+
+          try {
+            const { data, error } = await supabase.storage
+              .from('documentos')
+              .upload(filePath, file, {
+                cacheControl: '3600',
+                upsert: true,
+                contentType: file.type
+              });
+
+            if (error) throw error;
+
+            const { data: urlData } = supabase.storage
+              .from('documentos')
+              .getPublicUrl(filePath);
+
+            const docInfo = {
+              name: DOCUMENTS.find(d => d.id === docId)?.name,
+              fileName,
+              filePath,
+              url: urlData.publicUrl,
+              size: file.size,
+              type: file.type,
+              uploadedAt: new Date().toISOString(),
+            };
+
+            setCandidateProfile(prev => ({
+              ...prev,
+              documentos: { ...prev.documentos, [docId]: docInfo },
+            }));
+          } catch (err) {
+            const msg = err.message || 'Error al subir archivo';
+            const isFetchFail = msg.includes('Failed to fetch') || msg.includes('NetworkError') || msg.includes('fetch');
+            const inIframe = window.self !== window.top;
+
+            if (isFetchFail && inIframe) {
+              // En preview: guardar localmente y permitir continuar
+              try {
+                await saveLocally('Guardado local — se sincronizará al abrir en pestaña nueva');
+              } catch (e) {
+                setDocErrors(er => ({ ...er, [docId]: 'No se pudo leer el archivo' }));
+              }
+            } else {
+              setDocErrors(e => ({ ...e, [docId]: msg }));
+            }
+          } finally {
+            setUploading(u => ({ ...u, [docId]: false }));
+          }
+        };
+
+        const handleFileSelect = (docId, file) => {
+          if (!file) return;
+          const validTypes = ['image/jpeg', 'image/png', 'image/webp', 'application/pdf'];
+          if (!validTypes.includes(file.type)) {
+            setDocErrors(e => ({ ...e, [docId]: 'Solo JPG, PNG, WEBP o PDF' }));
+            return;
+          }
+          if (file.size > 10 * 1024 * 1024) {
+            setDocErrors(e => ({ ...e, [docId]: 'Máximo 10MB' }));
+            return;
+          }
+          uploadToSupabase(docId, file);
+        };
+
+        return (
+          <div style={{ minHeight: '100vh', padding: '40px 20px', background: 'var(--bg-gray)' }}>
+            {/* Preview modal */}
+            {previewDoc && (
+              <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.9)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 2000 }}>
+                <div style={{ maxWidth: '90vw', maxHeight: '90vh', position: 'relative' }}>
+                  <button onClick={() => setPreviewDoc(null)} style={{ position: 'absolute', top: -40, right: 0, background: 'none', border: 'none', color: 'white', fontSize: '28px', cursor: 'pointer' }}>✕</button>
+                  {previewDoc.type?.startsWith('image/') ? (
+                    <img src={previewDoc.url} alt="Preview" style={{ maxWidth: '80vw', maxHeight: '80vh', borderRadius: '8px' }} />
+                  ) : (
+                    <div style={{ background: 'white', padding: '40px', borderRadius: '8px', textAlign: 'center' }}>
+                      <p style={{ fontSize: '48px', marginBottom: '16px' }}>📄</p>
+                      <p style={{ fontWeight: 600 }}>{previewDoc.name}</p>
+                      <a href={previewDoc.url} target="_blank" rel="noreferrer" style={{ color: 'var(--primary)', fontSize: '14px' }}>Abrir PDF ↗</a>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+
+            <div style={{ maxWidth: '700px', margin: '0 auto', background: 'white', padding: '40px', borderRadius: '12px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '16px', marginBottom: '8px' }}>
+                <img src="chef-logo.jpg" alt="Ma Baker" style={{ width: '60px', height: '60px', objectFit: 'cover', borderRadius: '8px' }} />
+                <div>
+                  <h1 style={{ fontSize: '24px', fontWeight: 700 }}>📁 Carga de Documentos</h1>
+                  <p style={{ fontSize: '12px', color: 'var(--text-light)' }}>Escanea o adjunta desde tu teléfono · Se guardan en nube</p>
+                </div>
+              </div>
+
+              <Alert type="info" style={{ marginBottom: '24px', marginTop: '16px' }}>
+                📱 Desde tu teléfono: toca el botón de cámara para escanear directamente
+              </Alert>
+
+              {window.self !== window.top && (
+                <div style={{ background: '#FFF3CD', border: '2px solid #FFC107', borderRadius: '10px', padding: '14px', marginBottom: '20px' }}>
+                  <p style={{ fontSize: '12px', color: '#856404', lineHeight: 1.6, margin: 0 }}>
+                    <strong>⚠️ Vista previa con restricciones</strong><br/>
+                    Esta previsualización bloquea la subida a Supabase. <a href="#" onClick={(e) => { e.preventDefault(); window.open(window.location.href, '_blank'); }} style={{ color: '#D7282F', fontWeight: 700 }}>Abre el formulario en pestaña nueva</a> para subir documentos.
+                  </p>
+                </div>
+              )}
+
+              <div style={{ display: 'grid', gap: '14px', marginBottom: '28px' }}>
+                {DOCUMENTS.map((doc) => {
+                  const uploaded = candidateProfile.documentos[doc.id];
+                  const isUploading = uploading[doc.id];
+                  const error = docErrors[doc.id];
+
+                  return (
+                    <div key={doc.id} style={{
+                      padding: '16px',
+                      borderRadius: '10px',
+                      border: uploaded ? '2px solid var(--success)' : error ? '2px solid var(--danger)' : '2px dashed var(--border)',
+                      background: uploaded ? 'rgba(76,175,80,0.05)' : error ? 'rgba(211,47,47,0.03)' : '#fafafa',
+                      transition: 'all 0.3s ease',
+                    }}>
+                      {/* Input oculto — archivo */}
+                      <input
+                        ref={el => fileInputRefs.current[`file_${doc.id}`] = el}
+                        type="file"
+                        accept="image/*,application/pdf"
+                        style={{ display: 'none' }}
+                        onChange={(e) => handleFileSelect(doc.id, e.target.files[0])}
+                      />
+                      {/* Input oculto — cámara */}
+                      <input
+                        ref={el => fileInputRefs.current[`cam_${doc.id}`] = el}
+                        type="file"
+                        accept="image/*"
+                        capture="environment"
+                        style={{ display: 'none' }}
+                        onChange={(e) => handleFileSelect(doc.id, e.target.files[0])}
+                      />
+
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                        <div style={{ fontSize: '28px', flexShrink: 0 }}>
+                          {isUploading ? '⏳' : uploaded ? '✅' : error ? '❌' : '📄'}
+                        </div>
+
+                        <div style={{ flex: 1, minWidth: 0 }}>
+                          <p style={{ fontSize: '13px', fontWeight: 700, marginBottom: '2px' }}>{doc.name}</p>
+                          {isUploading && (
+                            <p style={{ fontSize: '11px', color: 'var(--secondary)' }} className="loading">Subiendo a Supabase...</p>
+                          )}
+                          {uploaded && !isUploading && (
+                            <p style={{ fontSize: '11px', color: 'var(--success)' }}>
+                              ✓ {(uploaded.size / 1024).toFixed(0)}KB · <button onClick={() => setPreviewDoc(uploaded)} style={{ background: 'none', border: 'none', color: 'var(--secondary)', cursor: 'pointer', fontSize: '11px', textDecoration: 'underline' }}>Ver</button>
+                            </p>
+                          )}
+                          {error && !isUploading && (
+                            <p style={{ fontSize: '11px', color: 'var(--danger)' }}>⚠️ {error}</p>
+                          )}
+                          {!uploaded && !isUploading && !error && (
+                            <p style={{ fontSize: '11px', color: 'var(--text-light)' }}>JPG · PNG · PDF · máx 10MB</p>
+                          )}
+                        </div>
+
+                        {/* Botones de acción */}
+                        {!isUploading && (
+                          <div style={{ display: 'flex', gap: '8px', flexShrink: 0 }}>
+                            <button
+                              title="Tomar foto / Escanear"
+                              onClick={() => fileInputRefs.current[`cam_${doc.id}`]?.click()}
+                              style={{
+                                width: '40px', height: '40px', borderRadius: '8px',
+                                background: 'var(--primary)', color: 'white',
+                                border: 'none', cursor: 'pointer', fontSize: '18px',
+                                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                              }}
+                            >📷</button>
+                            <button
+                              title="Adjuntar archivo"
+                              onClick={() => fileInputRefs.current[`file_${doc.id}`]?.click()}
+                              style={{
+                                width: '40px', height: '40px', borderRadius: '8px',
+                                background: uploaded ? '#eee' : 'var(--secondary)', color: 'white',
+                                border: 'none', cursor: 'pointer', fontSize: '18px',
+                                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                              }}
+                            >📎</button>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+
+              {allUploaded && (
+                <Alert type="success" style={{ marginBottom: '20px' }}>
+                  ✅ Todos los documentos están guardados en Supabase Storage
+                </Alert>
+              )}
+
+              <div style={{ display: 'flex', gap: '12px' }}>
+                <Button variant="secondary" onClick={() => setView('profile')} style={{ flex: 1 }}>
+                  ← Anterior
+                </Button>
+                <Button
+                  variant="primary"
+                  onClick={() => setView('psych')}
+                  disabled={!allUploaded}
+                  style={{ flex: 1 }}
+                >
+                  Evaluación Psicométrica →
+                </Button>
+              </div>
+
+              {!allUploaded && (
+                <p style={{ fontSize: '11px', color: 'var(--text-light)', textAlign: 'center', marginTop: '12px' }}>
+                  Debes subir los {DOCUMENTS.length} documentos para continuar
+                </p>
+              )}
+            </div>
+          </div>
+        );
+      };
+
+      const PsychEval = () => {
+        const qIdx = psyQIdx;
+        const timeLeft = psyTimeLeft;
+        const setQIdx = setPsyQIdx;
+        const setTimeLeft = setPsyTimeLeft;
+        // Detectar si la pregunta actual ya fue respondida (mira estado real)
+        const answered = candidateProfile.psyResponses[qIdx] !== undefined;
+
+        const handleNext = React.useCallback(() => {
+          setPsyQIdx((prev) => {
+            if (prev < PSICOMETRIC_QUESTIONS.length - 1) {
+              setPsyTimeLeft(90);
+              return prev + 1;
+            } else {
+              setView('technical');
+              return prev;
+            }
+          });
+        }, []);
+
+        useEffect(() => {
+          const timer = setInterval(() => {
+            setPsyTimeLeft((prev) => {
+              if (prev <= 1) {
+                handleNext();
+                return 90;
+              }
+              return prev - 1;
+            });
+          }, 1000);
+          return () => clearInterval(timer);
+        }, [qIdx, handleNext]);
+
+        const question = PSICOMETRIC_QUESTIONS[qIdx];
+        const isWarning = timeLeft <= 10;
+
+        return (
+          <div style={{ minHeight: '100vh', padding: '40px 20px', background: 'var(--bg-gray)' }}>
+            <div style={{ maxWidth: '600px', margin: '0 auto', background: 'white', padding: '40px', borderRadius: '12px' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '32px' }}>
+                <span style={{ fontSize: '13px', fontWeight: 600, color: 'var(--text-light)' }}>
+                  Pregunta {qIdx + 1} de {PSICOMETRIC_QUESTIONS.length}
+                </span>
+                <div
+                  style={{
+                    fontSize: '20px',
+                    fontWeight: 700,
+                    fontFamily: 'monospace',
+                    color: isWarning ? 'var(--primary)' : 'var(--text-dark)',
+                    animation: isWarning ? 'pulse 0.5s infinite' : 'none',
+                    padding: '8px 16px',
+                    background: 'var(--bg-gray)',
+                    borderRadius: '8px',
+                    border: isWarning ? '2px solid var(--primary)' : 'none',
+                  }}
+                >
+                  {String(Math.floor(timeLeft / 60)).padStart(2, '0')}:{String(timeLeft % 60).padStart(2, '0')}
+                </div>
+              </div>
+
+              <div style={{ background: 'var(--bg-gray)', padding: '28px', borderRadius: '12px', marginBottom: '32px' }}>
+                <h2 style={{ fontSize: '20px', fontWeight: 700, marginBottom: '28px' }}>
+                  {question.text}
+                </h2>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                  {question.options.map((opt, i) => (
+                    <button
+                      key={i}
+                      onClick={() => {
+                        setCandidateProfile({ ...candidateProfile, psyResponses: { ...candidateProfile.psyResponses, [qIdx]: i } });
+                      }}
+                      style={{
+                        padding: '14px 16px',
+                        borderRadius: '8px',
+                        border: candidateProfile.psyResponses[qIdx] === i ? `3px solid var(--primary)` : '2px solid var(--border)',
+                        background: 'var(--bg-light)',
+                        cursor: 'pointer',
+                        transition: 'all 0.2s ease',
+                        fontWeight: 600,
+                        fontSize: '14px',
+                        textAlign: 'left',
+                      }}
+                      onMouseEnter={(e) => (e.target.style.background = 'rgba(215, 40, 47, 0.05)')}
+                      onMouseLeave={(e) => (e.target.style.background = 'var(--bg-light)')}
+                    >
+                      {opt}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <Button variant="primary" onClick={handleNext} disabled={!answered} style={{ width: '100%', padding: '14px' }}>
+                Siguiente →
+              </Button>
+            </div>
+          </div>
+        );
+      };
+
+      const TechnicalEval = () => {
+        const qIdx = techQIdx;
+        const setQIdx = setTechQIdx;
+        const showResults = techShowResults;
+        const setShowResults = setTechShowResults;
+
+        const questions = TECHNICAL_QUESTIONS[selectedRole];
+        const handleNext = () => {
+          if (qIdx < questions.length - 1) {
+            setQIdx(qIdx + 1);
+          } else {
+            const correctCount = Object.values(candidateProfile.techResponses).filter((ans, idx) => ans === questions[idx]?.correct).length;
+            const score = Math.round((correctCount / questions.length) * 100);
+            setFinalScore(score);
+            setFinalVerdict(score >= 70 ? 'Apto para Entrevista' : score >= 50 ? 'Evaluación Adicional' : 'No cumple perfil');
+            setShowResults(true);
+          }
+        };
+
+        if (showResults) {
+          return (
+            <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px', background: 'var(--bg-gray)' }}>
+              <div style={{ maxWidth: '500px', width: '100%', background: 'white', padding: '40px', borderRadius: '12px', textAlign: 'center' }}>
+                <h1 style={{ fontSize: '32px', marginBottom: '32px' }}>🎯 Resultados</h1>
+                <div style={{
+                  fontSize: '72px',
+                  fontWeight: 700,
+                  color: finalScore >= 70 ? 'var(--success)' : finalScore >= 50 ? 'var(--warning)' : 'var(--danger)',
+                  marginBottom: '16px',
+                }}>
+                  {finalScore}%
+                </div>
+                <Alert type={finalScore >= 70 ? 'success' : finalScore >= 50 ? 'warning' : 'danger'} style={{ marginBottom: '32px' }}>
+                  <strong>{finalVerdict}</strong>
+                </Alert>
+
+                <Button
+                  variant="primary"
+                  onClick={() => setView('finalReport')}
+                  style={{ width: '100%', padding: '16px', fontSize: '16px' }}
+                >
+                  Ver Reporte & Guardar →
+                </Button>
+              </div>
+            </div>
+          );
+        }
+
+        const question = questions[qIdx];
+
+        return (
+          <div style={{ minHeight: '100vh', padding: '40px 20px', background: 'var(--bg-gray)' }}>
+            <div style={{ maxWidth: '600px', margin: '0 auto', background: 'white', padding: '40px', borderRadius: '12px' }}>
+              <h1 style={{ fontSize: '24px', marginBottom: '8px' }}>🧠 Evaluación Técnica</h1>
+              <p style={{ fontSize: '13px', color: 'var(--text-light)', marginBottom: '24px' }}>
+                Pregunta {qIdx + 1} de {questions.length}
+              </p>
+
+              <div style={{ height: '6px', background: 'var(--border)', borderRadius: '3px', marginBottom: '32px', overflow: 'hidden' }}>
+                <div style={{ height: '100%', background: 'var(--primary)', width: `${((qIdx + 1) / questions.length) * 100}%`, transition: 'width 0.3s ease' }} />
+              </div>
+
+              <div style={{ background: 'var(--bg-gray)', padding: '28px', borderRadius: '12px', marginBottom: '32px' }}>
+                <h2 style={{ fontSize: '18px', fontWeight: 700, marginBottom: '24px' }}>{question.text}</h2>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                  {question.options.map((opt, i) => (
+                    <button
+                      key={i}
+                      onClick={() => setCandidateProfile({ ...candidateProfile, techResponses: { ...candidateProfile.techResponses, [qIdx]: i } })}
+                      style={{
+                        padding: '14px 16px',
+                        borderRadius: '8px',
+                        border: candidateProfile.techResponses[qIdx] === i ? `3px solid var(--primary)` : '2px solid var(--border)',
+                        background: 'var(--bg-light)',
+                        cursor: 'pointer',
+                        transition: 'all 0.2s ease',
+                        fontWeight: 600,
+                        fontSize: '14px',
+                        textAlign: 'left',
+                      }}
+                      onMouseEnter={(e) => (e.target.style.background = 'rgba(215, 40, 47, 0.05)')}
+                      onMouseLeave={(e) => (e.target.style.background = 'var(--bg-light)')}
+                    >
+                      {opt}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <Button
+                variant="primary"
+                onClick={handleNext}
+                disabled={candidateProfile.techResponses[qIdx] === undefined}
+                style={{ width: '100%', padding: '14px' }}
+              >
+                {qIdx === questions.length - 1 ? 'Ver Resultados →' : 'Siguiente →'}
+              </Button>
+            </div>
+          </div>
+        );
+      };
+
+      const FinalReport = () => {
+        // Calcular puntaje psicométrico
+        const psyTotal = PSICOMETRIC_QUESTIONS.length;
+        const psyCorrect = PSICOMETRIC_QUESTIONS.reduce((acc, q, i) => {
+          return acc + (candidateProfile.psyResponses[i] === q.correct ? 1 : 0);
+        }, 0);
+        const psyScore = Math.round((psyCorrect / psyTotal) * 100);
+
+        // Calcular puntaje técnico
+        const techQuestions = TECHNICAL_QUESTIONS[selectedRole];
+        const techTotal = techQuestions.length;
+        const techCorrect = techQuestions.reduce((acc, q, i) => {
+          return acc + (candidateProfile.techResponses[i] === q.correct ? 1 : 0);
+        }, 0);
+        const techScore = Math.round((techCorrect / techTotal) * 100);
+
+        // Puntaje final = promedio
+        const finalScore = Math.round((psyScore + techScore) / 2);
+        const finalVerdict =
+          finalScore >= 80 ? 'Apto para Entrevista' :
+          finalScore >= 60 ? 'Revisar Manualmente' :
+          'No Apto';
+
+        const reportJSON = {
+          candidato: {
+            nombre: candidateProfile.nombre,
+            edad: parseInt(candidateProfile.edad),
+            estatura: parseFloat(candidateProfile.estatura),
+            peso: parseFloat(candidateProfile.peso),
+            genero: candidateProfile.genero,
+            puesto_aplicado: selectedRole === 'almacen' ? 'Auxiliar de Almacén' : 'Mezclador',
+          },
+          documentos: Object.fromEntries(
+            Object.entries(candidateProfile.documentos)
+              .filter(([_, v]) => v?.url)
+              .map(([k, v]) => [k, { url: v.url, name: v.name, size: v.size, type: v.type }])
+          ),
+          requisitos_salud: Object.values(candidateProfile.healthChecks),
+          respuestas_psicometricas: candidateProfile.psyResponses,
+          respuestas_tecnicas: candidateProfile.techResponses,
+          puntaje_evaluacion_tecnica: finalScore,
+          veredicto_final: finalVerdict,
+          timestamp: new Date().toISOString(),
+        };
+
+        return (
+          <div style={{ minHeight: '100vh', padding: '40px 20px', background: 'var(--bg-gray)' }}>
+            <div style={{ maxWidth: '700px', margin: '0 auto', background: 'white', padding: '40px', borderRadius: '12px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '16px', marginBottom: '32px' }}>
+                <img src="chef-logo.jpg" alt="Ma Baker" style={{ width: '80px', height: '80px', objectFit: 'cover', borderRadius: '8px' }} />
+                <h1 style={{ fontSize: '28px' }}>📊 Reporte Final</h1>
+              </div>
+
+              {saveStatus && (
+                <Alert type={saveStatus.type} style={{ marginBottom: '24px' }}>
+                  {saveStatus.message}
+                </Alert>
+              )}
+
+              <div style={{ display: 'grid', gap: '20px' }}>
+                {/* Perfil */}
+                <div>
+                  <h3 style={{ fontSize: '15px', fontWeight: 700, marginBottom: '10px', color: 'var(--brand)' }}>👤 Perfil del Candidato</h3>
+                  <div style={{ background: 'var(--bg-gray)', padding: '16px', borderRadius: '8px', fontSize: '13px', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
+                    <div><strong>Nombre:</strong><br/>{reportJSON.candidato.nombre || '—'}</div>
+                    <div><strong>Puesto:</strong><br/>{reportJSON.candidato.puesto_aplicado}</div>
+                    <div><strong>Edad:</strong> {reportJSON.candidato.edad} años</div>
+                    <div><strong>Género:</strong> {reportJSON.candidato.genero === 'M' ? 'Masculino' : reportJSON.candidato.genero === 'F' ? 'Femenino' : '—'}</div>
+                    <div><strong>Estatura:</strong> {reportJSON.candidato.estatura} cm</div>
+                    <div><strong>Peso:</strong> {reportJSON.candidato.peso} kg</div>
+                  </div>
+                </div>
+
+                {/* Veredicto */}
+                <Alert type={finalScore >= 70 ? 'success' : finalScore >= 50 ? 'warning' : 'danger'}>
+                  <div style={{ fontSize: '14px' }}>
+                    <strong>Puntaje Técnico:</strong> {finalScore}% &nbsp;|&nbsp; <strong>Veredicto:</strong> {finalVerdict}
+                  </div>
+                </Alert>
+
+                {/* Resumen */}
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '10px', fontSize: '12px' }}>
+                  <div style={{ background: 'var(--bg-gray)', padding: '12px', borderRadius: '8px', textAlign: 'center' }}>
+                    <div style={{ fontSize: '20px', fontWeight: 700, color: 'var(--brand)' }}>{Object.keys(reportJSON.documentos).length}/5</div>
+                    <div style={{ color: 'var(--text-light)' }}>Documentos</div>
+                  </div>
+                  <div style={{ background: 'var(--bg-gray)', padding: '12px', borderRadius: '8px', textAlign: 'center' }}>
+                    <div style={{ fontSize: '20px', fontWeight: 700, color: 'var(--brand)' }}>{Object.keys(reportJSON.respuestas_tecnicas).length}/10</div>
+                    <div style={{ color: 'var(--text-light)' }}>Técnicas</div>
+                  </div>
+                  <div style={{ background: 'var(--bg-gray)', padding: '12px', borderRadius: '8px', textAlign: 'center' }}>
+                    <div style={{ fontSize: '20px', fontWeight: 700, color: 'var(--brand)' }}>{Object.keys(reportJSON.respuestas_psicometricas || {}).length}</div>
+                    <div style={{ color: 'var(--text-light)' }}>Psicométricas</div>
+                  </div>
+                </div>
+
+                {/* Documentos */}
+                <div>
+                  <h3 style={{ fontSize: '15px', fontWeight: 700, marginBottom: '10px', color: 'var(--brand)' }}>📁 Documentos Cargados</h3>
+                  <div style={{ display: 'grid', gap: '10px' }}>
+                    {DOCUMENTS.map(doc => {
+                      const d = candidateProfile.documentos[doc.id];
+                      if (!d) {
+                        return (
+                          <div key={doc.id} style={{ background: 'var(--bg-gray)', padding: '10px 14px', borderRadius: '8px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '12px' }}>
+                            <strong>{doc.name}</strong>
+                            <span style={{ color: 'var(--text-light)' }}>— sin archivo</span>
+                          </div>
+                        );
+                      }
+                      const isImg = d.type && d.type.startsWith('image/');
+                      return (
+                        <div key={doc.id} style={{ background: 'var(--bg-gray)', padding: '12px', borderRadius: '8px', display: 'flex', gap: '12px', alignItems: 'center', fontSize: '12px' }}>
+                          {isImg ? (
+                            <a href={d.url} target="_blank" rel="noopener" style={{ flexShrink: 0 }}>
+                              <img src={d.url} alt={doc.name} style={{ width: '72px', height: '72px', objectFit: 'cover', borderRadius: '6px', border: '1px solid #ddd', cursor: 'zoom-in' }} />
+                            </a>
+                          ) : (
+                            <div style={{ width: '72px', height: '72px', background: '#e3f2fd', borderRadius: '6px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '28px', flexShrink: 0 }}>📄</div>
+                          )}
+                          <div style={{ flex: 1 }}>
+                            <div style={{ fontWeight: 700, marginBottom: '4px' }}>{doc.name}</div>
+                            <div style={{ color: 'var(--text-light)', fontSize: '11px' }}>{(d.size/1024).toFixed(0)} KB · {d.type} {d.localOnly ? '· local' : ''}</div>
+                            <a href={d.url} target="_blank" rel="noopener" download={d.fileName} style={{ display: 'inline-block', marginTop: '6px', color: 'var(--brand)', fontWeight: 600, fontSize: '11px', textDecoration: 'none' }}>
+                              🔍 Ver / Descargar →
+                            </a>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                {/* Requisitos de Salud */}
+                {Object.keys(candidateProfile.healthChecks).length > 0 && (() => {
+                  const roleHealthLabels = (selectedRole === 'almacen'
+                    ? ['Confirmo que no tengo lesiones lumbares', 'Aptitud para esfuerzo físico prolongado']
+                    : ['Confirmo que no tengo lesiones lumbares', 'Aptitud para precisión', 'Capacidad para levantar 25kg ocasionalmente']);
+                  return (
+                    <div>
+                      <h3 style={{ fontSize: '15px', fontWeight: 700, marginBottom: '10px', color: 'var(--brand)' }}>🏥 Requisitos de Salud</h3>
+                      <div style={{ background: 'var(--bg-gray)', padding: '12px', borderRadius: '8px', fontSize: '12px', display: 'grid', gap: '6px' }}>
+                        {roleHealthLabels.map((label, i) => {
+                          const v = candidateProfile.healthChecks[i];
+                          return (
+                            <div key={i} style={{ display: 'flex', justifyContent: 'space-between', gap: '8px' }}>
+                              <span>{label}</span>
+                              <span style={{ color: v ? 'var(--success)' : 'var(--danger)', fontWeight: 700, flexShrink: 0 }}>{v ? '✓ Sí' : '✗ No'}</span>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  );
+                })()}
+
+                {/* Respuestas Técnicas con acierto/error */}
+                {Object.keys(reportJSON.respuestas_tecnicas).length > 0 && (() => {
+                  const questions = TECHNICAL_QUESTIONS[selectedRole] || [];
+                  let aciertos = 0, errores = 0;
+                  Object.entries(reportJSON.respuestas_tecnicas).forEach(([k, v]) => {
+                    const q = questions[parseInt(k)];
+                    if (q && parseInt(v) === q.correct) aciertos++; else errores++;
+                  });
+                  return (
+                    <div>
+                      <h3 style={{ fontSize: '15px', fontWeight: 700, marginBottom: '10px', color: 'var(--brand)' }}>
+                        📝 Respuestas Técnicas
+                        <span style={{ marginLeft: '12px', fontSize: '12px', fontWeight: 600 }}>
+                          <span style={{ color: 'var(--success)' }}>{aciertos} acertadas</span> · <span style={{ color: 'var(--danger)' }}>{errores} erróneas</span>
+                        </span>
+                      </h3>
+                      <div style={{ background: 'var(--bg-gray)', padding: '12px', borderRadius: '8px', fontSize: '12px', display: 'grid', gap: '10px', maxHeight: '320px', overflow: 'auto' }}>
+                        {Object.entries(reportJSON.respuestas_tecnicas).map(([k, v]) => {
+                          const idx = parseInt(k);
+                          const q = questions[idx];
+                          const respIdx = parseInt(v);
+                          const isCorrect = q && respIdx === q.correct;
+                          return (
+                            <div key={k} style={{ paddingBottom: '8px', borderBottom: '1px solid #e0e0e0' }}>
+                              <div style={{ fontWeight: 700, marginBottom: '4px' }}>
+                                P{idx+1}. {q?.text || `Pregunta ${idx+1}`}
+                              </div>
+                              <div style={{ display: 'flex', gap: '8px', alignItems: 'center', flexWrap: 'wrap' }}>
+                                <span style={{ background: isCorrect ? 'rgba(76,175,80,.15)' : 'rgba(211,47,47,.15)', color: isCorrect ? 'var(--success)' : 'var(--danger)', padding: '2px 8px', borderRadius: '4px', fontWeight: 700, fontSize: '11px' }}>
+                                  {isCorrect ? '✓ ACERTADA' : '✗ ERRÓNEA'}
+                                </span>
+                                <span><strong>Respuesta:</strong> {q?.options?.[respIdx] || v}</span>
+                              </div>
+                              {!isCorrect && q && (
+                                <div style={{ fontSize: '11px', color: 'var(--success)', marginTop: '4px' }}>
+                                  ✓ <strong>Correcta:</strong> {q.options[q.correct]}
+                                </div>
+                              )}
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  );
+                })()}
+
+                {/* Timestamp */}
+                <div style={{ textAlign: 'center', fontSize: '11px', color: 'var(--text-light)', paddingTop: '8px', borderTop: '1px solid #eee' }}>
+                  Generado: {new Date(reportJSON.timestamp).toLocaleString('es-MX')}
+                </div>
+              </div>
+
+              <div style={{ display: 'flex', gap: '12px', marginTop: '32px' }}>
+                <Button
+                  variant="secondary"
+                  onClick={() => {
+                    setView('welcome');
+                    setCandidateProfile({
+                      nombre: '', edad: '', estatura: '', peso: '', genero: '',
+                      documentos: {}, healthChecks: {}, techResponses: {}, psyResponses: {},
+                    });
+                    setSelectedRole('almacen');
+                    setPsyQIdx(0);
+                    setPsyTimeLeft(90);
+                    setTechQIdx(0);
+                    setTechShowResults(false);
+                    setFinalScore(null);
+                    setFinalVerdict(null);
+                    setFinalScore(null);
+                    setFinalVerdict(null);
+                    setSaveStatus(null);
+                  }}
+                  style={{ flex: 1 }}
+                >
+                  ← Nueva Evaluación
+                </Button>
+                <Button
+                  variant="primary"
+                  onClick={() => saveCandidateToSupabase(reportJSON)}
+                  disabled={saving}
+                  style={{ flex: 1 }}
+                >
+                  {saving ? <span className="loading">⏳ Guardando...</span> : '✅ Guardar en Supabase'}
+                </Button>
+              </div>
+            </div>
+          </div>
+        );
+      };
+
+      // ═══ VISTA: ÉXITO POST-GUARDADO ═══
+      const SuccessView = () => {
+        const savedRow = saveStatus?.savedRow;
+        const usedMinimal = saveStatus?.usedMinimal;
+        const verdict = finalVerdict || '—';
+        const score = finalScore ?? 0;
+        const candName = candidateProfile.nombre || 'Candidato';
+        const positive = score >= 70;
+        const review = score >= 50 && score < 70;
+
+        const resetAll = () => {
+          setCandidateProfile({
+            nombre: '', edad: '', estatura: '', peso: '', genero: '',
+            documentos: {}, healthChecks: {}, techResponses: {}, psyResponses: {},
+          });
+          setSelectedRole('almacen');
+          setPsyQIdx(0);
+          setPsyTimeLeft(90);
+          setTechQIdx(0);
+          setTechShowResults(false);
+          setFinalScore(null);
+          setFinalVerdict(null);
+          setSaveStatus(null);
+          setView('welcome');
+        };
+
+        return (
+          <div style={{ minHeight: '100vh', padding: '40px 20px', background: 'var(--bg-gray)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <div style={{ maxWidth: '560px', width: '100%', background: 'white', padding: '48px 40px', borderRadius: '16px', textAlign: 'center', boxShadow: '0 12px 48px rgba(0,0,0,0.08)' }}>
+              <div style={{ fontSize: '72px', marginBottom: '16px', animation: 'slideIn 0.5s ease-out' }}>
+                {positive ? '🎉' : review ? '📋' : '✅'}
+              </div>
+              <h1 style={{ fontSize: '28px', marginBottom: '8px', color: 'var(--text-dark)' }}>¡Evaluación Guardada!</h1>
+              <p style={{ fontSize: '14px', color: 'var(--text-light)', marginBottom: '24px' }}>
+                {candName}, tus datos se enviaron correctamente al sistema de Ma Baker RRHH.
+              </p>
+
+              <div style={{ background: 'var(--bg-gray)', padding: '20px', borderRadius: '12px', marginBottom: '20px', textAlign: 'left' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
+                  <span style={{ fontSize: '12px', color: 'var(--text-light)', fontWeight: 600 }}>PUNTAJE</span>
+                  <span style={{ fontSize: '28px', fontWeight: 700, color: positive ? 'var(--success)' : review ? 'var(--warning)' : 'var(--danger)' }}>
+                    {score}%
+                  </span>
+                </div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
+                  <span style={{ fontSize: '12px', color: 'var(--text-light)', fontWeight: 600 }}>VEREDICTO</span>
+                  <span style={{ fontSize: '14px', fontWeight: 700, color: 'var(--text-dark)' }}>{verdict}</span>
+                </div>
+                {savedRow?.id != null && (
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingTop: '12px', borderTop: '1px solid #ddd' }}>
+                    <span style={{ fontSize: '12px', color: 'var(--text-light)', fontWeight: 600 }}>ID DE REGISTRO</span>
+                    <span style={{ fontSize: '13px', fontWeight: 700, fontFamily: 'monospace', color: 'var(--text-dark)' }}>#{savedRow.id}</span>
+                  </div>
+                )}
+              </div>
+
+              <Alert type={positive ? 'success' : review ? 'warning' : 'info'} style={{ marginBottom: '20px', textAlign: 'left' }}>
+                <strong>Próximo paso:</strong><br/>
+                {positive
+                  ? 'Recursos Humanos te contactará en las próximas 48 horas para agendar tu entrevista presencial.'
+                  : review
+                  ? 'Tu evaluación pasará a revisión manual por el equipo de RRHH. Te contactaremos en breve.'
+                  : 'Hemos registrado tu información. Te invitamos a postularte para otra vacante en el futuro.'}
+              </Alert>
+
+              {usedMinimal && (
+                <Alert type="warning" style={{ marginBottom: '20px', textAlign: 'left' }}>
+                  <small>⚠️ Las respuestas detalladas no se guardaron porque la tabla no tiene columnas JSONB. Solo se registraron los datos básicos. Agrega las columnas <code>documentos</code>, <code>respuestas_tecnicas</code>, <code>respuestas_psicometricas</code>, <code>requisitos_salud</code> (tipo <code>jsonb</code>) y <code>estatura</code>, <code>peso</code>, <code>genero</code> en Supabase para guardado completo.</small>
+                </Alert>
+              )}
+
+              <div style={{ display: 'flex', gap: '12px', flexDirection: 'column' }}>
+                <Button variant="primary" onClick={resetAll} style={{ padding: '14px', fontSize: '15px' }}>
+                  ✨ Nueva Evaluación
+                </Button>
+                <Button variant="secondary" onClick={() => setView('finalReport')} style={{ padding: '14px', fontSize: '14px' }}>
+                  ← Volver al Reporte
+                </Button>
+                <a href="Ma Baker Dashboard RH.html" style={{ fontSize: '13px', color: 'var(--secondary)', textDecoration: 'none', marginTop: '8px', fontWeight: 600 }}>
+                  📊 Ver Dashboard de RRHH →
+                </a>
+              </div>
+            </div>
+          </div>
+        );
+      };
+
+      // RENDER
+      return (
+        <>
+          {view === 'welcome' && <Welcome />}
+          {view === 'roleSelect' && <RoleSelect />}
+          {view === 'profile' && <ProfileForm />}
+          {view === 'documents' && <DocumentUpload />}
+          {view === 'psych' && <PsychEval />}
+          {view === 'technical' && <TechnicalEval />}
+          {view === 'finalReport' && <FinalReport />}
+          {view === 'success' && <SuccessView />}
+        </>
+      );
+    }
+
+    // Error Boundary — evita la pantalla en blanco si algo crashea en render
+    class ErrorBoundary extends React.Component {
+      constructor(props) { super(props); this.state = { hasError: false, err: null }; }
+      static getDerivedStateFromError(err) { return { hasError: true, err }; }
+      componentDidCatch(err, info) { console.error('App crash:', err, info); }
+      render() {
+        if (this.state.hasError) {
+          return (
+            <div style={{ minHeight:'100vh', display:'flex', alignItems:'center', justifyContent:'center', padding:'20px', background:'#F5F5F5', fontFamily:'Montserrat, sans-serif' }}>
+              <div style={{ maxWidth:'500px', background:'white', padding:'40px', borderRadius:'12px', boxShadow:'0 8px 32px rgba(0,0,0,0.1)' }}>
+                <div style={{ fontSize:'48px', marginBottom:'12px', textAlign:'center' }}>⚠️</div>
+                <h2 style={{ fontSize:'20px', marginBottom:'8px', color:'#D32F2F', textAlign:'center' }}>Algo salió mal</h2>
+                <p style={{ fontSize:'13px', color:'#666', marginBottom:'16px', textAlign:'center', lineHeight:1.6 }}>
+                  La aplicación encontró un error inesperado. Tus datos están guardados localmente — recarga para continuar.
+                </p>
+                <pre style={{ background:'#f8f8f8', padding:'12px', borderRadius:'6px', fontSize:'11px', color:'#666', overflow:'auto', maxHeight:'120px', marginBottom:'16px' }}>
+                  {String(this.state.err?.message || this.state.err)}
+                </pre>
+                <button onClick={() => location.reload()} style={{ width:'100%', background:'#D7282F', color:'white', border:'none', padding:'14px', borderRadius:'8px', fontWeight:700, fontSize:'14px', cursor:'pointer', fontFamily:'inherit' }}>
+                  🔄 Recargar Aplicación
+                </button>
+              </div>
+            </div>
+          );
+        }
+        return this.props.children;
+      }
+    }
+
+    ReactDOM.createRoot(document.getElementById('root')).render(
+      <ErrorBoundary><App /></ErrorBoundary>
+    );
+  </script>
+</body>
+</html>
