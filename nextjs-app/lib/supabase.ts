@@ -21,4 +21,7 @@ export type Candidato = {
   veredicto_final: string;
   timestamp: string;
   created_at?: string;
+  evaluacion_medica?: Record<string, string> | null;
+  estado_medico?: string | null;
+  fecha_evaluacion_medica?: string | null;
 };
