@@ -34,8 +34,8 @@ jobs:
         working-directory: nextjs-app
         env:
           GITHUB_PAGES: "true"
-          NEXT_PUBLIC_SUPABASE_URL: "https://xdtxfpvxoxqaadgyvzap.supabase.co"
-          NEXT_PUBLIC_SUPABASE_ANON_KEY: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhkdHhmcHZ4b3hxYWFkZ3l2emFwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzE5Nzk5OTgsImV4cCI6MjA4NzU1NTk5OH0.0bordJwiTVA-7kqOUsrPcchoSmJS2QKAHUirwN0S1QA"
+          NEXT_PUBLIC_SUPABASE_URL: "https://znskpdixdyxdbvpapqrg.supabase.co"
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inpuc2twZGl4ZHl4ZGJ2cGFwcXJnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI4NTg4MDgsImV4cCI6MjA4ODQzNDgwOH0.MvOASVc-0XkqtfeKp_FBZ4hcE_jFSsGB53KQTTgFRCQ"
         run: npm run build
 
       - name: Add .nojekyll
