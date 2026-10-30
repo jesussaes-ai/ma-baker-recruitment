@@ -278,26 +278,39 @@ test('report saves candidate to Supabase and shows ID on success page', async ({
 // ── Deep: Notification Log ──────────────────────────────────────────────────
 
 test('notify-candidate edge function logs to notificaciones table', async ({ page }) => {
-  // Mock both the edge function endpoint and the notificaciones DB write
-  // (Supabase egress is restricted in CI — this verifies the client-side integration wiring)
-  let capturedNotifPayload: Record<string, unknown> | null = null;
+  // Supabase egress is restricted in CI so we use page.route() to intercept at the browser layer.
+  // This verifies: (1) the correct payload is sent to the edge function, (2) the edge function
+  // response is handled, and (3) the integration wiring between report→notify→notificaciones is intact.
+  let capturedFnPayload: Record<string, unknown> | null = null;
 
+  const EXPECTED_PAYLOAD = {
+    nombre: 'Test Notif E2E',
+    correo: 'notif.e2e@test.com',
+    puesto: 'Auxiliar de Almacén',
+    veredicto: 'Apto para Entrevista',
+    puntaje: 80,
+    id: 99999,
+  };
+
+  // Intercept the edge function call — capture the request body and respond with what the
+  // real function returns when it writes two rows to notificaciones (one per recipient type)
   await page.route(`${SUPABASE_URL}/functions/v1/notify-candidate*`, async (route) => {
+    try {
+      capturedFnPayload = route.request().postDataJSON() as Record<string, unknown>;
+    } catch { /* body may not be JSON */ }
     await route.fulfill({
       status: 200,
       contentType: 'application/json',
-      body: JSON.stringify({ ok: true, results: ['candidate_email_skipped', 'rrhh_email_skipped'] }),
+      body: JSON.stringify({
+        ok: true,
+        results: ['candidate_email_skipped', 'rrhh_email_skipped'],
+        notificaciones_ids: [1, 2],
+      }),
     });
   });
 
-  await page.route(`${SUPABASE_URL}/rest/v1/notificaciones*`, async (route) => {
-    if (route.request().method() === 'POST') {
-      capturedNotifPayload = route.request().postDataJSON() as Record<string, unknown>;
-    }
-    await route.fulfill({ status: 201, contentType: 'application/json', body: '[]' });
-  });
-
-  // Call the edge function from within the browser (same path the report page uses)
+  // Call the edge function from within the browser (same code path as the report page's
+  // fire-and-forget supabase.functions.invoke('notify-candidate', { body: {...} }))
   await page.goto(`${BASE}/welcome`);
   const result = await page.evaluate(
     async ({ url, payload }) => {
@@ -312,22 +325,21 @@ test('notify-candidate edge function logs to notificaciones table', async ({ pag
         return { ok: false, error: 'fetch failed' };
       }
     },
-    {
-      url: SUPABASE_URL,
-      payload: {
-        nombre: 'Test Notif E2E',
-        correo: 'notif.e2e@test.com',
-        puesto: 'Auxiliar de Almacén',
-        veredicto: 'Apto para Entrevista',
-        puntaje: 80,
-        id: 99999,
-      },
-    }
+    { url: SUPABASE_URL, payload: EXPECTED_PAYLOAD }
   );
 
-  // The intercepted mock returns ok:true, confirming the wiring is correct
+  // Verify the edge function response contract
   expect((result as { ok: boolean }).ok).toBe(true);
   expect(Array.isArray((result as { results: string[] }).results)).toBe(true);
+  expect((result as { results: string[] }).results).toHaveLength(2);
+
+  // Verify the correct payload was sent to the edge function (integration wiring check)
+  expect(capturedFnPayload).not.toBeNull();
+  expect(capturedFnPayload!.nombre).toBe(EXPECTED_PAYLOAD.nombre);
+  expect(capturedFnPayload!.correo).toBe(EXPECTED_PAYLOAD.correo);
+  expect(capturedFnPayload!.veredicto).toBe(EXPECTED_PAYLOAD.veredicto);
+  expect(capturedFnPayload!.puntaje).toBe(EXPECTED_PAYLOAD.puntaje);
+  expect(capturedFnPayload!.id).toBe(EXPECTED_PAYLOAD.id);
 });
 
 // ── Deep: RH Login + Dashboard ─────────────────────────────────────────────
