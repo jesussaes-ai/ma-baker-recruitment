@@ -94,6 +94,8 @@ Deno.serve(async (req: Request) => {
         if (emailRes.ok) {
           await supabase.from('notificaciones').update({ enviado: true }).eq('id', notificacionesIds[0]);
           results[0] = 'candidate_email_sent';
+        } else {
+          results[0] = `candidate_email_error_${emailRes.status}`;
         }
       } catch { /* best-effort */ }
     }
@@ -112,6 +114,8 @@ Deno.serve(async (req: Request) => {
       if (rrhhRes.ok) {
         await supabase.from('notificaciones').update({ enviado: true }).eq('id', notificacionesIds[1]);
         results[results.length - 1] = 'rrhh_email_sent';
+      } else {
+        results[results.length - 1] = `rrhh_email_error_${rrhhRes.status}`;
       }
     } catch { /* best-effort */ }
   } else {
