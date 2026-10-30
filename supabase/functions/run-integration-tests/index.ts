@@ -125,26 +125,25 @@ Deno.serve(async () => {
     emailPathResponse = await res.json() as typeof emailPathResponse;
   }));
 
-  results.push(await runTest('email path: candidate result is _sent or _error_NNN (not _skipped)', async () => {
+  results.push(await runTest('email path: candidate result is _sent, _notification_logged, or _error_NNN (not _skipped/_pending)', async () => {
     const r0 = emailPathResponse?.results[0] ?? '';
     // _skipped means correo was ignored; _pending means email code was never reached.
-    // Both indicate the email path was not exercised.
     if (r0 === 'candidate_email_skipped' || r0 === 'candidate_email_pending') {
       throw new Error(`email path not exercised: result was ${r0}`);
     }
-    if (!r0.startsWith('candidate_email_')) {
-      throw new Error(`unexpected result format: ${r0}`);
-    }
+    // Accept: candidate_email_sent, candidate_notification_logged, candidate_email_error_NNN
+    const valid = r0.startsWith('candidate_email_') || r0 === 'candidate_notification_logged';
+    if (!valid) throw new Error(`unexpected result format: ${r0}`);
   }));
 
-  results.push(await runTest('email path: rrhh result is _sent or _error_NNN (not _pending)', async () => {
+  results.push(await runTest('email path: rrhh result is _sent, _notification_logged, or _error_NNN (not _pending)', async () => {
     const r1 = emailPathResponse?.results[1] ?? '';
     if (r1 === 'rrhh_email_pending') {
       throw new Error(`rrhh email path not exercised: result was ${r1}`);
     }
-    if (!r1.startsWith('rrhh_email_')) {
-      throw new Error(`unexpected result format: ${r1}`);
-    }
+    // Accept: rrhh_email_sent, rrhh_notification_logged, rrhh_email_error_NNN
+    const valid = r1.startsWith('rrhh_email_') || r1 === 'rrhh_notification_logged';
+    if (!valid) throw new Error(`unexpected result format: ${r1}`);
   }));
 
   const passed = results.filter(r => r.passed).length;

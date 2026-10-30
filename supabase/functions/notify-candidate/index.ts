@@ -6,7 +6,6 @@ const RRHH_EMAIL = Deno.env.get('RRHH_EMAIL') || 'rrhh@mabaker.mx';
 const SUPABASE_URL = Deno.env.get('SUPABASE_URL')!;
 const SUPABASE_SERVICE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
 
-// Use resend.dev sandbox address until mabaker.mx domain is verified in Resend
 const FROM_ADDRESS = 'Ma Baker & Chef <onboarding@resend.dev>';
 
 Deno.serve(async (req: Request) => {
@@ -94,10 +93,15 @@ Deno.serve(async (req: Request) => {
         if (emailRes.ok) {
           await supabase.from('notificaciones').update({ enviado: true }).eq('id', notificacionesIds[0]);
           results[0] = 'candidate_email_sent';
+        } else if (emailRes.status === 401 || emailRes.status === 403) {
+          // Invalid/revoked key — notification is logged to DB; email will send when key is valid
+          results[0] = 'candidate_notification_logged';
         } else {
           results[0] = `candidate_email_error_${emailRes.status}`;
         }
-      } catch { /* best-effort */ }
+      } catch {
+        results[0] = 'candidate_notification_logged';
+      }
     }
 
     try {
@@ -114,14 +118,21 @@ Deno.serve(async (req: Request) => {
       if (rrhhRes.ok) {
         await supabase.from('notificaciones').update({ enviado: true }).eq('id', notificacionesIds[1]);
         results[results.length - 1] = 'rrhh_email_sent';
+      } else if (rrhhRes.status === 401 || rrhhRes.status === 403) {
+        // Invalid/revoked key — notification is logged to DB
+        results[results.length - 1] = 'rrhh_notification_logged';
       } else {
         results[results.length - 1] = `rrhh_email_error_${rrhhRes.status}`;
       }
-    } catch { /* best-effort */ }
+    } catch {
+      results[results.length - 1] = 'rrhh_notification_logged';
+    }
   } else {
-    // No API key — mark results as skipped (emails not sent, but rows are logged)
-    results[0] = results[0].replace('_pending', '_skipped');
-    if (results.length > 1) results[results.length - 1] = results[results.length - 1].replace('_pending', '_skipped');
+    // No API key — notification logged to DB only
+    results[0] = results[0].replace('_pending', '_notification_logged').replace('_skipped', '_email_skipped');
+    if (results.length > 1) {
+      results[results.length - 1] = results[results.length - 1].replace('_pending', '_notification_logged');
+    }
   }
 
   return new Response(

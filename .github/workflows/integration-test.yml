@@ -92,11 +92,12 @@ jobs:
           assert len(d.get('results', [])) == 2, f'expected 2 results: {d}'
           assert isinstance(d.get('notificaciones_ids'), list), f'notificaciones_ids missing: {d}'
           assert len(d.get('notificaciones_ids', [])) == 2, f'expected 2 notificaciones_ids: {d}'
-          # Verify email path was exercised: result must be _sent or _error_NNN, not _skipped/_pending
+          # Verify email path was exercised: must not be _skipped or _pending
+          # Accepts: _sent, _notification_logged, or _error_NNN (non-401 service errors)
           r0 = d['results'][0]
           assert r0 not in ('candidate_email_skipped', 'candidate_email_pending'), f'email path not exercised for candidato: {r0}'
           r1 = d['results'][1]
-          assert r1 != 'rrhh_email_pending', f'email path not exercised for rrhh: {r1}'
+          assert r1 not in ('rrhh_email_pending',), f'email path not exercised for rrhh: {r1}'
           print(f'✅ Response contract verified: ok=true, 2 results, 2 notificaciones_ids, email paths exercised ({r0}, {r1})')
           "
 
