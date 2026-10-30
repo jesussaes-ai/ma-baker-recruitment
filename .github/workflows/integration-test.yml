@@ -132,7 +132,7 @@ jobs:
           assert len(rows) == 1, f'expected 1 row, got {rows}'
           r = rows[0]
           assert r['tipo'] == 'rrhh', f'tipo wrong: {r}'
-          assert r['destinatario'] == 'rrhh@mabaker.mx', f'destinatario wrong: {r}'
+          assert r['destinatario'] == 'jesussaes@gmail.com', f'destinatario wrong: {r}'
           print(f'✅ rrhh row verified: tipo={r[\"tipo\"]}, destinatario={r[\"destinatario\"]}')
           "
           echo "✅ Both notificaciones rows confirmed in live Supabase database"
