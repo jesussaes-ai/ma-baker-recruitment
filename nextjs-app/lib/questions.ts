@@ -75,12 +75,13 @@ export const ROLE_DATA = {
 
 export function calcTechScore(responses: Record<string, number>, role: string): number {
   const questions = TECHNICAL_QUESTIONS[role] ?? [];
-  const correct = Object.values(responses).filter((ans, idx) => ans === questions[idx]?.correct).length;
+  if (questions.length === 0) return 0;
+  const correct = Object.entries(responses).filter(([idx, ans]) => ans === questions[Number(idx)]?.correct).length;
   return Math.round((correct / questions.length) * 100);
 }
 
 export function getVerdict(score: number): { label: string; color: string; emoji: string } {
   if (score >= 70) return { label: 'Apto para Entrevista', color: '#4CAF50', emoji: '🎉' };
   if (score >= 50) return { label: 'Evaluación Adicional', color: '#FFC107', emoji: '📋' };
-  return { label: 'No cumple perfil', color: '#D32F2F', emoji: '✅' };
+  return { label: 'No cumple perfil', color: '#D32F2F', emoji: '❌' };
 }

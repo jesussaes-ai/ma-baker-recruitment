@@ -3,6 +3,8 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { supabase, type Candidato } from '@/lib/supabase';
 
+type RHUser = { email: string; nombre: string; rol: string };
+
 type Filter = { puesto: string; veredicto: string };
 const VERDICTS = ['Todos', 'Apto para Entrevista', 'Evaluación Adicional', 'No cumple perfil'];
 
@@ -13,10 +15,27 @@ export default function DashboardPage() {
   const [error, setError] = useState<string | null>(null);
   const [filter, setFilter] = useState<Filter>({ puesto: 'Todos', veredicto: 'Todos' });
   const [selected, setSelected] = useState<Candidato | null>(null);
+  const [rhUser, setRhUser] = useState<RHUser | null>(null);
 
   useEffect(() => {
-    fetchCandidatos();
+    checkAuth();
   }, []);
+
+  async function checkAuth() {
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session) {
+      router.replace('/login');
+      return;
+    }
+    const meta = session.user.user_metadata as { rol?: string; nombre?: string };
+    setRhUser({ email: session.user.email ?? '', nombre: meta.nombre ?? '', rol: meta.rol ?? '' });
+    fetchCandidatos();
+  }
+
+  async function handleLogout() {
+    await supabase.auth.signOut();
+    router.replace('/login');
+  }
 
   async function fetchCandidatos() {
     setLoading(true);
@@ -45,24 +64,35 @@ export default function DashboardPage() {
 
   return (
     <div style={{ minHeight: '100vh', background: '#F5F5F5' }}>
-      {/* Header */}
       <div style={{ background: 'linear-gradient(135deg, #D7282F 0%, #0071BC 100%)', padding: '20px 24px' }}>
         <div style={{ maxWidth: 1100, margin: '0 auto', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <div>
             <div style={{ color: 'rgba(255,255,255,0.7)', fontSize: 11, fontWeight: 700, letterSpacing: '1px' }}>MA BAKER & CHEF</div>
             <h1 style={{ color: '#fff', fontSize: 20, fontWeight: 700 }}>Dashboard de Reclutamiento</h1>
+            {rhUser && (
+              <div style={{ color: 'rgba(255,255,255,0.8)', fontSize: 12, marginTop: 2 }}>
+                {rhUser.nombre} · <span style={{ textTransform: 'uppercase', fontWeight: 700 }}>{rhUser.rol}</span>
+              </div>
+            )}
           </div>
-          <button
-            onClick={() => router.push('/welcome')}
-            style={{ background: 'rgba(255,255,255,0.2)', border: '1.5px solid rgba(255,255,255,0.4)', color: '#fff', borderRadius: 8, padding: '8px 16px', fontSize: 13, fontWeight: 600, cursor: 'pointer' }}
-          >
-            Nueva Evaluación
-          </button>
+          <div style={{ display: 'flex', gap: 10 }}>
+            <button
+              onClick={() => router.push('/welcome')}
+              style={{ background: 'rgba(255,255,255,0.2)', border: '1.5px solid rgba(255,255,255,0.4)', color: '#fff', borderRadius: 8, padding: '8px 16px', fontSize: 13, fontWeight: 600, cursor: 'pointer' }}
+            >
+              Nueva Evaluación
+            </button>
+            <button
+              onClick={handleLogout}
+              style={{ background: 'rgba(255,255,255,0.1)', border: '1.5px solid rgba(255,255,255,0.3)', color: 'rgba(255,255,255,0.8)', borderRadius: 8, padding: '8px 16px', fontSize: 13, fontWeight: 600, cursor: 'pointer' }}
+            >
+              Salir
+            </button>
+          </div>
         </div>
       </div>
 
       <div style={{ maxWidth: 1100, margin: '0 auto', padding: '24px 16px' }}>
-        {/* Stats */}
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', gap: 16, marginBottom: 24 }}>
           <StatCard label="Total" value={candidatos.length} color="#0071BC" />
           <StatCard label="Aptos" value={candidatos.filter((c) => c.veredicto_final === 'Apto para Entrevista').length} color="#4CAF50" />
@@ -70,7 +100,6 @@ export default function DashboardPage() {
           <StatCard label="No aptos" value={candidatos.filter((c) => c.veredicto_final === 'No cumple perfil').length} color="#D32F2F" />
         </div>
 
-        {/* Filters */}
         <div style={{ background: '#fff', borderRadius: 12, padding: '16px 20px', marginBottom: 20, display: 'flex', gap: 16, flexWrap: 'wrap', alignItems: 'center' }}>
           <div>
             <label style={{ fontSize: 11, fontWeight: 700, color: '#666', display: 'block', marginBottom: 4 }}>PUESTO</label>
@@ -96,13 +125,12 @@ export default function DashboardPage() {
             onClick={fetchCandidatos}
             style={{ marginLeft: 'auto', padding: '8px 16px', borderRadius: 8, border: 'none', background: '#D7282F', color: '#fff', fontWeight: 600, fontSize: 13, cursor: 'pointer' }}
           >
-            🔄 Actualizar
+            Actualizar
           </button>
         </div>
 
-        {/* Table */}
         {loading ? (
-          <div style={{ textAlign: 'center', padding: 60, color: '#666', fontSize: 15 }} className="animate-pulse-custom">Cargando candidatos...</div>
+          <div style={{ textAlign: 'center', padding: 60, color: '#666', fontSize: 15 }}>Cargando candidatos...</div>
         ) : error ? (
           <div style={{ background: 'rgba(211,47,47,0.1)', border: '2px solid #D32F2F', borderRadius: 10, padding: 20, color: '#D32F2F', fontWeight: 600 }}>
             Error: {error}
@@ -160,7 +188,6 @@ export default function DashboardPage() {
         )}
       </div>
 
-      {/* Detail Modal */}
       {selected && (
         <div
           onClick={() => setSelected(null)}

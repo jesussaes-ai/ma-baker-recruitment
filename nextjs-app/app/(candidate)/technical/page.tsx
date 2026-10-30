@@ -31,7 +31,7 @@ export default function TechnicalPage() {
   if (showResults) {
     const score = calcTechScore(techResponses, role);
     const verdict = getVerdict(score);
-    const correct = Object.values(techResponses).filter((ans, idx) => ans === questions[idx]?.correct).length;
+    const correct = Object.entries(techResponses).filter(([idx, ans]) => ans === questions[Number(idx)]?.correct).length;
 
     return (
       <PageShell>
