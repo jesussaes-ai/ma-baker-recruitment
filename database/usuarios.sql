@@ -28,20 +28,16 @@ CREATE POLICY "service_role_only_usuarios"
     FOR ALL TO service_role USING (true);
 
 -- =======================================================
--- USUARIOS INICIALES (passwords en texto plano para setup)
--- Admin: jesus / Admin2026!
--- RRHH:  rrhh   / RRHH2026!
--- Medico: medico / Medico2026!
--- Jefe:  jefe   / Jefe2026!
--- SGI:   sgi    / SGI2026!
--- IMPORTANTE: Cambiar passwords tras primer login
+-- USUARIOS INICIALES
+-- IMPORTANTE: Establecer contraseñas manualmente con:
+--   UPDATE usuarios_sistema SET password_hash = crypt('TuContraseña', gen_salt('bf')) WHERE email = '...';
 -- =======================================================
 INSERT INTO public.usuarios_sistema (nombre, email, password_hash, rol, departamento) VALUES
-('Administrador General', 'admin@mabakerandchef.com',  'Admin2026!',  'admin',  NULL),
-('Recursos Humanos',      'rrhh@mabakerandchef.com',   'RRHH2026!',   'rrhh',   NULL),
-('Médico Empresa',        'medico@mabakerandchef.com', 'Medico2026!', 'medico', NULL),
-('Jefe de Calidad',       'jefe@mabakerandchef.com',   'Jefe2026!',   'jefe',   'Calidad e Inocuidad'),
-('Auditor SGI',           'sgi@mabakerandchef.com',    'SGI2026!',    'sgi',    NULL)
+('Administrador General', 'admin@mabakerandchef.com',  'PENDIENTE_ESTABLECER', 'admin',  NULL),
+('Recursos Humanos',      'rrhh@mabakerandchef.com',   'PENDIENTE_ESTABLECER', 'rrhh',   NULL),
+('Médico Empresa',        'medico@mabakerandchef.com', 'PENDIENTE_ESTABLECER', 'medico', NULL),
+('Jefe de Calidad',       'jefe@mabakerandchef.com',   'PENDIENTE_ESTABLECER', 'jefe',   'Calidad e Inocuidad'),
+('Auditor SGI',           'sgi@mabakerandchef.com',    'PENDIENTE_ESTABLECER', 'sgi',    NULL)
 ON CONFLICT (email) DO NOTHING;
 
 -- =======================================================

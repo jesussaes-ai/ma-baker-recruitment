@@ -8,8 +8,9 @@
 const https = require('https');
 
 // Configuración del proyecto Supabase
-const PROJECT_REF = 'znskpdixdyxdbvpapqrg';
-const SERVICE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inpuc2twZGl4ZHl4ZGJ2cGFwcXJnIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc3Mjg1ODgwOCwiZXhwIjoyMDg4NDM0ODA4fQ.s7yC5ODssUgqHjH0PsAhTZuNQ1R-lMuJAt62OKDwryg';
+const PROJECT_REF = process.env.SUPABASE_PROJECT_REF || 'znskpdixdyxdbvpapqrg';
+const SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
+if (!SERVICE_KEY) { console.error('Error: SUPABASE_SERVICE_ROLE_KEY env var required'); process.exit(1); }
 
 // SQL completo a ejecutar (separado en bloques para evitar timeouts)
 const SQL_BLOQUES = [
@@ -231,12 +232,12 @@ END $$;
 DO $$ BEGIN
     INSERT INTO public.usuarios_sistema (email, nombre, password_hash, rol, departamento)
     VALUES
-        ('admin@mabakerandchef.com','Administrador General',crypt('MaBaker2024!',gen_salt('bf')),'admin',NULL),
-        ('rrhh@mabakerandchef.com','Recursos Humanos',crypt('RRHH2024!',gen_salt('bf')),'rrhh','Recursos Humanos'),
-        ('medico@mabakerandchef.com','Medico Empresarial',crypt('Medico2024!',gen_salt('bf')),'medico','Salud Ocupacional'),
-        ('jefe.calidad@mabakerandchef.com','Jefe Calidad',crypt('Jefe2024!',gen_salt('bf')),'jefe','Calidad e Inocuidad'),
-        ('sgi@mabakerandchef.com','SGI Calidad',crypt('SGI2024!',gen_salt('bf')),'sgi','Sistema Gestion Integral'),
-        ('sh@mabakerandchef.com','Seguridad e Higiene',crypt('SH2024!',gen_salt('bf')),'seguridad','Seguridad e Higiene')
+        ('admin@mabakerandchef.com','Administrador General',crypt('${ADMIN_PWD}',gen_salt('bf')),'admin',NULL),
+        ('rrhh@mabakerandchef.com','Recursos Humanos',crypt('${ADMIN_PWD}',gen_salt('bf')),'rrhh','Recursos Humanos'),
+        ('medico@mabakerandchef.com','Medico Empresarial',crypt('${ADMIN_PWD}',gen_salt('bf')),'medico','Salud Ocupacional'),
+        ('jefe.calidad@mabakerandchef.com','Jefe Calidad',crypt('${ADMIN_PWD}',gen_salt('bf')),'jefe','Calidad e Inocuidad'),
+        ('sgi@mabakerandchef.com','SGI Calidad',crypt('${ADMIN_PWD}',gen_salt('bf')),'sgi','Sistema Gestion Integral'),
+        ('sh@mabakerandchef.com','Seguridad e Higiene',crypt('${ADMIN_PWD}',gen_salt('bf')),'seguridad','Seguridad e Higiene')
     ON CONFLICT (email) DO NOTHING;
 END $$;`
 ];

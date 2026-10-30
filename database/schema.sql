@@ -550,14 +550,16 @@ $$;
 
 -- =========================================================
 -- USUARIOS INICIALES (contraseñas en bcrypt)
--- Cambiar en producción.
+-- IMPORTANTE: Establecer contraseñas usando psql o Supabase SQL Editor.
+-- No ejecutar este bloque con contraseñas hardcodeadas en producción.
+-- Ejemplo: UPDATE usuarios_sistema SET password_hash = crypt('TuContraseña', gen_salt('bf')) WHERE email = '...';
 -- =========================================================
 INSERT INTO public.usuarios_sistema (email, nombre, password_hash, rol, departamento) VALUES
-    ('admin@mabakerandchef.com',  'Administrador General', crypt('Admin2026!',  gen_salt('bf')), 'admin',  NULL),
-    ('rrhh@mabakerandchef.com',   'RRHH Ma Baker',         crypt('RRHH2026!',   gen_salt('bf')), 'rrhh',   'Recursos Humanos'),
-    ('medico@mabakerandchef.com', 'Médico del Trabajo',    crypt('Medico2026!', gen_salt('bf')), 'medico', 'Salud Ocupacional'),
-    ('jefe@mabakerandchef.com',   'Jefe de Producción',    crypt('Jefe2026!',   gen_salt('bf')), 'jefe',   'Producción'),
-    ('sgi@mabakerandchef.com',    'Auditor SGI',           crypt('SGI2026!',    gen_salt('bf')), 'sgi',    'SGI y Seguridad')
+    ('admin@mabakerandchef.com',  'Administrador General', 'PENDIENTE_ESTABLECER', 'admin',  NULL),
+    ('rrhh@mabakerandchef.com',   'RRHH Ma Baker',         'PENDIENTE_ESTABLECER', 'rrhh',   'Recursos Humanos'),
+    ('medico@mabakerandchef.com', 'Médico del Trabajo',    'PENDIENTE_ESTABLECER', 'medico', 'Salud Ocupacional'),
+    ('jefe@mabakerandchef.com',   'Jefe de Producción',    'PENDIENTE_ESTABLECER', 'jefe',   'Producción'),
+    ('sgi@mabakerandchef.com',    'Auditor SGI',           'PENDIENTE_ESTABLECER', 'sgi',    'SGI y Seguridad')
 ON CONFLICT (email) DO NOTHING;
 
 -- =========================================================
