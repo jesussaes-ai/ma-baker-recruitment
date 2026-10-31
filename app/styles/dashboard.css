@@ -41,9 +41,11 @@
     height: 44px;
     width: auto;
     object-fit: contain;
-    filter: brightness(0) invert(1);
-    /* logo blanco */
-    max-width: 150px;
+    max-width: 140px;
+    background: #FFFFFF;
+    border-radius: 10px;
+    padding: 4px 8px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.18);
 }
 
 .brand-emoji {
