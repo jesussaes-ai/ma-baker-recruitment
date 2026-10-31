@@ -216,9 +216,93 @@
         <div class="panel" id="panel-usuarios">
             <div class="panel-toolbar">
                 <h2>⚙️ Gestión de Usuarios del Sistema</h2>
+                <button class="btn-action" onclick="abrirModalCrear()">➕ Nuevo usuario</button>
             </div>
-            <div id="tablaUsuarios" class="table-wrapper">
-                <div class="loading-row">Cargando...</div>
+
+            <!-- Tabla de usuarios -->
+            <div class="table-wrapper">
+                <table class="data-table" id="tablaUsuarios">
+                    <thead>
+                        <tr>
+                            <th>Nombre</th>
+                            <th>Correo corporativo</th>
+                            <th>Rol</th>
+                            <th>Departamento</th>
+                            <th>Último acceso</th>
+                            <th>Estado</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody id="usuariosBody">
+                        <tr><td colspan="7" class="loading-row">Cargando usuarios...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Modal: Crear usuario -->
+            <div class="modal-overlay" id="modalCrear" style="display:none">
+                <div class="modal-card">
+                    <div class="modal-header">
+                        <h3>➕ Nuevo usuario</h3>
+                        <button class="modal-close" onclick="cerrarModales()">✕</button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="field-group">
+                            <label class="field-label">Nombre completo</label>
+                            <input type="text" id="nuevoNombre" class="field-input" placeholder="Ej. Ana García López">
+                        </div>
+                        <div class="field-group">
+                            <label class="field-label">Correo corporativo</label>
+                            <input type="email" id="nuevoEmail" class="field-input" placeholder="ana.garcia@mabakerandchef.com">
+                        </div>
+                        <div class="field-group">
+                            <label class="field-label">Contraseña inicial</label>
+                            <input type="password" id="nuevaPassword" class="field-input" placeholder="Contraseña que le asignas">
+                        </div>
+                        <div class="field-group">
+                            <label class="field-label">Rol</label>
+                            <select id="nuevoRol" class="field-input">
+                                <option value="rrhh">👥 RRHH — Reclutamiento y Selección</option>
+                                <option value="medico">🏥 Médico Empresarial</option>
+                                <option value="jefe">🏢 Jefe de Área</option>
+                                <option value="sgi">📋 SGI — Calidad e Inocuidad</option>
+                                <option value="seguridad">🦺 Seguridad e Higiene</option>
+                                <option value="admin">⚙️ Admin General</option>
+                            </select>
+                        </div>
+                        <div class="field-group">
+                            <label class="field-label">Departamento (opcional)</label>
+                            <input type="text" id="nuevoDpto" class="field-input" placeholder="Ej. Producción, Almacén, Calidad...">
+                        </div>
+                        <div id="errorCrear" class="error-inline" style="display:none"></div>
+                    </div>
+                    <div class="modal-footer">
+                        <button class="btn-secondary" onclick="cerrarModales()">Cancelar</button>
+                        <button class="btn-primary" onclick="crearUsuario()">Crear usuario</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Modal: Cambiar contraseña -->
+            <div class="modal-overlay" id="modalPassword" style="display:none">
+                <div class="modal-card">
+                    <div class="modal-header">
+                        <h3>🔑 Cambiar contraseña</h3>
+                        <button class="modal-close" onclick="cerrarModales()">✕</button>
+                    </div>
+                    <div class="modal-body">
+                        <p id="pwdUsuarioNombre" style="font-weight:700;margin-bottom:16px;color:#374151"></p>
+                        <div class="field-group">
+                            <label class="field-label">Nueva contraseña</label>
+                            <input type="password" id="nuevaPwd" class="field-input" placeholder="Nueva contraseña">
+                        </div>
+                        <div id="errorPwd" class="error-inline" style="display:none"></div>
+                    </div>
+                    <div class="modal-footer">
+                        <button class="btn-secondary" onclick="cerrarModales()">Cancelar</button>
+                        <button class="btn-primary" onclick="cambiarPassword()">Guardar contraseña</button>
+                    </div>
+                </div>
             </div>
         </div>
 
@@ -244,9 +328,211 @@
         </div>
     </div>
 
+    <style>
+        /* ── Modales de gestión de usuarios ── */
+        .modal-overlay {
+            position: fixed; inset: 0; background: rgba(0,0,0,0.55);
+            display: flex; align-items: center; justify-content: center;
+            z-index: 1000; padding: 20px;
+        }
+        .modal-card {
+            background: #fff; border-radius: 16px;
+            width: 100%; max-width: 480px;
+            box-shadow: 0 24px 60px rgba(0,0,0,0.25);
+            animation: slideUp 0.25s cubic-bezier(0.16,1,0.3,1);
+        }
+        .modal-header {
+            padding: 20px 24px 16px; border-bottom: 1px solid #F3F4F6;
+            display: flex; align-items: center; justify-content: space-between;
+        }
+        .modal-header h3 { font-size: 17px; font-weight: 700; margin: 0; }
+        .modal-close {
+            background: none; border: none; font-size: 18px;
+            cursor: pointer; color: #9CA3AF; padding: 4px;
+        }
+        .modal-close:hover { color: #D7282F; }
+        .modal-body { padding: 20px 24px; display: flex; flex-direction: column; gap: 14px; }
+        .modal-footer {
+            padding: 16px 24px; border-top: 1px solid #F3F4F6;
+            display: flex; gap: 10px; justify-content: flex-end;
+        }
+        .field-group { display: flex; flex-direction: column; gap: 5px; }
+        .field-label { font-size: 11px; font-weight: 700; text-transform: uppercase;
+            letter-spacing: 0.05em; color: #374151; }
+        .field-input {
+            padding: 10px 12px; border: 1.5px solid #E5E7EB; border-radius: 8px;
+            font-size: 14px; font-family: inherit; outline: none; transition: border-color 0.15s;
+        }
+        .field-input:focus { border-color: #D7282F; box-shadow: 0 0 0 3px rgba(215,40,47,0.1); }
+        .btn-primary {
+            padding: 10px 20px; background: #D7282F; color: #fff;
+            border: none; border-radius: 8px; font-weight: 700;
+            font-family: inherit; cursor: pointer; font-size: 14px;
+        }
+        .btn-primary:hover { background: #B01E24; }
+        .btn-secondary {
+            padding: 10px 20px; background: #F3F4F6; color: #374151;
+            border: none; border-radius: 8px; font-weight: 600;
+            font-family: inherit; cursor: pointer; font-size: 14px;
+        }
+        .error-inline {
+            background: #FEF2F2; border: 1px solid #FECACA; border-radius: 8px;
+            padding: 10px 12px; font-size: 13px; color: #DC2626;
+        }
+        /* Badges de rol */
+        .badge-rol {
+            display: inline-block; padding: 3px 9px; border-radius: 20px;
+            font-size: 11px; font-weight: 700; letter-spacing: 0.03em;
+        }
+        .badge-admin { background: #FEF3C7; color: #92400E; }
+        .badge-rrhh  { background: #EDE9FE; color: #5B21B6; }
+        .badge-medico{ background: #DCFCE7; color: #166534; }
+        .badge-jefe  { background: #DBEAFE; color: #1E40AF; }
+        .badge-sgi   { background: #FEE2E2; color: #991B1B; }
+        .badge-seguridad { background: #FFF7ED; color: #9A3412; }
+        /* Toggle activo */
+        .toggle-activo {
+            display: inline-flex; align-items: center; gap: 6px;
+            cursor: pointer; font-size: 13px; font-weight: 600;
+        }
+        .toggle-activo input { width: 36px; height: 20px; cursor: pointer; }
+        .btn-icon {
+            background: none; border: 1.5px solid #E5E7EB; border-radius: 6px;
+            padding: 4px 8px; cursor: pointer; font-size: 14px;
+            transition: all 0.15s;
+        }
+        .btn-icon:hover { border-color: #D7282F; background: #FFF5F5; }
+        @keyframes slideUp {
+            from { opacity:0; transform:translateY(16px); }
+            to   { opacity:1; transform:translateY(0); }
+        }
+    </style>
+
     <script src="js/auth.js"></script>
     <script src="js/dashboard.js"></script>
     <script>
+        const SUPA_URL = 'https://znskpdixdyxdbvpapqrg.supabase.co';
+        const SUPA_ANON = window.__SUPABASE_ANON_KEY__ || '';
+
+        function getToken() { return localStorage.getItem('mb_token') || ''; }
+
+        async function rpc(fn, params) {
+            const r = await fetch(`${SUPA_URL}/rest/v1/rpc/${fn}`, {
+                method: 'POST',
+                headers: { 'apikey': SUPA_ANON, 'Authorization': 'Bearer ' + getToken(), 'Content-Type': 'application/json' },
+                body: JSON.stringify(params)
+            });
+            return r.json();
+        }
+
+        // ── Cargar tabla de usuarios ──
+        async function cargarUsuarios() {
+            const data = await rpc('fn_admin_listar_usuarios', { p_token: getToken() });
+            const tbody = document.getElementById('usuariosBody');
+            if (!data.ok || !data.usuarios) {
+                tbody.innerHTML = `<tr><td colspan="7" class="loading-row" style="color:#DC2626">Error: ${data.error || 'Sin acceso'}</td></tr>`;
+                return;
+            }
+            const ROL_LABELS = { admin:'Admin', rrhh:'RRHH', medico:'Médico', jefe:'Jefe', sgi:'SGI', seguridad:'Seguridad' };
+            tbody.innerHTML = data.usuarios.map(u => `
+                <tr style="opacity:${u.activo ? 1 : 0.45}">
+                    <td><strong>${u.nombre}</strong></td>
+                    <td style="font-size:13px;color:#6B7280">${u.email}</td>
+                    <td><span class="badge-rol badge-${u.rol}">${ROL_LABELS[u.rol] || u.rol}</span></td>
+                    <td style="font-size:13px">${u.departamento || '—'}</td>
+                    <td style="font-size:12px;color:#9CA3AF">${u.ultimo_login ? new Date(u.ultimo_login).toLocaleDateString('es-MX',{day:'2-digit',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit'}) : 'Nunca'}</td>
+                    <td>
+                        <label class="toggle-activo">
+                            <input type="checkbox" ${u.activo ? 'checked' : ''} onchange="toggleUsuario('${u.id}', this.checked, '${u.nombre}')">
+                            <span>${u.activo ? 'Activo' : 'Inactivo'}</span>
+                        </label>
+                    </td>
+                    <td>
+                        <button class="btn-icon" title="Cambiar contraseña" onclick="abrirModalPassword('${u.id}','${u.nombre.replace(/'/g,"\\'")}')">🔑</button>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        // ── Crear usuario ──
+        let _pwdUserId = null;
+
+        function abrirModalCrear() {
+            document.getElementById('nuevoNombre').value = '';
+            document.getElementById('nuevoEmail').value = '';
+            document.getElementById('nuevaPassword').value = '';
+            document.getElementById('nuevoDpto').value = '';
+            document.getElementById('errorCrear').style.display = 'none';
+            document.getElementById('modalCrear').style.display = 'flex';
+        }
+
+        async function crearUsuario() {
+            const nombre = document.getElementById('nuevoNombre').value.trim();
+            const email  = document.getElementById('nuevoEmail').value.trim();
+            const pwd    = document.getElementById('nuevaPassword').value;
+            const rol    = document.getElementById('nuevoRol').value;
+            const dpto   = document.getElementById('nuevoDpto').value.trim();
+            const errEl  = document.getElementById('errorCrear');
+
+            if (!nombre || !email || !pwd) {
+                errEl.textContent = 'Completa nombre, correo y contraseña.';
+                errEl.style.display = 'block'; return;
+            }
+            const data = await rpc('fn_admin_crear_usuario', {
+                p_token: getToken(), p_email: email, p_nombre: nombre,
+                p_password: pwd, p_rol: rol, p_departamento: dpto || null
+            });
+            if (!data.ok) {
+                errEl.textContent = data.error || 'Error al crear usuario.';
+                errEl.style.display = 'block'; return;
+            }
+            cerrarModales();
+            await cargarUsuarios();
+        }
+
+        // ── Cambiar contraseña ──
+        function abrirModalPassword(userId, nombre) {
+            _pwdUserId = userId;
+            document.getElementById('pwdUsuarioNombre').textContent = '👤 ' + nombre;
+            document.getElementById('nuevaPwd').value = '';
+            document.getElementById('errorPwd').style.display = 'none';
+            document.getElementById('modalPassword').style.display = 'flex';
+        }
+
+        async function cambiarPassword() {
+            const pwd   = document.getElementById('nuevaPwd').value;
+            const errEl = document.getElementById('errorPwd');
+            if (!pwd || pwd.length < 6) {
+                errEl.textContent = 'La contraseña debe tener al menos 6 caracteres.';
+                errEl.style.display = 'block'; return;
+            }
+            const data = await rpc('fn_admin_cambiar_password', {
+                p_token: getToken(), p_usuario_id: _pwdUserId, p_nueva_password: pwd
+            });
+            if (!data.ok) {
+                errEl.textContent = data.error || 'Error al cambiar contraseña.';
+                errEl.style.display = 'block'; return;
+            }
+            cerrarModales();
+        }
+
+        // ── Activar / Desactivar ──
+        async function toggleUsuario(userId, activo, nombre) {
+            const data = await rpc('fn_admin_toggle_usuario', {
+                p_token: getToken(), p_usuario_id: userId, p_activo: activo
+            });
+            if (!data.ok) {
+                alert(data.error || 'No se pudo cambiar el estado.');
+                await cargarUsuarios();
+            }
+        }
+
+        function cerrarModales() {
+            document.getElementById('modalCrear').style.display = 'none';
+            document.getElementById('modalPassword').style.display = 'none';
+        }
+
+        // ── Init ──
         function switchPanel(panel) {
             document.querySelectorAll('.nav-item[data-panel]').forEach(a => a.classList.remove('active'));
             document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
@@ -254,6 +540,7 @@
             if (target) target.classList.add('active');
             const nav = document.querySelector('[data-panel="' + panel + '"]');
             if (nav) nav.classList.add('active');
+            if (panel === 'usuarios') cargarUsuarios();
         }
         initDashboard('admin', [
             { id: 'candidatos', endpoint: '/rest/v1/candidatos_activos?select=*&order=created_at.desc&limit=100' },
