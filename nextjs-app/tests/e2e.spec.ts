@@ -2,13 +2,12 @@ import { test, expect, type APIRequestContext } from '@playwright/test';
 
 const BASE = process.env.BASE_URL || 'http://localhost:3000';
 const SUPABASE_URL = 'https://znskpdixdyxdbvpapqrg.supabase.co';
-const SUPABASE_ANON_KEY =
-  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inpuc2twZGl4ZHl4ZGJ2cGFwcXJnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI4NTg4MDgsImV4cCI6MjA4ODQzNDgwOH0.MvOASVc-0XkqtfeKp_FBZ4hcE_jFSsGB53KQTTgFRCQ';
+const SUPABASE_ANON_KEY = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '';
 
 // Test-only RH user created via Supabase migration
 const TEST_MEDICO = {
   email: 'test.medico.e2e@mabaker.test',
-  password: 'E2ETest@MaBaker2024',
+  password: process.env.E2E_TEST_PASSWORD || '',
 };
 
 /** Inject a full candidate store state into localStorage so the report page can save */

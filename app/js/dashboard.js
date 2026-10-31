@@ -12,13 +12,14 @@
 
 /* ── Configuración de Supabase ── */
 const SUPA_URL = 'https://znskpdixdyxdbvpapqrg.supabase.co';
-const SUPA_SRV = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inpuc2twZGl4ZHl4ZGJ2cGFwcXJnIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc3Mjg1ODgwOCwiZXhwIjoyMDg4NDM0ODA4fQ.s7yC5ODssUgqHjH0PsAhTZuNQ1R-lMuJAt62OKDwryg';
-
+// NOTA: Este dashboard usa la sesión del usuario autenticado (token JWT de Supabase Auth).
+// No se usa service_role key en el frontend. La autenticación se obtiene de localStorage.
+const SUPA_ANON = window.__SUPABASE_ANON_KEY__ || '';
 
 /* Encabezados HTTP que se usan en todas las peticiones a Supabase */
 const HEADERS = {
-    'apikey': SUPA_SRV,
-    'Authorization': 'Bearer ' + SUPA_SRV,
+    'apikey': SUPA_ANON,
+    'Authorization': 'Bearer ' + (localStorage.getItem('sb_access_token') || SUPA_ANON),
     'Content-Type': 'application/json',
     'Prefer': 'return=representation'
 };

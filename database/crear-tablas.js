@@ -5,7 +5,7 @@
  */
 const https = require('https');
 
-const SERVICE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inpuc2twZGl4ZHl4ZGJ2cGFwcXJnIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc3Mjg1ODgwOCwiZXhwIjoyMDg4NDM0ODA4fQ.s7yC5ODssUgqHjH0PsAhTZuNQ1R-lMuJAt62OKDwryg';
+const SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
 const REF = 'znskpdixdyxdbvpapqrg';
 
 // Función que ejecuta un SQL via Management API
