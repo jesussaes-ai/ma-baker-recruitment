@@ -510,7 +510,11 @@
     </script>
     <script>
         if ("serviceWorker" in navigator) {
-            navigator.serviceWorker.register("sw.js").catch(() => {});
+            navigator.serviceWorker.register("sw.js", { updateViaCache: 'none' }).then(reg => reg.update()).catch(() => {});
+            let swRecargado = false;
+            navigator.serviceWorker.addEventListener('controllerchange', () => {
+                if (!swRecargado) { swRecargado = true; window.location.reload(); }
+            });
         }
     </script>
 </body>
