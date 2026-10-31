@@ -4,7 +4,7 @@
  */
 
 const SUPABASE_URL = 'https://znskpdixdyxdbvpapqrg.supabase.co';
-const SUPABASE_ANON_KEY = window.__SUPABASE_ANON_KEY__ || '';
+const SUPABASE_ANON_KEY = window.__SUPABASE_ANON_KEY__ || 'sb_publishable_YLgLfp_OIJLmimFo1vWStg_-THES9lw';
 
 /* ── Mapa de Rutas por Rol ── */
 /* ─────────────────────────────────────────────────────

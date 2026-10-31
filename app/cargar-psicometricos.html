@@ -1145,9 +1145,9 @@
     <script>
         // ── SUPABASE CONFIG ──
         const SUPA_URL = 'https://znskpdixdyxdbvpapqrg.supabase.co';
-        const SUPA_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inpuc2twZGl4ZHl4ZGJ2cGFwcXJnIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc3Mjg1ODgwOCwiZXhwIjoyMDg4NDM0ODA4fQ.s7yC5ODssUgqHjH0PsAhTZuNQ1R-lMuJAt62OKDwryg';
-
-        const H = { 'apikey': SUPA_KEY, 'Authorization': 'Bearer ' + SUPA_KEY, 'Content-Type': 'application/json', 'Prefer': 'return=representation' };
+        const SUPA_KEY = 'sb_publishable_YLgLfp_OIJLmimFo1vWStg_-THES9lw';
+        const _tok = localStorage.getItem('mb_token');
+        const H = { 'apikey': SUPA_KEY, 'Authorization': 'Bearer ' + (_tok || SUPA_KEY), 'Content-Type': 'application/json', 'Prefer': 'return=representation' };
         const api = async (path, opt = {}) => {
             const r = await fetch(SUPA_URL + path, { headers: H, ...opt });
             return r.ok ? r.json() : null;
