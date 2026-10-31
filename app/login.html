@@ -384,29 +384,6 @@
                 <span id="errorText">Credenciales incorrectas.</span>
             </div>
 
-            <!-- Acceso Rápido (solo desarrollo) -->
-            <div class="role-selector">
-                <div class="role-selector-label">Acceso rápido por rol</div>
-                <div class="roles-grid-login">
-                    <button class="role-btn-login" onclick="quickLogin('admin@mabakerandchef.com','Admin2026!')">
-                        <span class="role-icon-sm">⚙️</span> Admin General
-                    </button>
-                    <button class="role-btn-login" onclick="quickLogin('rrhh@mabakerandchef.com','RRHH2026!')">
-                        <span class="role-icon-sm">👥</span> RRHH
-                    </button>
-                    <button class="role-btn-login" onclick="quickLogin('medico@mabakerandchef.com','Medico2026!')">
-                        <span class="role-icon-sm">🏥</span> Médico
-                    </button>
-                    <button class="role-btn-login" onclick="quickLogin('jefe@mabakerandchef.com','Jefe2026!')">
-                        <span class="role-icon-sm">🏢</span> Jefe de Área
-                    </button>
-                    <button class="role-btn-login full" onclick="quickLogin('sgi@mabakerandchef.com','SGI2026!')">
-                        <span class="role-icon-sm">✅</span> SGI / Seguridad Industrial
-                    </button>
-                </div>
-            </div>
-
-            <div class="divider">o ingresa con tus credenciales</div>
 
             <!-- Form -->
             <form class="login-form" id="loginForm" onsubmit="handleLogin(event)" novalidate>
@@ -454,12 +431,6 @@
         function togglePwd() {
             const i = document.getElementById('password');
             i.type = i.type === 'password' ? 'text' : 'password';
-        }
-
-        function quickLogin(email, pwd) {
-            document.getElementById('email').value = email;
-            document.getElementById('password').value = pwd;
-            document.getElementById('loginForm').dispatchEvent(new Event('submit', { cancelable: true }));
         }
 
         async function handleLogin(e) {
