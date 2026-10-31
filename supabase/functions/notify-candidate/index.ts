@@ -4,7 +4,7 @@ import { createClient } from 'jsr:@supabase/supabase-js@2';
 const RESEND_API_KEY = Deno.env.get('RESEND_API_KEY');
 const RRHH_EMAIL = Deno.env.get('RRHH_EMAIL') || 'jesussaes@gmail.com';
 const SUPABASE_URL = Deno.env.get('SUPABASE_URL')!;
-const SUPABASE_SERVICE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
+const SUPABASE_SERVICE_KEY = Deno.env.get('SERVICE_ROLE_KEY') || Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') || '';
 
 const FROM_ADDRESS = 'Ma Baker & Chef <onboarding@resend.dev>';
 
