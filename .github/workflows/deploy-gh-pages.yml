@@ -35,8 +35,14 @@ jobs:
         env:
           GITHUB_PAGES: "true"
           NEXT_PUBLIC_SUPABASE_URL: "https://znskpdixdyxdbvpapqrg.supabase.co"
-          NEXT_PUBLIC_SUPABASE_ANON_KEY: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inpuc2twZGl4ZHl4ZGJ2cGFwcXJnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI4NTg4MDgsImV4cCI6MjA4ODQzNDgwOH0.MvOASVc-0XkqtfeKp_FBZ4hcE_jFSsGB53KQTTgFRCQ"
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
         run: npm run build
+
+      - name: Merge static RBAC app (app/) into site
+        run: |
+          for f in app/*; do
+            [ "$(basename "$f")" = "index.html" ] || cp -r "$f" nextjs-app/out/
+          done
 
       - name: Add .nojekyll
         run: touch nextjs-app/out/.nojekyll
