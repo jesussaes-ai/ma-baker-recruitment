@@ -438,8 +438,7 @@
            ============================================================ */
         const URL = 'https://znskpdixdyxdbvpapqrg.supabase.co';
         const KEY = 'sb_publishable_YLgLfp_OIJLmimFo1vWStg_-THES9lw';
-        const _tok = localStorage.getItem('mb_token');
-        const H = { 'apikey': KEY, 'Authorization': 'Bearer ' + (_tok || KEY), 'Content-Type': 'application/json', 'Prefer': 'return=representation' };
+        const H = { 'apikey': KEY, 'Authorization': 'Bearer ' + KEY, 'Content-Type': 'application/json', 'Prefer': 'return=representation' };
 
         /* Estado del formulario de verificación activo */
         const S = { higiene: null, epp: null, protocolos: null, quimicos: null, accidentes: null, emergencia: null, imss: null };

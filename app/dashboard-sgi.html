@@ -416,8 +416,7 @@
            ============================================================ */
         const URL = 'https://znskpdixdyxdbvpapqrg.supabase.co';
         const KEY = 'sb_publishable_YLgLfp_OIJLmimFo1vWStg_-THES9lw';
-        const _tok = localStorage.getItem('mb_token');
-        const H = { 'apikey': KEY, 'Authorization': 'Bearer ' + (_tok || KEY), 'Content-Type': 'application/json', 'Prefer': 'return=representation' };
+        const H = { 'apikey': KEY, 'Authorization': 'Bearer ' + KEY, 'Content-Type': 'application/json', 'Prefer': 'return=representation' };
 
         /* Estado de los puntos del formulario de evaluación activo */
         const S = { reglamento: null, bpm: null, calidad: null, haccp: null, alergenos: null, plagas: null, trazabilidad: null };

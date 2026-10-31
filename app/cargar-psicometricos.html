@@ -1146,8 +1146,7 @@
         // ── SUPABASE CONFIG ──
         const SUPA_URL = 'https://znskpdixdyxdbvpapqrg.supabase.co';
         const SUPA_KEY = 'sb_publishable_YLgLfp_OIJLmimFo1vWStg_-THES9lw';
-        const _tok = localStorage.getItem('mb_token');
-        const H = { 'apikey': SUPA_KEY, 'Authorization': 'Bearer ' + (_tok || SUPA_KEY), 'Content-Type': 'application/json', 'Prefer': 'return=representation' };
+        const H = { 'apikey': SUPA_KEY, 'Authorization': 'Bearer ' + SUPA_KEY, 'Content-Type': 'application/json', 'Prefer': 'return=representation' };
         const api = async (path, opt = {}) => {
             const r = await fetch(SUPA_URL + path, { headers: H, ...opt });
             return r.ok ? r.json() : null;
@@ -1160,7 +1159,7 @@
         // ── INIT ──
         async function init() {
             // Validar sesión (admin o rrhh)
-            const sess = JSON.parse(sessionStorage.getItem('mb_session') || '{}');
+            const sess = getSession();
             if (!sess.token || !['admin', 'rrhh'].includes(sess.rol)) {
                 window.location = 'login.html'; return;
             }
